@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Tadmor
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Console.WriteLine("k");
-            Console.ReadLine();
+            await Task.Delay(-1);
         }
     }
 }
