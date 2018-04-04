@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2002
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tadmor", "Tadmor\Tadmor.csproj", "{77E24DAB-AE74-4D69-A9EE-5A9E4E43C100}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{77E24DAB-AE74-4D69-A9EE-5A9E4E43C100}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77E24DAB-AE74-4D69-A9EE-5A9E4E43C100}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77E24DAB-AE74-4D69-A9EE-5A9E4E43C100}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77E24DAB-AE74-4D69-A9EE-5A9E4E43C100}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D114D4BA-4CD9-49F2-9FA8-982F14037001}
+	EndGlobalSection
+EndGlobal
