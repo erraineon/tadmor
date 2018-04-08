@@ -6,6 +6,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Tadmor.Extensions;
 
 namespace Tadmor.Services
 {
@@ -24,8 +25,7 @@ namespace Tadmor.Services
         private readonly IServiceProvider _services;
 
         public DiscordService(IServiceProvider services, ILogger<DiscordService> logger, DiscordSocketClient discord,
-            CommandService commands,
-            IOptions<DiscordOptions> discordOptions)
+            CommandService commands, IOptions<DiscordOptions> discordOptions)
         {
             _services = services;
             _logger = logger;
@@ -36,13 +36,25 @@ namespace Tadmor.Services
 
         public async Task Start()
         {
+            var discordReady = new TaskCompletionSource<object>();
+
+            Task OnReady()
+            {
+                _discord.Ready -= OnReady;
+                discordReady.SetResult(default);
+                return Task.CompletedTask;
+            }
+
+            _discord.Ready += OnReady;
             _discord.Log += Log;
-            _commands.Log += OnCommandError;
+            _commands.Log += LogCommandError;
             _discord.MessageReceived += TryExecuteCommand;
             await _commands.AddModulesAsync(Assembly.GetExecutingAssembly());
             await _discord.LoginAsync(TokenType.Bot, _discordOptions.Token);
             await _discord.StartAsync();
+            await discordReady.Task;
         }
+
 
         private Task Log(LogMessage logMessage)
         {
@@ -52,10 +64,14 @@ namespace Tadmor.Services
             return Task.CompletedTask;
         }
 
-        private async Task OnCommandError(LogMessage logMessage)
+        private async Task LogCommandError(LogMessage logMessage)
         {
-            if (logMessage.Exception is CommandException e)
-                await e.Context.Channel.SendMessageAsync(e.InnerException.Message);
+            if (logMessage.Exception is CommandException commandException)
+            {
+                var e = commandException.InnerException;
+                var message = e.GetType() == typeof(Exception) ? e.Message : e.ToShortString();
+                await commandException.Context.Channel.SendMessageAsync(message);
+            }
         }
 
         private async Task TryExecuteCommand(SocketMessage socketMessage)
