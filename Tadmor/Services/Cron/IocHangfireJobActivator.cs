@@ -1,7 +1,7 @@
 ﻿using System;
 using Hangfire;
 
-namespace Tadmor
+namespace Tadmor.Services.Cron
 {
     //in order to use the app's ioc container for jobs with hangfire
     public class IocHangfireJobActivator : JobActivator

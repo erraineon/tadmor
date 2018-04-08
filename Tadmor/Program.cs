@@ -3,15 +3,15 @@ using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
 using Hangfire;
-using Hangfire.Logging.LogProviders;
 using Hangfire.SQLite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Tadmor.Data;
 using Tadmor.Services;
+using Tadmor.Services.Cron;
+using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
 
 namespace Tadmor
@@ -50,7 +50,7 @@ namespace Tadmor
                 .AddSingleton<IocHangfireJobActivator>()
                 .Scan(scan => scan
                     .FromEntryAssembly()
-                    .AddClasses(classes => classes.InNamespaces($"{nameof(Tadmor)}.{nameof(Services)}"))
+                    .AddClasses(classes => classes.Where(type => type.Name.EndsWith("Service")))
                     .AsSelf()
                     .WithSingletonLifetime())
                 .BuildServiceProvider();

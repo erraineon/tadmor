@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tadmor.Extensions;
 
-namespace Tadmor.Services
+namespace Tadmor.Services.Discord
 {
     internal class DiscordService
     {

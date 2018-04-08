@@ -1,4 +1,4 @@
-﻿namespace Tadmor
+﻿namespace Tadmor.Services.Discord
 {
     public class DiscordOptions
     {
