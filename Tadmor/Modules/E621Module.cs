@@ -15,7 +15,7 @@ namespace Tadmor.Modules
         }
         
         [Command("e621")]
-        public async Task SearchRandom(string tags)
+        public async Task SearchRandom([Remainder] string tags)
         {
             var post = await _e621.SearchRandom(tags);
             await ReplyAsync(string.Empty, embed: post.ToEmbed());
