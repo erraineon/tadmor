@@ -22,6 +22,7 @@
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.0.0-beta" />
     <PackageReference Include="E621Client" Version="0.0.1" />
+    <PackageReference Include="Google.Apis.Customsearch.v1" Version="1.32.2.1146" />
     <PackageReference Include="Hangfire" Version="1.6.19" />
     <PackageReference Include="Hangfire.SQLite" Version="1.4.2" />
     <PackageReference Include="Humanizer" Version="2.2.0" />

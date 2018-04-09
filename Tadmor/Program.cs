@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Tadmor.Data;
 using Tadmor.Services.Cron;
+using Tadmor.Services.CustomSearch;
 using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
 
@@ -42,6 +43,7 @@ namespace Tadmor
             var services = new ServiceCollection()
                 .Configure<DiscordOptions>(configuration.GetSection(nameof(DiscordOptions)))
                 .Configure<E621Options>(configuration.GetSection(nameof(E621Options)))
+                .Configure<CustomSearchOptions>(configuration.GetSection(nameof(CustomSearchOptions)))
                 .AddLogging(logger => logger.AddConsole())
                 .AddDbContext<AppDbContext>(builder => builder.UseSqlite(configuration.GetConnectionString("Main")))
                 .AddSingleton(new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async}))
@@ -54,7 +56,7 @@ namespace Tadmor
                 .BuildServiceProvider();
             GlobalConfiguration.Configuration.UseSQLiteStorage(configuration.GetConnectionString("Hangfire"));
             GlobalConfiguration.Configuration.UseActivator(new IocHangfireJobActivator(services));
-            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute {Attempts = 0});
+            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute {Attempts = 0}); //don't retry failed jobs
             return services;
         }
     }
