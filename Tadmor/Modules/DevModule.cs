@@ -6,6 +6,7 @@ using Humanizer;
 
 namespace Tadmor.Modules
 {
+    [RequireOwner]
     public class DevModule : ModuleBase<SocketCommandContext>
     {
         [Command("ping")]
@@ -13,5 +14,8 @@ namespace Tadmor.Modules
 
         [Command("uptime")]
         public Task Uptime() => ReplyAsync((DateTime.Now - Process.GetCurrentProcess().StartTime).Humanize());
+
+        [Command("guilds")]
+        public Task Guilds() => ReplyAsync(Context.Client.Guilds.Humanize(g => $"{g.Name} ({g.Owner.Mention})"));
     }
 }
