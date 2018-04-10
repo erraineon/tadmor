@@ -34,6 +34,7 @@ namespace Tadmor.Modules
                     let avatarTask = _client.GetByteArrayAsync(avatarUrl)
                     select (rng: user.ToRandom(RandomDiscriminants.AvatarId), avatarTask))
                 .Select(async tuple => (tuple.rng, await tuple.avatarTask))
+                .Reverse()
                 .ToList());
             var result = _service.McDonalds(rngAndAvatars);
             await Context.Channel.SendFileAsync(result, "result.png");
