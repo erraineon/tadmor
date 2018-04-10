@@ -2,22 +2,27 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Humanizer;
 using MoreLinq;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Convolution;
 using SixLabors.ImageSharp.Processing.Drawing;
 using SixLabors.ImageSharp.Processing.Drawing.Pens;
 using SixLabors.ImageSharp.Processing.Text;
+using SixLabors.ImageSharp.Processing.Transforms;
 using SixLabors.Primitives;
 using SixLabors.Shapes;
+using Tadmor.Extensions;
 
 namespace Tadmor.Services.Imaging
 {
     public class ImagingService
     {
         private static readonly Font LargeBoldArial = SystemFonts.CreateFont("Arial", 35, FontStyle.Bold);
+        private static readonly Font LargeSerif = SystemFonts.CreateFont("Times New Roman", 40);
         private static readonly Font SmallArial = new Font(LargeBoldArial, 20, FontStyle.Regular);
 
         public MemoryStream McDonalds(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas)
@@ -68,6 +73,89 @@ namespace Tadmor.Services.Imaging
                             var avatarPosition = a + (b - a) * (float) rng.NextDouble() - avatar.Size() / 2;
                             c.DrawImage(avatar, 1, new Point((int) avatarPosition.X, (int) avatarPosition.Y));
                         }
+                });
+                canvas.SaveAsPng(output);
+            }
+
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
+        }
+
+        public MemoryStream AlignmentChart(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string ea1,
+            string ma, string ea2, string eb1, string mb, string eb2)
+        {
+            //constants
+            const int w = 1480;
+            const int h = 1024;
+            const int horMargin = 30;
+            const int verMargin = 20;
+            const int textHeight = 80;
+            const int textMargin = 10;
+            var color = Rgba32.LightGray;
+
+            //computed variables
+            var cells = new[] {ea1, ma, ea2}
+                .Cartesian(new[] {eb1, mb, eb2}, (s1, s2) => s1 == s2 ? $"true {s1}" : $"{s1} {s2}")
+                .Batch(3)
+                .SelectMany((col, y) => col.Select((cell, x) => (cell: cell.Humanize(LetterCasing.AllCaps), x, y)))
+                .ToList();
+            var alignmentString = string.Concat(cells.Select(t => t.cell));
+            var rows = cells.Max(t => t.y) + 1;
+            var cols = cells.Max(t => t.x) + 1;
+            var cellW = w / cols;
+            var cellH = h / rows;
+            var avatarsByCell = rngAndAvatarDatas
+                .Select(tuple => (rng: alignmentString.ToRandom(tuple.rng), tuple.avatarData))
+                .ToLookup(
+                    tuple => (tuple.rng.Next(cols), tuple.rng.Next(rows)),
+                    tuple => CropCircle(tuple.avatarData));
+            var textOptions = new TextGraphicsOptions(true) {HorizontalAlignment = HorizontalAlignment.Center};
+            var output = new MemoryStream();
+            using (var canvas = new Image<Rgba32>(w, h))
+            {
+                canvas.Mutate(c =>
+                {
+                    //background
+                    c.Fill(Rgba32.Black);
+
+                    foreach (var (text, x, y) in cells)
+                    {
+                        //alignment cell
+                        var cellRect = new RectangleF(cellW * x, cellH * y, cellW, cellH - textHeight);
+                        cellRect.Inflate(-horMargin, -verMargin);
+                        var cellCenter = cellRect.Location + cellRect.Size / 2;
+
+                        //alignment text
+                        var textPosition = cellCenter + new PointF(0, cellRect.Height / 2 + textMargin);
+                        c.DrawText(textOptions, text, LargeSerif, color, textPosition);
+
+                        //avatars
+                        var avatarsForCell = avatarsByCell[(x, y)].ToList();
+                        if (avatarsForCell.Any())
+                        {
+                            //draw all the avatars on one image, then resize if necessary
+                            var avatarWidth = avatarsForCell.First().Width;
+                            var avatars = new Image<Rgba32>(avatarWidth * avatarsForCell.Count, avatarWidth);
+                            avatars.Mutate(ac =>
+                            {
+                                for (var i = 0; i < avatarsForCell.Count; i++)
+                                    ac.DrawImage(avatarsForCell[i], 1, new Point(i * avatarWidth, 0));
+                                if (avatars.Width > cellRect.Width)
+                                    ac.Resize((Size) (avatars.Size() * (cellRect.Width / avatars.Width)));
+                            });
+                            //use the average color from the avatars as cell background
+                            var blurryAvatars = avatars.Clone();
+                            blurryAvatars.Mutate(i => i.GaussianBlur(10));
+                            var averageColor = blurryAvatars[blurryAvatars.Width / 2, blurryAvatars.Height / 2];
+                            c.Fill(averageColor, cellRect);
+                            var position = cellCenter - avatars.Size() / 2;
+                            c.DrawImage(avatars, 1, (Point) position);
+                        }
+                        else
+                        {
+                            c.Fill(color, cellRect);
+                        }
+                    }
                 });
                 canvas.SaveAsPng(output);
             }

@@ -14,33 +14,12 @@ namespace Tadmor.Extensions
         {
             bool HasFlag(RandomDiscriminants flag) => (discriminants & flag) != 0;
 
-            //.net core adds randomness to hash code generation. use this for fixed behavior
-            int GetStableHashCode(string str)
-            {
-                unchecked
-                {
-                    var hash1 = 5381;
-                    var hash2 = hash1;
-
-                    for (var i = 0; i < str.Length && str[i] != '\0'; i += 2)
-                    {
-                        hash1 = ((hash1 << 5) + hash1) ^ str[i];
-                        if (i == str.Length - 1 || str[i + 1] == '\0')
-                            break;
-                        hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
-                    }
-
-                    return hash1 + hash2 * 1566083941;
-                }
-            }
-
             var builder = new StringBuilder();
             if (HasFlag(RandomDiscriminants.UserId)) builder.Append(user.Id);
             if (HasFlag(RandomDiscriminants.GuildId)) builder.Append(user.GuildId);
             if (HasFlag(RandomDiscriminants.Nickname)) builder.Append(user.Nickname);
             if (HasFlag(RandomDiscriminants.AvatarId)) builder.Append(user.AvatarId);
-            var hashCode = GetStableHashCode(builder.ToString());
-            return new Random(hashCode);
+            return builder.ToString().ToRandom();
         }
 
         public static Embed ToEmbed(this E621Post post)
