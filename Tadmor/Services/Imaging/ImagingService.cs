@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Humanizer;
 using MoreLinq;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -23,9 +22,10 @@ namespace Tadmor.Services.Imaging
     {
         private static readonly Font LargeBoldArial = SystemFonts.CreateFont("Arial", 35, FontStyle.Bold);
         private static readonly Font LargeSerif = SystemFonts.CreateFont("Times New Roman", 40);
-        private static readonly Font SmallArial = new Font(LargeBoldArial, 20, FontStyle.Regular);
+        private static readonly Font SmallArial = new Font(LargeBoldArial, 28, FontStyle.Regular);
 
-        public MemoryStream McDonalds(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas)
+        public MemoryStream Triangle(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string opt1,
+            string opt2, string opt3, string title)
         {
             //constants
             const int s = 1280; //picture size
@@ -33,16 +33,13 @@ namespace Tadmor.Services.Imaging
             var color = Rgba32.Black;
             const double triangleRadius = s * 0.45;
             var trianglePosition = new PointF(extent, s * .62F);
-            const string title = "CHILDREN YELLING: MCDONALDS! MCDONALDS! MCDONALDS!";
-            const string opt1 = "\"We have food at home\"";
-            const string opt2 = "*Pulls into the drive through as chilren cheer*\n" +
-                                "*Orders a single black coffee and leaves*";
-            const string opt3 = "\"MCDONALDS!\nMCDONALDS! MCDONALDS!\"";
             const float topTitleMargin = s * .02F;
             const float botMargin = s * 0.08F;
             const float topMargin = topTitleMargin + botMargin;
 
             //computed variables
+            title = title.ToUpper();
+            var parametersSeed = $"{opt1}{opt2}{opt3}".ToLower();
             var rendererOptions = new RendererOptions(SmallArial);
             var opt2Extent = TextMeasurer.Measure(opt2, rendererOptions).Width / 2;
             var opt3Extent = TextMeasurer.Measure(opt3, rendererOptions).Width / 2;
@@ -56,7 +53,10 @@ namespace Tadmor.Services.Imaging
                     //background
                     c.Fill(Rgba32.White);
                     c.Draw(new Pen<Rgba32>(color, 5), triangle);
-                    var t = new TextGraphicsOptions(true) {HorizontalAlignment = HorizontalAlignment.Center};
+                    var t = new TextGraphicsOptions(true)
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Center
+                    };
                     c.DrawText(t, title, LargeBoldArial, color, new PointF(extent, topTitleMargin));
                     c.DrawText(t, opt1, SmallArial, color, new PointF(extent, topMargin));
                     c.DrawText(t, opt2, SmallArial, color, new PointF(opt2Extent + s * .02F, s - botMargin));
@@ -64,15 +64,18 @@ namespace Tadmor.Services.Imaging
 
                     //avatars
                     foreach (var (rng, avatarData) in rngAndAvatarDatas)
+                    {
+                        var saltedRng = parametersSeed.ToRandom(rng);
                         using (var avatar = CropCircle(avatarData))
                         {
-                            var randomVertices = vertices.RandomSubset(2, rng).ToList();
+                            var randomVertices = vertices.RandomSubset(2, saltedRng).ToList();
                             var (a, b) = (randomVertices[0], randomVertices[1]);
                             //select a random point on any of the vertices of the path
                             //IPath.PointAlongPath seems to have a glitch so do it myself
-                            var avatarPosition = a + (b - a) * (float) rng.NextDouble() - avatar.Size() / 2;
+                            var avatarPosition = a + (b - a) * (float) saltedRng.NextDouble() - avatar.Size() / 2;
                             c.DrawImage(avatar, 1, new Point((int) avatarPosition.X, (int) avatarPosition.Y));
                         }
+                    }
                 });
                 canvas.SaveAsPng(output);
             }
@@ -97,7 +100,7 @@ namespace Tadmor.Services.Imaging
             var cells = new[] {ea1, ma, ea2}
                 .Cartesian(new[] {eb1, mb, eb2}, (s1, s2) => s1 == s2 ? $"true {s1}" : $"{s1} {s2}")
                 .Batch(3)
-                .SelectMany((col, x) => col.Select((cell, y) => (cell: cell.Humanize(LetterCasing.AllCaps), x, y)))
+                .SelectMany((col, x) => col.Select((cell, y) => (cell: cell.ToUpper(), x, y)))
                 .ToList();
             var alignmentString = string.Concat(cells.Select(t => t.cell));
             var rows = cells.Max(t => t.y) + 1;

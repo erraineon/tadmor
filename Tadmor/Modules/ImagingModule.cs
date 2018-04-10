@@ -20,12 +20,22 @@ namespace Tadmor.Modules
             _client = client;
         }
 
-        [Command("mcd")]
-        public async Task McDonalds()
+        [Command("tri")]
+        public async Task Triangle(string opt1, string opt2, string opt3, [Remainder] string title = "")
         {
             var rngAndAvatars = await GetRngAndAvatars();
-            var result = _service.McDonalds(rngAndAvatars);
+            var result = _service.Triangle(rngAndAvatars, opt1, opt2, opt3, title);
             await Context.Channel.SendFileAsync(result, "result.png");
+        }
+
+        [Command("mcd")]
+        public Task McDonalds()
+        {
+            const string opt1 = "\"We have food at home\"";
+            const string opt2 = "*Pulls into the drive through as chilren cheer*\n" +
+                                "*Orders a single black coffee and leaves*";
+            const string opt3 = "\"MCDONALDS!\nMCDONALDS! MCDONALDS!\"";
+            return Triangle(opt1, opt2, opt3, "CHILDREN YELLING: MCDONALDS! MCDONALDS! MCDONALDS!");
         }
 
         [Command("align")]
