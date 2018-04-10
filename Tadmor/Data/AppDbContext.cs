@@ -6,8 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Tadmor.Data
 {
-    internal class AppDbContext : DbContext
+    public class AppDbContext : DbContext
     {
+        public DbSet<GuildOptions> GuildOptions { get; set; }
         public AppDbContext(DbContextOptions options) : base(options)
         {
         }
