@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -47,7 +48,8 @@ namespace Tadmor
                 .AddLogging(logger => logger.AddConsole())
                 .AddDbContext<AppDbContext>(builder => builder.UseSqlite(configuration.GetConnectionString("Main")))
                 .AddSingleton(new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async}))
-                .AddSingleton<DiscordSocketClient>()
+                .AddSingleton(_ => new DiscordSocketClient(new DiscordSocketConfig {MessageCacheSize = 100}))
+                .AddSingleton<HttpClient>() //better to reuse the same httpclient across the app
                 .Scan(scan => scan
                     .FromEntryAssembly()
                     .AddClasses(classes => classes.Where(type => type.Name.EndsWith("Service")))
