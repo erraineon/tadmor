@@ -97,7 +97,7 @@ namespace Tadmor.Services.Imaging
             var cells = new[] {ea1, ma, ea2}
                 .Cartesian(new[] {eb1, mb, eb2}, (s1, s2) => s1 == s2 ? $"true {s1}" : $"{s1} {s2}")
                 .Batch(3)
-                .SelectMany((col, y) => col.Select((cell, x) => (cell: cell.Humanize(LetterCasing.AllCaps), x, y)))
+                .SelectMany((col, x) => col.Select((cell, y) => (cell: cell.Humanize(LetterCasing.AllCaps), x, y)))
                 .ToList();
             var alignmentString = string.Concat(cells.Select(t => t.cell));
             var rows = cells.Max(t => t.y) + 1;
