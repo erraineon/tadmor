@@ -32,26 +32,30 @@ namespace Tadmor.Modules
             foreach (var commands in commandsByRoot)
             {
                 var module = commands.Key;
-                var sb = new StringBuilder();
-                foreach (var cmd in commands)
+                var modulePreconditions = await Task.WhenAll(module.Preconditions
+                    .Select(p => p.CheckPermissionsAsync(Context, default, default)));
+                if (modulePreconditions.All(r => r.IsSuccess))
                 {
-                    var result = await Task.WhenAll(cmd.Preconditions
-                        .Where(p => !(p is RequireNsfwAttribute))
-                        .Select(p => p.CheckPermissionsAsync(Context, cmd, default)));
-                    if (result.All(r => r.IsSuccess))
+                    var sb = new StringBuilder();
+                    foreach (var cmd in commands)
                     {
-                        var joinedParameters = string.Join(" ", cmd.Parameters.Select(parameter => parameter.Name));
-                        sb.Append($"{prefix}{cmd.Aliases.First()} {joinedParameters}");
-                        if (!string.IsNullOrEmpty(cmd.Summary)) sb.Append($": {cmd.Summary}");
-                        sb.AppendLine();
+                        var commandPreconditions = await Task.WhenAll(cmd.Preconditions
+                            .Select(p => p.CheckPermissionsAsync(Context, cmd, default)));
+                        if (commandPreconditions.All(r => r.IsSuccess))
+                        {
+                            var joinedParameters = string.Join(" ", cmd.Parameters.Select(parameter => parameter.Name));
+                            sb.Append($"{prefix}{cmd.Aliases.First()} {joinedParameters}");
+                            if (!string.IsNullOrEmpty(cmd.Summary)) sb.Append($": {cmd.Summary}");
+                            sb.AppendLine();
+                        }
                     }
-                }
 
-                if (sb.Length > 0)
-                    builder.AddField(field => field
-                        .WithName(module.Name.Replace("Module", string.Empty).Humanize(LetterCasing.LowerCase))
-                        .WithValue(sb.ToString())
-                        .WithIsInline(false));
+                    if (sb.Length > 0)
+                        builder.AddField(field => field
+                            .WithName(module.Name.Replace("Module", string.Empty).Humanize(LetterCasing.LowerCase))
+                            .WithValue(sb.ToString())
+                            .WithIsInline(false));
+                }
             }
 
             await ReplyAsync(string.Empty, embed: builder.Build());
