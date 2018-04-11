@@ -28,6 +28,14 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
+        [Command("quad")]
+        public async Task Quadrant(string opt1, string opt2, string opt3, string opt4)
+        {
+            var rngAndAvatars = await GetRngAndAvatars();
+            var result = _service.Quadrant(rngAndAvatars, opt1, opt2, opt3, opt4);
+            await Context.Channel.SendFileAsync(result, "result.png");
+        }
+
         [Command("mcd")]
         public Task McDonalds()
         {
