@@ -24,7 +24,7 @@ namespace Tadmor.Extensions
 
         public static Embed ToEmbed(this E621Post post)
         {
-            var author = post.Artists.Any() ? post.Artists.Humanize() : post.Author;
+            var author = post.Artists != null ? post.Artists.Humanize() : post.Author;
             var builder = new EmbedBuilder()
                 .WithTitle($"id: {post.Id} • score: {post.Score}")
                 .WithAuthor(author)
