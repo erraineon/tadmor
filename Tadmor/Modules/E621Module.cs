@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Discord.Commands;
 using Tadmor.Extensions;
 using Tadmor.Services.E621;
@@ -18,7 +19,7 @@ namespace Tadmor.Modules
         public async Task SearchRandom([Remainder] string tags)
         {
             var post = await _e621.SearchRandom(tags);
-            await ReplyAsync(string.Empty, embed: post.ToEmbed());
+            await ReplyAsync(string.Empty, embed: post?.ToEmbed() ?? throw new Exception("no results"));
         }
     }
 }
