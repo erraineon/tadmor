@@ -66,7 +66,7 @@ namespace Tadmor.Modules
                 .Flatten()
                 .Select(message => message.Author as IGuildUser)
                 .Where(user => user != null)
-                .Distinct();
+                .Distinct(user => user.Id);
             var rngAndAvatars = await Task.WhenAll(await (from user in users
                     let avatarUrl = user.GetAvatarUrl()
                     where avatarUrl != null
