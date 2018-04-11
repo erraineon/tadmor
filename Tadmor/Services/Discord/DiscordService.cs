@@ -67,7 +67,7 @@ namespace Tadmor.Services.Discord
             //to avoid continously querying the database, load guild settings on demand
             _guildOptions = await _dbContext.GuildOptions.ToDictionaryAsync(o => o.Id);
         }
-        
+
         private Task Log(LogMessage logMessage)
         {
             //discord log severity and log levels don't follow the same order so map them
@@ -90,17 +90,21 @@ namespace Tadmor.Services.Discord
         {
             if (socketMessage.Channel is IGuildChannel channel &&
                 socketMessage is SocketUserMessage message &&
-                !message.Author.IsBot)
+                !message.Author.IsBot &&
+                GetCommandsPrefix(channel.Guild) is var commandPrefix &&
+                message.Content.StartsWith(commandPrefix))
             {
-                var commandPrefix = _guildOptions.TryGetValue(channel.GuildId, out var guildOptions)
-                    ? guildOptions.CommandPrefix
-                    : ".";
-                if (message.Content.StartsWith(commandPrefix))
-                {
-                    var context = new SocketCommandContext(_discord, message);
-                    var result = await _commands.ExecuteAsync(context, commandPrefix.Length, _services);
-                }
+                var context = new SocketCommandContext(_discord, message);
+                var result = await _commands.ExecuteAsync(context, commandPrefix.Length, _services);
             }
+        }
+
+        public string GetCommandsPrefix(IGuild guild)
+        {
+            var commandPrefix = _guildOptions.TryGetValue(guild.Id, out var guildOptions)
+                ? guildOptions.CommandPrefix
+                : ".";
+            return commandPrefix;
         }
 
         public async Task ChangeCommandPrefix(SocketGuild guild, string newPrefix)

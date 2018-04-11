@@ -39,10 +39,10 @@ namespace Tadmor.Modules
         }
 
         [Command("align")]
-        public async Task AlignmentChart(string ea1, string ma, string ea2, string eb1, string mb, string eb2)
+        public async Task AlignmentChart(string opt1, string opt2, string opt3, string opt4, string opt5, string opt6)
         {
             var rngAndAvatars = await GetRngAndAvatars();
-            var result = _service.AlignmentChart(rngAndAvatars, ea1, ma, ea2, eb1, mb, eb2);
+            var result = _service.AlignmentChart(rngAndAvatars, opt1, opt2, opt3, opt4, opt5, opt6);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 

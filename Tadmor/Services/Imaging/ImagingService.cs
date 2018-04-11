@@ -84,8 +84,8 @@ namespace Tadmor.Services.Imaging
             return output;
         }
 
-        public MemoryStream AlignmentChart(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string ea1,
-            string ma, string ea2, string eb1, string mb, string eb2)
+        public MemoryStream AlignmentChart(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string opt1,
+            string opt2, string opt3, string opt4, string opt5, string opt6)
         {
             //constants
             const int w = 1480;
@@ -97,8 +97,8 @@ namespace Tadmor.Services.Imaging
             var color = Rgba32.LightGray;
 
             //computed variables
-            var cells = new[] {ea1, ma, ea2}
-                .Cartesian(new[] {eb1, mb, eb2}, (s1, s2) => s1 == s2 ? $"true {s1}" : $"{s1} {s2}")
+            var cells = new[] {opt1, opt2, opt3}
+                .Cartesian(new[] {opt4, opt5, opt6}, (s1, s2) => s1 == s2 ? $"true {s1}" : $"{s1} {s2}")
                 .Batch(3)
                 .SelectMany((col, x) => col.Select((cell, y) => (cell: cell.ToUpper(), x, y)))
                 .ToList();
