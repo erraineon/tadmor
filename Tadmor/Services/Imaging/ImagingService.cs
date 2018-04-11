@@ -84,29 +84,29 @@ namespace Tadmor.Services.Imaging
             return output;
         }
 
-        public MemoryStream AlignmentChart(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string opt1,
-            string opt2, string opt3, string opt4, string opt5, string opt6)
+        public MemoryStream AlignmentChart(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string[] options)
         {
             //constants
-            const int w = 1480;
-            const int h = 1024;
+            const int cellW = 500;
+            const int cellH = 300;
             const int horMargin = 30;
             const int verMargin = 20;
             const int textHeight = 80;
             const int textMargin = 10;
             var color = Rgba32.LightGray;
 
+            if (options.Length%2 != 0) throw new Exception("need an even number of options");
+            if (options.Length > 16) throw new Exception("please no");
             //computed variables
-            var cells = new[] {opt1, opt2, opt3}
-                .Cartesian(new[] {opt4, opt5, opt6}, (s1, s2) => s1 == s2 ? $"true {s1}" : $"{s1} {s2}")
-                .Batch(3)
+            var axisLength = options.Length / 2;
+            var cells = options.Take(axisLength)
+                .Cartesian(options.Skip(axisLength), (s1, s2) => s1 == s2 ? $"true {s1}" : $"{s1} {s2}")
+                .Batch(axisLength)
                 .SelectMany((col, x) => col.Select((cell, y) => (cell: cell.ToUpper(), x, y)))
                 .ToList();
             var alignmentString = string.Concat(cells.Select(t => t.cell));
             var rows = cells.Max(t => t.y) + 1;
             var cols = cells.Max(t => t.x) + 1;
-            var cellW = w / cols;
-            var cellH = h / rows;
             var avatarsByCell = rngAndAvatarDatas
                 .Select(tuple => (rng: alignmentString.ToRandom(tuple.rng), tuple.avatarData))
                 .ToLookup(
@@ -114,7 +114,7 @@ namespace Tadmor.Services.Imaging
                     tuple => CropCircle(tuple.avatarData));
             var textOptions = new TextGraphicsOptions(true) {HorizontalAlignment = HorizontalAlignment.Center};
             var output = new MemoryStream();
-            using (var canvas = new Image<Rgba32>(w, h))
+            using (var canvas = new Image<Rgba32>(cellW * cols, cellH * rows))
             {
                 canvas.Mutate(c =>
                 {

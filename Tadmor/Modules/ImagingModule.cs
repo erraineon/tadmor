@@ -47,17 +47,12 @@ namespace Tadmor.Modules
         }
 
         [Command("align")]
-        public async Task AlignmentChart(string opt1, string opt2, string opt3, string opt4, string opt5, string opt6)
+        public async Task AlignmentChart(params string[] options)
         {
+            if (!options.Any()) options = new[] {"lawful", "neutral", "chaotic", "good", "neutral", "evil"};
             var rngAndAvatars = await GetRngAndAvatars();
-            var result = _service.AlignmentChart(rngAndAvatars, opt1, opt2, opt3, opt4, opt5, opt6);
+            var result = _service.AlignmentChart(rngAndAvatars, options);
             await Context.Channel.SendFileAsync(result, "result.png");
-        }
-
-        [Command("align")]
-        public Task AlignmentChart()
-        {
-            return AlignmentChart("lawful", "neutral", "chaotic", "good", "neutral", "evil");
         }
 
         private async Task<(Random rng, byte[])[]> GetRngAndAvatars()
