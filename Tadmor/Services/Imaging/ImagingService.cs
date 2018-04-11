@@ -201,7 +201,7 @@ namespace Tadmor.Services.Imaging
                         using (var avatar = CropCircle(avatarData))
                         {
                             var avatarPosition = new Point(saltedRng.Next(s - avatar.Width),
-                                rng.Next(s - avatar.Height));
+                                saltedRng.Next(s - avatar.Height));
                             c.DrawImage(avatar, 1, avatarPosition);
                         }
                     }
