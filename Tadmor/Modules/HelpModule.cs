@@ -32,30 +32,29 @@ namespace Tadmor.Modules
             foreach (var commands in commandsByRoot)
             {
                 var module = commands.Key;
-                var modulePreconditions = await Task.WhenAll(module.Preconditions
-                    .Select(p => p.CheckPermissionsAsync(Context, default, default)));
-                if (modulePreconditions.All(r => r.IsSuccess))
+                var sb = new StringBuilder();
+                foreach (var cmd in commands)
                 {
-                    var sb = new StringBuilder();
-                    foreach (var cmd in commands)
+                    //check module preconditions on each command because the parent is different from the key
+                    //when dealing with nested modules
+                    var preconditions = await Task.WhenAll(cmd.Module.Preconditions
+                        .Select(p => p.CheckPermissionsAsync(Context, default, default))
+                        .Concat(cmd.Preconditions
+                            .Select(p => p.CheckPermissionsAsync(Context, cmd, default))));
+                    if (preconditions.All(r => r.IsSuccess))
                     {
-                        var commandPreconditions = await Task.WhenAll(cmd.Preconditions
-                            .Select(p => p.CheckPermissionsAsync(Context, cmd, default)));
-                        if (commandPreconditions.All(r => r.IsSuccess))
-                        {
-                            var joinedParameters = string.Join(" ", cmd.Parameters.Select(parameter => parameter.Name));
-                            sb.Append($"{prefix}{cmd.Aliases.First()} {joinedParameters}");
-                            if (!string.IsNullOrEmpty(cmd.Summary)) sb.Append($": {cmd.Summary}");
-                            sb.AppendLine();
-                        }
+                        var joinedParameters = string.Join(" ", cmd.Parameters.Select(parameter => parameter.Name));
+                        sb.Append($"{prefix}{cmd.Aliases.First()} {joinedParameters}");
+                        if (!string.IsNullOrEmpty(cmd.Summary)) sb.Append($": {cmd.Summary}");
+                        sb.AppendLine();
                     }
-
-                    if (sb.Length > 0)
-                        builder.AddField(field => field
-                            .WithName(module.Name.Replace("Module", string.Empty).Humanize(LetterCasing.LowerCase))
-                            .WithValue(sb.ToString())
-                            .WithIsInline(false));
                 }
+
+                if (sb.Length > 0)
+                    builder.AddField(field => field
+                        .WithName(module.Name.Replace("Module", string.Empty).Humanize(LetterCasing.LowerCase))
+                        .WithValue(sb.ToString())
+                        .WithIsInline(false));
             }
 
             await ReplyAsync(string.Empty, embed: builder.Build());
