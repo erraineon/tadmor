@@ -31,12 +31,15 @@ namespace Tadmor.Services.E621
         {
             var searchOptions = new E621SearchOptions
             {
-                Limit = afterId == default ? 1 : 10,
                 Tags = tags,
                 TypedTags = true
             };
             var posts = await _client.Search(searchOptions);
-            var newPosts = posts.TakeWhile(post => post.Id > afterId).Reverse().ToList();
+            var newPosts = posts
+                .TakeWhile(post => post.Id > afterId)
+                .Reverse()
+                .Take(afterId == default ? 1 : 4)
+                .ToList();
             var newLastId = posts.Max(post => post.Id);
             return (newPosts, newLastId);
         }
