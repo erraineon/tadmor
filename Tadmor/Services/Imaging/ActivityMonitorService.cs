@@ -28,6 +28,7 @@ namespace Tadmor.Services.Imaging
                     .Where(channel => channel.GetUser(_discord.CurrentUser.Id) != null)
                     .Select(channel => channel.GetMessagesAsync()
                         .Flatten()
+                        .Where(message => !message.Author.IsWebhook)
                         .Select(message => (guildId: guild.Id, userId: message.Author.Id, message.Timestamp.DateTime))
                         .ToList()));
             var userActivityTuples = (await Task.WhenAll(tasks))
