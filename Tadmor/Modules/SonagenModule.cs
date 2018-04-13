@@ -22,18 +22,12 @@ namespace Tadmor.Modules
         private Task GenerateSona(Random random, IUser user = default, string seed = default)
         {
             var sona = _sonagen.GenerateSona(random);
-            var fields = sona.AttributesByGroup
-                .OrderBy(group => group.Key)
-                .Select(group => new EmbedFieldBuilder()
-                    .WithName(group.Key)
-                    .WithValue(string.Join(Environment.NewLine, group.Select(a => a.value))));
             var builder = new EmbedBuilder();
             builder
                 .WithDescription(sona.Description)
                 .WithTitle($"{sona.Species} • {sona.Gender}");
             if (user != null) builder.WithAuthor(user);
             if (seed != null) builder.WithAuthor(seed);
-            builder.Fields.AddRange(fields);
             return ReplyAsync(string.Empty, embed: builder.Build());
         }
 
