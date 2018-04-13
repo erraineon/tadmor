@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Tadmor.Extensions
 {
@@ -29,6 +31,32 @@ namespace Tadmor.Extensions
 
             var hashCode = GetStableHashCode(value);
             return new Random(hashCode);
+        }
+
+        public static T GetRandom<T>(this ICollection<T> sequence, Func<T, float> weightSelector, Random random)
+        {
+            if (weightSelector == null) weightSelector = arg => 1f;
+            var totalWeight = sequence.Sum(weightSelector);
+            var nextDouble = random.NextDouble();
+            var itemWeightIndex = (float)(nextDouble * totalWeight);
+            float currentWeightIndex = 0;
+
+            foreach (var item in from weightedItem in sequence select new { Value = weightedItem, Weight = weightSelector(weightedItem) })
+            {
+                currentWeightIndex += item.Weight;
+                if (currentWeightIndex >= itemWeightIndex) return item.Value;
+            }
+            return default;
+        }
+
+        public static bool RandomByWeight(this float weight, Random random)
+        {
+            return (float)random.NextDouble() < weight;
+        }
+
+        public static IEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Random random)
+        {
+            return source.OrderBy(e => random.Next());
         }
     }
 }

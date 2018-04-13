@@ -37,11 +37,14 @@ namespace Tadmor.Modules
                 {
                     //check module preconditions on each command because the parent is different from the key
                     //when dealing with nested modules
-                    var preconditions = await Task.WhenAll(cmd.Module.Preconditions
-                        .Select(p => p.CheckPermissionsAsync(Context, default, default))
-                        .Concat(cmd.Preconditions
-                            .Select(p => p.CheckPermissionsAsync(Context, cmd, default))));
-                    if (preconditions.All(r => r.IsSuccess))
+                    var preconditionResultsAndGroups = await Task.WhenAll(cmd.Module.Preconditions
+                        .Concat(cmd.Preconditions)
+                        .Select(async p => (p.Group, result: await p.CheckPermissionsAsync(Context, cmd, default)))
+                    );
+                    var allPreconditionGroupsMet = preconditionResultsAndGroups
+                        .GroupBy(tuple => tuple.Group, tuple => tuple.result)
+                        .All(results => results.Any(result => result.IsSuccess));
+                    if (allPreconditionGroupsMet)
                     {
                         var joinedParameters = string.Join(" ", cmd.Parameters.Select(parameter => parameter.Name));
                         sb.Append($"{prefix}{cmd.Aliases.First()} {joinedParameters}");

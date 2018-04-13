@@ -14,6 +14,7 @@ using Tadmor.Services.Cron;
 using Tadmor.Services.CustomSearch;
 using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
+using Tadmor.Services.Sonagen;
 
 namespace Tadmor
 {
@@ -40,10 +41,14 @@ namespace Tadmor
 
         public static ServiceProvider GetServiceProvider()
         {
-            var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile("sonagen.json", true)
+                .Build();
             var services = new ServiceCollection()
                 .Configure<DiscordOptions>(configuration.GetSection(nameof(DiscordOptions)))
                 .Configure<E621Options>(configuration.GetSection(nameof(E621Options)))
+                .Configure<SonagenOptions>(configuration.GetSection(nameof(SonagenOptions)))
                 .Configure<CustomSearchOptions>(configuration.GetSection(nameof(CustomSearchOptions)))
                 .AddLogging(logger => logger.AddConsole())
                 .AddDbContext<AppDbContext>(builder => builder.UseSqlite(configuration.GetConnectionString("Main")))
