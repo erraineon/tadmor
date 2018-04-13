@@ -33,7 +33,7 @@ namespace Tadmor.Services.Imaging
                         .ToList()));
             var userActivityTuples = (await Task.WhenAll(tasks))
                 .SelectMany(tuples => tuples.GroupBy(u => (u.guildId, u.userId)),
-                    (_, g) => (g.Key.guildId, g.Key.userId, g.First().DateTime))
+                    (_, g) => (g.Key.guildId, g.Key.userId, g.Max(t => t.DateTime)))
                 .ToList();
             foreach (var (guildId, userId, dateTime) in userActivityTuples)
                 _activeUsers[(guildId, userId)] = dateTime;
@@ -57,7 +57,7 @@ namespace Tadmor.Services.Imaging
             foreach (var inactiveUser in inactiveKeys) _activeUsers.Remove(inactiveUser);
             return await Task.WhenAll(_activeUsers
                 .Where(p => p.Key.guildId == guild.Id)
-                .OrderBy(p => p.Value)
+                .OrderByDescending(p => p.Value)
                 .Select(p => guild.GetUserAsync(p.Key.userId)));
         }
     }
