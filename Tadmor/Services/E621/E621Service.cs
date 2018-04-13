@@ -37,8 +37,7 @@ namespace Tadmor.Services.E621
             var posts = await _client.Search(searchOptions);
             var newPosts = posts
                 .TakeWhile(post => post.Id > afterId)
-                .Reverse()
-                .Take(afterId == default ? 1 : 4)
+                .Take(afterId == default ? 1 : 8)
                 .ToList();
             var newLastId = posts.Max(post => post.Id);
             return (newPosts, newLastId);
