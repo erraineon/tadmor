@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tadmor.Data;
 using Tadmor.Extensions;
+using Tadmor.Services.Imaging;
 
 namespace Tadmor.Services.Discord
 {
@@ -22,6 +23,7 @@ namespace Tadmor.Services.Discord
         };
 
         private readonly CommandService _commands;
+        private readonly ActivityMonitorService _activityMonitor;
         private readonly AppDbContext _dbContext;
         private readonly DiscordSocketClient _discord;
         private readonly DiscordOptions _discordOptions;
@@ -30,12 +32,13 @@ namespace Tadmor.Services.Discord
         private Dictionary<ulong, GuildOptions> _guildOptions;
 
         public DiscordService(IServiceProvider services, ILogger<DiscordService> logger, DiscordSocketClient discord,
-            CommandService commands, IOptions<DiscordOptions> discordOptions, AppDbContext dbContext)
+            CommandService commands, ActivityMonitorService activityMonitor, IOptions<DiscordOptions> discordOptions, AppDbContext dbContext)
         {
             _services = services;
             _logger = logger;
             _discord = discord;
             _commands = commands;
+            _activityMonitor = activityMonitor;
             _dbContext = dbContext;
             _discordOptions = discordOptions.Value;
         }
@@ -51,9 +54,11 @@ namespace Tadmor.Services.Discord
                 return Task.CompletedTask;
             }
 
+            _discord.Ready += _activityMonitor.PopulateActivity;
             _discord.Ready += OnReady;
             _discord.Log += Log;
             _commands.Log += LogCommandError;
+            _discord.MessageReceived += _activityMonitor.UpdateUserActivity;
             _discord.MessageReceived += TryExecuteCommand;
             await ReloadGuildOptions();
             await _commands.AddModulesAsync(Assembly.GetExecutingAssembly());

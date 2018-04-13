@@ -12,11 +12,13 @@ namespace Tadmor.Modules
     public class ImagingModule : ModuleBase<SocketCommandContext>
     {
         private readonly HttpClient _client;
-        private readonly ImagingService _service;
+        private readonly ImagingService _imaging;
+        private readonly ActivityMonitorService _activityMonitor;
 
-        public ImagingModule(ImagingService service, HttpClient client)
+        public ImagingModule(ImagingService imaging, ActivityMonitorService activityMonitor, HttpClient client)
         {
-            _service = service;
+            _imaging = imaging;
+            _activityMonitor = activityMonitor;
             _client = client;
         }
 
@@ -24,7 +26,7 @@ namespace Tadmor.Modules
         public async Task Triangle(string opt1, string opt2, string opt3, [Remainder] string title = "")
         {
             var rngAndAvatars = await GetRngAndAvatars();
-            var result = _service.Triangle(rngAndAvatars, opt1, opt2, opt3, title);
+            var result = _imaging.Triangle(rngAndAvatars, opt1, opt2, opt3, title);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
@@ -32,7 +34,7 @@ namespace Tadmor.Modules
         public async Task Quadrant(string opt1, string opt2, string opt3, string opt4)
         {
             var rngAndAvatars = await GetRngAndAvatars();
-            var result = _service.Quadrant(rngAndAvatars, opt1, opt2, opt3, opt4);
+            var result = _imaging.Quadrant(rngAndAvatars, opt1, opt2, opt3, opt4);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
@@ -51,18 +53,14 @@ namespace Tadmor.Modules
         {
             if (!options.Any()) options = new[] {"lawful", "neutral", "chaotic", "good", "neutral", "evil"};
             var rngAndAvatars = await GetRngAndAvatars();
-            var result = _service.AlignmentChart(rngAndAvatars, options);
+            var result = _imaging.AlignmentChart(rngAndAvatars, options);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
         private async Task<(Random rng, byte[])[]> GetRngAndAvatars()
         {
-            var users = Context.Channel.GetMessagesAsync()
-                .Flatten()
-                .Select(message => message.Author as IGuildUser)
-                .Where(user => user != null)
-                .Distinct(user => user.Id);
-            var rngAndAvatars = await Task.WhenAll(await (from user in users
+            var users = await _activityMonitor.GetActiveUsers(Context.Guild);
+            var rngAndAvatars = await Task.WhenAll((from user in users
                     let avatarUrl = user.GetAvatarUrl()
                     where avatarUrl != null
                     let avatarTask = _client.GetByteArrayAsync(avatarUrl)
