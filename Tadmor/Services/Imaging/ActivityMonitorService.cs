@@ -34,7 +34,8 @@ namespace Tadmor.Services.Imaging
             var userActivityTuples = (await Task.WhenAll(tasks))
                 .SelectMany(tuples => tuples)
                     .GroupBy(u => (u.guildId, u.userId))
-                .Select(g => (g.Key.guildId, g.Key.userId, g.Max(t => t.DateTime)))
+                .Select(g => (g.Key.guildId, g.Key.userId, dateTime: g.Max(t => t.DateTime)))
+                .OrderByDescending(t => t.dateTime)
                 .ToList();
             foreach (var (guildId, userId, dateTime) in userActivityTuples)
                 _activeUsers[(guildId, userId)] = dateTime;
