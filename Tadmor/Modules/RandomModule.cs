@@ -8,6 +8,6 @@ namespace Tadmor.Modules
     {
         private static readonly Random Random = new Random();
         [Command("roll")]
-        public Task Roll(int max = 2) => ReplyAsync(Random.Next(max).ToString());
+        public Task Roll(int max = 1) => ReplyAsync(Random.Next(max + 1).ToString());
     }
 }
