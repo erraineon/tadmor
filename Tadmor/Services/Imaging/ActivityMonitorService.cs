@@ -28,12 +28,13 @@ namespace Tadmor.Services.Imaging
                     .Where(channel => channel.GetUser(_discord.CurrentUser.Id) != null)
                     .Select(channel => channel.GetMessagesAsync()
                         .Flatten()
-                        .Where(message => !message.Author.IsWebhook)
+                        .Where(message => !message.Author.IsWebhook && guild.GetUser(message.Author.Id) != null)
                         .Select(message => (guildId: guild.Id, userId: message.Author.Id, message.Timestamp.DateTime))
                         .ToList()));
             var userActivityTuples = (await Task.WhenAll(tasks))
-                .SelectMany(tuples => tuples.GroupBy(u => (u.guildId, u.userId)),
-                    (_, g) => (g.Key.guildId, g.Key.userId, g.Max(t => t.DateTime)))
+                .SelectMany(tuples => tuples)
+                    .GroupBy(u => (u.guildId, u.userId))
+                .Select(g => (g.Key.guildId, g.Key.userId, g.Max(t => t.DateTime)))
                 .ToList();
             foreach (var (guildId, userId, dateTime) in userActivityTuples)
                 _activeUsers[(guildId, userId)] = dateTime;
@@ -55,10 +56,15 @@ namespace Tadmor.Services.Imaging
                 .Select(p => p.Key)
                 .ToList();
             foreach (var inactiveUser in inactiveKeys) _activeUsers.Remove(inactiveUser);
-            return await Task.WhenAll(_activeUsers
+            var activeUsers = await Task.WhenAll(_activeUsers
                 .Where(p => p.Key.guildId == guild.Id)
                 .OrderByDescending(p => p.Value)
-                .Select(p => guild.GetUserAsync(p.Key.userId)));
+                .Select(async p => (p.Key.userId, user: await guild.GetUserAsync(p.Key.userId))));
+            var missingUsers = activeUsers.Where(t => t.user == null);
+            foreach (var (missingUserId, _) in missingUsers)
+                _activeUsers.Remove((guild.Id, missingUserId));
+            return activeUsers
+                .Select(t => t.user);
         }
     }
 }
