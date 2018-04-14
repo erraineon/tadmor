@@ -16,6 +16,9 @@ namespace Tadmor.Modules
         public Task Uptime() => ReplyAsync((DateTime.Now - Process.GetCurrentProcess().StartTime).Humanize());
 
         [Command("guilds")]
-        public Task Guilds() => ReplyAsync(Context.Client.Guilds.Humanize(g => $"{g.Name} ({g.Owner.Mention})"));
+        public Task Guilds() => ReplyAsync(Context.Client.Guilds.Humanize(g => $"{g.Name} ({g.Id})"));
+
+        [Command("leave")]
+        public Task LeaveGuild(ulong guildId) => Context.Client.GetGuild(guildId)?.LeaveAsync();
     }
 }
