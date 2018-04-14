@@ -30,8 +30,7 @@ namespace Tadmor.Extensions
                 .WithAuthor(author)
                 .WithDescription(post.Description)
                 .WithImageUrl(post.FileUrl)
-                .WithUrl($"https://e621.net/post/show/{post.Id}")
-                .WithFooter(footer => footer.WithText(post.Tags["general"].Humanize().Truncate(2048)));
+                .WithUrl($"https://e621.net/post/show/{post.Id}");
             return builder.Build();
         }
     }
