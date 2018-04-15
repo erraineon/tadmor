@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
 using Hangfire;
@@ -20,45 +18,41 @@ namespace Tadmor
     {
         private static async Task Main(string[] args)
         {
-            try
-            {
-                var provider = GetServiceProvider();
-                var context = provider.GetService<AppDbContext>();
-                await context.Database.MigrateAsync();
-                var discord = provider.GetService<DiscordService>();
-                await discord.Start();
-                var hangfireServer = new BackgroundJobServer(new BackgroundJobServerOptions {WorkerCount = 1});
-                await Task.Delay(-1);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                Console.ReadKey();
-            }
+            var services = ConfigureServices();
+            var context = services.GetRequiredService<AppDbContext>();
+            await context.Database.MigrateAsync();
+            var discord = services.GetRequiredService<DiscordService>();
+            await discord.Start();
+            services.GetService<IGlobalConfiguration>();
+            //WorkerCount must be one when using sqlite or jobs will fire multiple times
+            var hangfireServer = new BackgroundJobServer(new BackgroundJobServerOptions {WorkerCount = 1});
+            await Task.Delay(-1);
         }
 
-        public static ServiceProvider GetServiceProvider()
+        public static ServiceProvider ConfigureServices()
         {
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile("sonagen.json", true)
+                .AddJsonFile("sonagen.json")
                 .Build();
+
             var services = new ServiceCollection()
                 .Configure(configuration)
                 .AddLogging(logger => logger.AddConsole())
                 .AddDbContext<AppDbContext>(builder => builder.UseSqlite(configuration.GetConnectionString("Main")))
                 .AddSingleton(new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async}))
-                .AddSingleton(_ => new DiscordSocketClient(new DiscordSocketConfig {MessageCacheSize = 100}))
-                .AddSingleton<HttpClient>() //better to reuse the same httpclient across the app
+                .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig {MessageCacheSize = 100}))
                 .Scan(scan => scan
                     .FromEntryAssembly()
                     .AddClasses(classes => classes.Where(type => type.Name.EndsWith("Service")))
                     .AsSelf()
                     .WithSingletonLifetime())
                 .BuildServiceProvider();
-            GlobalConfiguration.Configuration.UseSQLiteStorage(configuration.GetConnectionString("Hangfire"));
-            GlobalConfiguration.Configuration.UseActivator(new IocHangfireJobActivator(services));
-            GlobalJobFilters.Filters.Add(new AutomaticRetryAttribute {Attempts = 0}); //don't retry failed jobs
+
+            GlobalConfiguration.Configuration
+                .UseActivator(new InjectedJobActivator(services))
+                .UseSQLiteStorage(configuration.GetConnectionString("Hangfire"))
+                .UseFilter(new AutomaticRetryAttribute {Attempts = 0});
             return services;
         }
     }

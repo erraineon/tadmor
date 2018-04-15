@@ -19,7 +19,7 @@ namespace Tadmor.Data
             {
                 //ef cli tools will create the db in the project dir without this
                 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                var services = Program.GetServiceProvider();
+                var services = Program.ConfigureServices();
                 return services.GetService<AppDbContext>();
             }
         }

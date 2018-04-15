@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Discord;
 using Discord.Commands;
 using Tadmor.Extensions;
 using Tadmor.Services.Imaging;
@@ -11,15 +10,14 @@ namespace Tadmor.Modules
 {
     public class ImagingModule : ModuleBase<SocketCommandContext>
     {
-        private readonly HttpClient _client;
-        private readonly ImagingService _imaging;
+        private static readonly HttpClient Client = new HttpClient();
         private readonly ActivityMonitorService _activityMonitor;
+        private readonly ImagingService _imaging;
 
-        public ImagingModule(ImagingService imaging, ActivityMonitorService activityMonitor, HttpClient client)
+        public ImagingModule(ImagingService imaging, ActivityMonitorService activityMonitor)
         {
             _imaging = imaging;
             _activityMonitor = activityMonitor;
-            _client = client;
         }
 
         [Command("tri")]
@@ -63,7 +61,7 @@ namespace Tadmor.Modules
             var rngAndAvatars = await Task.WhenAll((from user in users
                     let avatarUrl = user.GetAvatarUrl()
                     where avatarUrl != null
-                    let avatarTask = _client.GetByteArrayAsync(avatarUrl)
+                    let avatarTask = Client.GetByteArrayAsync(avatarUrl)
                     select (rng: user.ToRandom(RandomDiscriminants.AvatarId), avatarTask))
                 .Select(async tuple => (tuple.rng, await tuple.avatarTask))
                 .Reverse()
