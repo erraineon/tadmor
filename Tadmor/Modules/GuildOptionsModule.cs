@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Microsoft.Extensions.Options;
 using Tadmor.Services.Discord;
 
 namespace Tadmor.Modules
@@ -9,17 +11,26 @@ namespace Tadmor.Modules
     [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
     public class GuildOptionsModule : ModuleBase<SocketCommandContext>
     {
-        private readonly DiscordService _discordService;
+        private readonly DiscordOptions _discordOptions;
 
-        public GuildOptionsModule(DiscordService discordService)
+        public GuildOptionsModule(IOptionsSnapshot<DiscordOptions> discordOptions)
         {
-            _discordService = discordService;
+            _discordOptions = discordOptions.Value;
         }
 
         [Command("prefix")]
         public async Task ChangePrefix(string newPrefix)
         {
-            await _discordService.ChangeCommandPrefix(Context.Guild, newPrefix);
+            var guildId = Context.Guild.Id;
+            var guildOptions = _discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guildId);
+            if (guildOptions == null)
+            {
+                guildOptions = new GuildOptions {Id = guildId};
+                _discordOptions.GuildOptions.Add(guildOptions);
+            }
+
+            guildOptions.CommandPrefix = newPrefix;
+            await Program.UpdateOptions(_discordOptions);
             await ReplyAsync("ok");
         }
     }

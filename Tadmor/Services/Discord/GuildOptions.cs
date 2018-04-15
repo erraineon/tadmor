@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Tadmor.Data
+namespace Tadmor.Services.Discord
 {
     public class GuildOptions
     {

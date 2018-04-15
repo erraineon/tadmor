@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
 using Hangfire;
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using Tadmor.Data;
 using Tadmor.Extensions;
 using Tadmor.Services.Cron;
@@ -14,16 +16,15 @@ using Tadmor.Services.Discord;
 
 namespace Tadmor
 {
-    internal class Program
+    public class Program
     {
         private static async Task Main(string[] args)
         {
             var services = ConfigureServices();
-            var context = services.GetRequiredService<AppDbContext>();
-            await context.Database.MigrateAsync();
+            var dbContext = services.GetRequiredService<AppDbContext>();
+            await dbContext.Database.MigrateAsync();
             var discord = services.GetRequiredService<DiscordService>();
-            await discord.Start();
-            services.GetService<IGlobalConfiguration>();
+            await discord.StartAsync();
             //WorkerCount must be one when using sqlite or jobs will fire multiple times
             var hangfireServer = new BackgroundJobServer(new BackgroundJobServerOptions {WorkerCount = 1});
             await Task.Delay(-1);
@@ -32,7 +33,7 @@ namespace Tadmor
         public static ServiceProvider ConfigureServices()
         {
             var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("appsettings.json", false, true)
                 .AddJsonFile("sonagen.json")
                 .Build();
 
@@ -54,6 +55,14 @@ namespace Tadmor
                 .UseSQLiteStorage(configuration.GetConnectionString("Hangfire"))
                 .UseFilter(new AutomaticRetryAttribute {Attempts = 0});
             return services;
+        }
+
+        public static async Task UpdateOptions<TSection>(TSection section) where TSection : class, new()
+        {
+            const string settingsPath = "appsettings.json";
+            var jo = JObject.Parse(await File.ReadAllTextAsync(settingsPath));
+            jo[typeof(TSection).Name] = JToken.FromObject(section);
+            await File.WriteAllTextAsync(settingsPath, jo.ToString());
         }
     }
 }

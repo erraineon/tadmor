@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Tadmor.Data;
 using Tadmor.Extensions;
 using Tadmor.Services.Imaging;
 
@@ -22,28 +21,31 @@ namespace Tadmor.Services.Discord
             LogLevel.Information, LogLevel.Trace, LogLevel.Debug
         };
 
-        private readonly CommandService _commands;
         private readonly ActivityMonitorService _activityMonitor;
-        private readonly AppDbContext _dbContext;
+
+        private readonly CommandService _commands;
         private readonly DiscordSocketClient _discord;
         private readonly DiscordOptions _discordOptions;
         private readonly ILogger _logger;
-        private readonly IServiceProvider _services;
-        private Dictionary<ulong, GuildOptions> _guildOptions;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public DiscordService(IServiceProvider services, ILogger<DiscordService> logger, DiscordSocketClient discord,
-            CommandService commands, ActivityMonitorService activityMonitor, IOptions<DiscordOptions> discordOptions, AppDbContext dbContext)
+        public DiscordService(
+            IServiceScopeFactory scopeFactory,
+            ILogger<DiscordService> logger,
+            DiscordSocketClient discord,
+            CommandService commands,
+            ActivityMonitorService activityMonitor,
+            IOptions<DiscordOptions> discordOptions)
         {
-            _services = services;
+            _scopeFactory = scopeFactory;
             _logger = logger;
             _discord = discord;
             _commands = commands;
             _activityMonitor = activityMonitor;
-            _dbContext = dbContext;
             _discordOptions = discordOptions.Value;
         }
 
-        public async Task Start()
+        public async Task StartAsync()
         {
             var discordReady = new TaskCompletionSource<object>();
 
@@ -60,17 +62,10 @@ namespace Tadmor.Services.Discord
             _commands.Log += LogCommandError;
             _discord.MessageReceived += _activityMonitor.UpdateUserActivity;
             _discord.MessageReceived += TryExecuteCommand;
-            await ReloadGuildOptions();
             await _commands.AddModulesAsync(Assembly.GetExecutingAssembly());
             await _discord.LoginAsync(TokenType.Bot, _discordOptions.Token);
             await _discord.StartAsync();
             await discordReady.Task;
-        }
-
-        private async Task ReloadGuildOptions()
-        {
-            //to avoid continously querying the database, load guild settings on demand
-            _guildOptions = await _dbContext.GuildOptions.ToDictionaryAsync(o => o.Id);
         }
 
         private Task Log(LogMessage logMessage)
@@ -100,31 +95,22 @@ namespace Tadmor.Services.Discord
                 message.Content.StartsWith(commandPrefix))
             {
                 var context = new SocketCommandContext(_discord, message);
-                var result = await _commands.ExecuteAsync(context, commandPrefix.Length, _services);
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    await _commands.ExecuteAsync(context, commandPrefix.Length, scope.ServiceProvider);
+                }
             }
         }
 
         public string GetCommandsPrefix(IGuild guild)
         {
-            var commandPrefix = _guildOptions.TryGetValue(guild.Id, out var guildOptions)
-                ? guildOptions.CommandPrefix
-                : ".";
-            return commandPrefix;
-        }
-
-        public async Task ChangeCommandPrefix(SocketGuild guild, string newPrefix)
-        {
-            var key = guild.Id;
-            var options = await _dbContext.GuildOptions.FindAsync(key);
-            if (options == null)
+            using (var scope = _scopeFactory.CreateScope())
             {
-                options = new GuildOptions {Id = key};
-                await _dbContext.GuildOptions.AddAsync(options);
+                var discordOptions = scope.ServiceProvider.GetService<IOptionsSnapshot<DiscordOptions>>().Value;
+                var guildOptions = discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guild.Id);
+                var commandPrefix = guildOptions?.CommandPrefix ?? ".";
+                return commandPrefix;
             }
-
-            options.CommandPrefix = newPrefix;
-            await _dbContext.SaveChangesAsync();
-            await ReloadGuildOptions();
         }
     }
 }

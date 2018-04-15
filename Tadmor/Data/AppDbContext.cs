@@ -8,7 +8,6 @@ namespace Tadmor.Data
 {
     public class AppDbContext : DbContext
     {
-        public DbSet<GuildOptions> GuildOptions { get; set; }
         public AppDbContext(DbContextOptions options) : base(options)
         {
         }
