@@ -7,6 +7,7 @@ using Hangfire.SQLite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Tadmor.Data;
@@ -59,7 +60,9 @@ namespace Tadmor
 
         public static async Task UpdateOptions<TSection>(TSection section) where TSection : class, new()
         {
-            const string settingsPath = "appsettings.json";
+            var settingsPath = new PhysicalFileProvider(Directory.GetCurrentDirectory())
+                .GetFileInfo("appsettings.json")
+                .PhysicalPath;
             var jo = JObject.Parse(await File.ReadAllTextAsync(settingsPath));
             jo[typeof(TSection).Name] = JToken.FromObject(section);
             await File.WriteAllTextAsync(settingsPath, jo.ToString());
