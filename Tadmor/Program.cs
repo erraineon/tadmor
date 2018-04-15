@@ -10,11 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Tadmor.Data;
+using Tadmor.Extensions;
 using Tadmor.Services.Cron;
-using Tadmor.Services.CustomSearch;
 using Tadmor.Services.Discord;
-using Tadmor.Services.E621;
-using Tadmor.Services.Sonagen;
 
 namespace Tadmor
 {
@@ -46,10 +44,7 @@ namespace Tadmor
                 .AddJsonFile("sonagen.json", true)
                 .Build();
             var services = new ServiceCollection()
-                .Configure<DiscordOptions>(configuration.GetSection(nameof(DiscordOptions)))
-                .Configure<E621Options>(configuration.GetSection(nameof(E621Options)))
-                .Configure<SonagenOptions>(configuration.GetSection(nameof(SonagenOptions)))
-                .Configure<CustomSearchOptions>(configuration.GetSection(nameof(CustomSearchOptions)))
+                .Configure(configuration)
                 .AddLogging(logger => logger.AddConsole())
                 .AddDbContext<AppDbContext>(builder => builder.UseSqlite(configuration.GetConnectionString("Main")))
                 .AddSingleton(new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async}))
