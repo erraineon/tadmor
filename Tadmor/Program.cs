@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -60,7 +61,7 @@ namespace Tadmor
 
         public static async Task UpdateOptions<TSection>(TSection section) where TSection : class, new()
         {
-            var settingsPath = new PhysicalFileProvider(Directory.GetCurrentDirectory())
+            var settingsPath = new PhysicalFileProvider(AppDomain.CurrentDomain.BaseDirectory)
                 .GetFileInfo("appsettings.json")
                 .PhysicalPath;
             var jo = JObject.Parse(await File.ReadAllTextAsync(settingsPath));
