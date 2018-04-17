@@ -43,7 +43,7 @@ namespace Tadmor.Modules
                     var preconditionsOk = resultGroups.All(resultGroup => resultGroup.Any(result => result.IsSuccess));
                     if (preconditionsOk)
                     {
-                        var parameters = string.Join(", ", cmd.Parameters.Select(p => p.Name));
+                        var parameters = string.Join(" ", cmd.Parameters.Select(p => p.Name));
                         sb.Append($"{prefix}{cmd.Aliases.First()} {parameters}");
                         sb.AppendLine(cmd.Summary == default ? string.Empty : $": {cmd.Summary}");
                     }
