@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,8 +12,8 @@ namespace Tadmor.Services.Imaging
     {
         private static readonly TimeSpan CutoffTime = TimeSpan.FromDays(3);
 
-        private readonly Dictionary<(ulong guildId, ulong userId), DateTime> _activeUsers =
-            new Dictionary<(ulong guildId, ulong userId), DateTime>();
+        private readonly ConcurrentDictionary<(ulong guildId, ulong userId), DateTime> _activeUsers =
+            new ConcurrentDictionary<(ulong guildId, ulong userId), DateTime>();
 
         private readonly DiscordSocketClient _discord;
 
@@ -56,14 +57,14 @@ namespace Tadmor.Services.Imaging
                 .Where(p => p.Value < DateTime.Now - CutoffTime)
                 .Select(p => p.Key)
                 .ToList();
-            foreach (var inactiveUser in inactiveKeys) _activeUsers.Remove(inactiveUser);
+            foreach (var inactiveUser in inactiveKeys) _activeUsers.TryRemove(inactiveUser, out _);
             var activeUsers = await Task.WhenAll(_activeUsers
                 .Where(p => p.Key.guildId == guild.Id)
                 .OrderByDescending(p => p.Value)
                 .Select(async p => (p.Key.userId, user: await guild.GetUserAsync(p.Key.userId))));
             var missingUsers = activeUsers.Where(t => t.user == null);
             foreach (var (missingUserId, _) in missingUsers)
-                _activeUsers.Remove((guild.Id, missingUserId));
+                _activeUsers.TryRemove((guild.Id, missingUserId), out _);
             return activeUsers
                 .Select(t => t.user);
         }

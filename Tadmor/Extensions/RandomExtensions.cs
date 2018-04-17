@@ -9,16 +9,8 @@ namespace Tadmor.Extensions
     {
         public static Random ToRandom(this object seed)
         {
-            uint KnuthHash(string str)
-            {
-                unchecked
-                {
-                    return str.Aggregate(default(uint), (i, c) => (i + c) * 2654435761);
-                }
-            }
-
             var serializedSeed = JsonConvert.SerializeObject(seed).ToLower();
-            var hash = KnuthHash(serializedSeed);
+            var hash = serializedSeed.Aggregate(default(uint), (i, c) => (i + c) * 2654435761);
             return new Random((int) hash);
         }
 
