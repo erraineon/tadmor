@@ -1,9 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Humanizer;
 using Tadmor.Services.Discord;
 
 namespace Tadmor.Modules
@@ -11,56 +11,49 @@ namespace Tadmor.Modules
     public class HelpModule : ModuleBase<SocketCommandContext>
     {
         private readonly CommandService _commands;
-        private readonly DiscordService _discordService;
+        private readonly DiscordService _discord;
+        private readonly IServiceProvider _services;
 
-        public HelpModule(CommandService commands, DiscordService discordService)
+        public HelpModule(CommandService commands, DiscordService discord, IServiceProvider services)
         {
             _commands = commands;
-            _discordService = discordService;
+            _discord = discord;
+            _services = services;
         }
 
         [Command("help")]
         public async Task Help()
         {
-            var prefix = _discordService.GetCommandsPrefix(Context.Guild);
-            var builder = new EmbedBuilder();
+            ModuleInfo Root(ModuleInfo module) => module.Parent == null ? module : Root(module.Parent);
 
-            var commandsByRoot = _commands.Modules
-                .SelectMany(m => m.Commands)
-                .GroupBy(c => c.Module.Parent ?? c.Module)
-                .ToList();
+            var prefix = _discord.GetCommandsPrefix(Context.Guild);
+            var embedBuilder = new EmbedBuilder();
+            var commandsByRoot = _commands.Commands.GroupBy(command => Root(command.Module).Name);
             foreach (var commands in commandsByRoot)
             {
-                var module = commands.Key;
                 var sb = new StringBuilder();
                 foreach (var cmd in commands)
                 {
-                    //check module preconditions on each command because the parent is different from the key
-                    //when dealing with nested modules
-                    var preconditionResultsAndGroups = await Task.WhenAll(cmd.Module.Preconditions
-                        .Concat(cmd.Preconditions)
-                        .Select(async p => (p.Group, result: await p.CheckPermissionsAsync(Context, cmd, default)))
-                    );
-                    var allPreconditionGroupsMet = preconditionResultsAndGroups
-                        .GroupBy(tuple => tuple.Group, tuple => tuple.result)
-                        .All(results => results.Any(result => result.IsSuccess));
-                    if (allPreconditionGroupsMet)
+                    var resultGroups = await Task.WhenAll(cmd.Preconditions
+                        .Concat(cmd.Module.Preconditions)
+                        .GroupBy(p => p.Group, p => p.CheckPermissionsAsync(Context, cmd, _services))
+                        .Select(Task.WhenAll));
+                    var preconditionsOk = resultGroups.All(resultGroup => resultGroup.Any(result => result.IsSuccess));
+                    if (preconditionsOk)
                     {
-                        var joinedParameters = string.Join(" ", cmd.Parameters.Select(parameter => parameter.Name));
-                        sb.Append($"{prefix}{cmd.Aliases.First()} {joinedParameters}");
-                        if (!string.IsNullOrEmpty(cmd.Summary)) sb.Append($": {cmd.Summary}");
-                        sb.AppendLine();
+                        var parameters = string.Join(", ", cmd.Parameters.Select(p => p.Name));
+                        sb.Append($"{prefix}{cmd.Aliases.First()} {parameters}");
+                        sb.AppendLine(cmd.Summary == default ? string.Empty : $": {cmd.Summary}");
                     }
                 }
 
                 if (sb.Length > 0)
-                    builder.AddField(field => field
-                        .WithName(module.Name.Replace("Module", string.Empty).Humanize(LetterCasing.LowerCase))
-                        .WithValue(sb.ToString())
-                        .WithIsInline(false));
+                    embedBuilder.AddField(field => field
+                        .WithName(commands.Key.Replace("Module", string.Empty))
+                        .WithValue(sb.ToString()));
             }
 
-            await ReplyAsync(string.Empty, embed: builder.Build());
+            await ReplyAsync(string.Empty, embed: embedBuilder.Build());
         }
     }
 }

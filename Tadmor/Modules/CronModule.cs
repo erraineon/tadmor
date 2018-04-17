@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Humanizer;
+using Humanizer.Localisation;
 using Tadmor.Services.Cron;
 
 namespace Tadmor.Modules
@@ -21,7 +22,7 @@ namespace Tadmor.Modules
         public async Task Remind(TimeSpan timeSpan, [Remainder] string reminder)
         {
             _cron.Remind(timeSpan, reminder, Context.Channel.Id, Context.User.Mention);
-            await ReplyAsync($"will remind in {timeSpan.Humanize()}");
+            await ReplyAsync($"will remind in {timeSpan.Humanize(maxUnit: TimeUnit.Year)}");
         }
 
         [RequireOwner(Group = "admin"), RequireUserPermission(GuildPermission.Administrator, Group = "admin")]

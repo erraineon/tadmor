@@ -18,8 +18,8 @@ namespace Tadmor.Modules
         [Command("e621")]
         public async Task SearchRandom([Remainder] string tags)
         {
-            var post = await _e621.SearchRandom(tags);
-            await ReplyAsync(string.Empty, embed: post?.ToEmbed() ?? throw new Exception("no results"));
+            var post = await _e621.SearchRandom(tags) ?? throw new Exception("no results");
+            await ReplyAsync(string.Empty, embed: post.ToEmbed());
         }
     }
 }
