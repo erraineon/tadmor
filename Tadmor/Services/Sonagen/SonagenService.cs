@@ -19,14 +19,14 @@ namespace Tadmor.Services.Sonagen
 
         public Sona GenerateSona(Random random)
         {
-            var gender = _options.Genders.GetRandom(g => g.Weight, random);
+            var gender = _options.Genders.Random(g => g.Weight, random);
             var pronouns = gender.Pronouns.ToLower().Split('/');
-            var species = _options.Species.GetRandom(s => s.Weight, random);
+            var species = _options.Species.Random(s => s.Weight, random);
             var attributesAndGroups = _options.AttributeGroups
                 .SelectMany(group => Enumerable.Repeat(group, random.Next(group.Max) + 1))
-                .OrderBy(random)
-                .Where(g => g.Weight.RandomByWeight(random))
-                .Select(g => (g, a: g.Attributes.GetRandom(a => a.Weight, random)))
+                .OrderBy(_ => random.Next())
+                .Where(g => (float) random.NextDouble() < g.Weight)
+                .Select(g => (g, a: g.Attributes.Random(a => a.Weight, random)))
                 .ToList();
 
             //ok to put it outside of format because it only occurs one time
@@ -52,7 +52,7 @@ namespace Tadmor.Services.Sonagen
                                 ? speciesPool
                                 : attributeGroupsPool.Single(g => g.value == matchedGroup).attributes;
                             pool.RemoveAll(o => o.Value == s);
-                            var replacement = pool.ToList().GetRandom(a => a.Weight, random).Value;
+                            var replacement = pool.ToList().Random(a => a.Weight, random).Value;
                             return Format(replacement);
                     }
                 });

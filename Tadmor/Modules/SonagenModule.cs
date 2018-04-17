@@ -53,7 +53,7 @@ namespace Tadmor.Modules
         [Priority(-1)]
         public Task GenerateRandomSona(IGuildUser user)
         {
-            var random = user.ToRandom(RandomDiscriminants.UserId | RandomDiscriminants.Nickname);
+            var random = (user.Nickname, user.AvatarId).ToRandom();
             return GenerateSona(random, user);
         }
     }

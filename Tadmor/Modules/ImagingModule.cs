@@ -62,7 +62,7 @@ namespace Tadmor.Modules
                     let avatarUrl = user.GetAvatarUrl()
                     where avatarUrl != null
                     let avatarTask = Client.GetByteArrayAsync(avatarUrl)
-                    select (rng: user.ToRandom(RandomDiscriminants.AvatarId), avatarTask))
+                    select (rng: user.AvatarId.ToRandom(), avatarTask))
                 .Select(async tuple => (tuple.rng, await tuple.avatarTask))
                 .Reverse()
                 .ToList());

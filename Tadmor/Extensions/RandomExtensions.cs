@@ -1,62 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace Tadmor.Extensions
 {
     public static class RandomExtensions
     {
-        public static Random ToRandom(this string value, Random salt = default)
+        public static Random ToRandom(this object seed)
         {
-            //.net core adds randomness to hash code generation. use this for fixed behavior
-            int GetStableHashCode(string str)
+            uint KnuthHash(string str)
             {
                 unchecked
                 {
-                    var hash1 = 5381;
-                    var hash2 = hash1;
-
-                    for (var i = 0; i < str.Length && str[i] != '\0'; i += 2)
-                    {
-                        hash1 = ((hash1 << 5) + hash1) ^ str[i];
-                        if (i == str.Length - 1 || str[i + 1] == '\0')
-                            break;
-                        hash2 = ((hash2 << 5) + hash2) ^ str[i + 1];
-                    }
-
-                    var saltMultiplier = salt?.Next() ?? 1;
-                    return hash1 * saltMultiplier + hash2 * 1566083941;
+                    return str.Aggregate(default(uint), (i, c) => (i + c) * 2654435761);
                 }
             }
 
-            var hashCode = GetStableHashCode(value);
-            return new Random(hashCode);
+            var serializedSeed = JsonConvert.SerializeObject(seed).ToLower();
+            var hash = KnuthHash(serializedSeed);
+            return new Random((int) hash);
         }
 
-        public static T GetRandom<T>(this ICollection<T> sequence, Func<T, float> weightSelector, Random random)
+        public static IEnumerable<T> RandomSubset<T>(
+            this IEnumerable<T> sequence, 
+            Func<T, float> weightFunc,
+            int subsetSize, 
+            Random random)
         {
-            if (weightSelector == null) weightSelector = arg => 1f;
-            var totalWeight = sequence.Sum(weightSelector);
-            var nextDouble = random.NextDouble();
-            var itemWeightIndex = (float)(nextDouble * totalWeight);
-            float currentWeightIndex = 0;
-
-            foreach (var item in from weightedItem in sequence select new { Value = weightedItem, Weight = weightSelector(weightedItem) })
+            var weightAccumulator = 0f;
+            var itemsAndWeight = sequence
+                .Select(item => (item, weight: weightAccumulator += weightFunc(item)))
+                .ToList();
+            var totalWeight = itemsAndWeight.Last().weight;
+            for (var i = 0; i < subsetSize; i++)
             {
-                currentWeightIndex += item.Weight;
-                if (currentWeightIndex >= itemWeightIndex) return item.Value;
+                var weightIndex = random.NextDouble() * totalWeight;
+                yield return itemsAndWeight.First(t => t.weight >= weightIndex).item;
             }
-            return default;
         }
 
-        public static bool RandomByWeight(this float weight, Random random)
+        public static T Random<T>(this IEnumerable<T> sequence, Func<T, float> weightFunc, Random random)
         {
-            return (float)random.NextDouble() < weight;
-        }
-
-        public static IEnumerable<T> OrderBy<T>(this IEnumerable<T> source, Random random)
-        {
-            return source.OrderBy(e => random.Next());
+            return sequence.RandomSubset(weightFunc, 1, random).First();
         }
     }
 }

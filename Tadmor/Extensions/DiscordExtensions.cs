@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using Discord;
 using E621;
 using Humanizer;
@@ -9,26 +7,13 @@ namespace Tadmor.Extensions
 {
     public static class DiscordExtensions
     {
-        public static Random ToRandom(this IGuildUser user, 
-            RandomDiscriminants discriminants = RandomDiscriminants.UserId)
-        {
-            bool HasFlag(RandomDiscriminants flag) => (discriminants & flag) != 0;
-
-            var builder = new StringBuilder();
-            if (HasFlag(RandomDiscriminants.UserId)) builder.Append(user.Id);
-            if (HasFlag(RandomDiscriminants.GuildId)) builder.Append(user.GuildId);
-            if (HasFlag(RandomDiscriminants.Nickname)) builder.Append(user.Nickname);
-            if (HasFlag(RandomDiscriminants.AvatarId)) builder.Append(user.AvatarId);
-            return builder.ToString().ToRandom();
-        }
-
         public static Embed ToEmbed(this E621Post post)
         {
             var author = post.Artists.Any() ? post.Artists.Humanize() : post.Author;
             var builder = new EmbedBuilder()
                 .WithTitle($"id: {post.Id} • score: {post.Score}")
                 .WithAuthor(author)
-                .WithDescription(post.Description)
+                .WithDescription(post.Description.Truncate(EmbedBuilder.MaxDescriptionLength))
                 .WithImageUrl(post.FileUrl)
                 .WithUrl($"https://e621.net/post/show/{post.Id}");
             return builder.Build();

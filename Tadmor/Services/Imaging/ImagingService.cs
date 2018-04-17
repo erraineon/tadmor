@@ -65,7 +65,7 @@ namespace Tadmor.Services.Imaging
                     //avatars
                     foreach (var (rng, avatarData) in rngAndAvatarDatas)
                     {
-                        var saltedRng = parametersSeed.ToRandom(rng);
+                        var saltedRng = (parametersSeed, rng.Next()).ToRandom();
                         using (var avatar = CropCircle(avatarData))
                         {
                             var randomVertices = vertices.RandomSubset(2, saltedRng).ToList();
@@ -108,7 +108,7 @@ namespace Tadmor.Services.Imaging
             var rows = cells.Max(t => t.y) + 1;
             var cols = cells.Max(t => t.x) + 1;
             var avatarsByCell = rngAndAvatarDatas
-                .Select(tuple => (rng: alignmentString.ToRandom(tuple.rng), tuple.avatarData))
+                .Select(tuple => (rng: (alignmentString, tuple.rng.Next()).ToRandom(), tuple.avatarData))
                 .ToLookup(
                     tuple => (tuple.rng.Next(cols), tuple.rng.Next(rows)),
                     tuple => CropCircle(tuple.avatarData));
@@ -197,7 +197,7 @@ namespace Tadmor.Services.Imaging
                     //avatars
                     foreach (var (rng, avatarData) in rngAndAvatarDatas)
                     {
-                        var saltedRng = parametersSeed.ToRandom(rng);
+                        var saltedRng = (parametersSeed, rng.Next()).ToRandom();
                         using (var avatar = CropCircle(avatarData))
                         {
                             var avatarPosition = new Point(saltedRng.Next(s - avatar.Width),
