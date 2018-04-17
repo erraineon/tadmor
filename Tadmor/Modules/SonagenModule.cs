@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -9,6 +8,7 @@ using Tadmor.Services.Sonagen;
 namespace Tadmor.Modules
 {
     [Group("sona")]
+    [Name(nameof(SonagenModule))]
     public class SonagenModule : ModuleBase<SocketCommandContext>
     {
         private static readonly Random Random = new Random();

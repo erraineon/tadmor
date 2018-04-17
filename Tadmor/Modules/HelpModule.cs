@@ -27,7 +27,9 @@ namespace Tadmor.Modules
             ModuleInfo Root(ModuleInfo module) => module.Parent == null ? module : Root(module.Parent);
 
             var prefix = _discord.GetCommandsPrefix(Context.Guild);
-            var embedBuilder = new EmbedBuilder();
+            var embedBuilder = new EmbedBuilder()
+                .WithTitle("source code")
+                .WithUrl("https://github.com/erraineon/tadmor");
             var commandsByRoot = _commands.Commands.GroupBy(command => Root(command.Module).Name);
             foreach (var commands in commandsByRoot)
             {
