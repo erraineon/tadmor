@@ -15,9 +15,14 @@ namespace Tadmor.Modules
         }
 
         [Command("foodgore")]
-        public async Task FoodGore()
+        public Task FoodGore() => PostRandomTumblrPicture("someoneatethis");
+
+        [Command("fursuit")]
+        public Task Fursuit() => PostRandomTumblrPicture("horrificfursuits");
+
+        private async Task PostRandomTumblrPicture(string blogName)
         {
-            var imageUrl = await _tumblr.GetRandomPost("someoneatethis");
+            var imageUrl = await _tumblr.GetRandomPost(blogName);
             var embed = new EmbedBuilder().WithImageUrl(imageUrl).Build();
             await ReplyAsync(string.Empty, embed: embed);
         }
