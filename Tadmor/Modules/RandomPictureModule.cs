@@ -20,6 +20,7 @@ namespace Tadmor.Modules
         [Command("fursuit")]
         public Task Fursuit() => PostRandomTumblrPicture("horrificfursuits");
 
+        [Command("tumblr")]
         private async Task PostRandomTumblrPicture(string blogName)
         {
             var imageUrl = await _tumblr.GetRandomPost(blogName);
