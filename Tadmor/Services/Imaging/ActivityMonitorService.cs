@@ -62,10 +62,11 @@ namespace Tadmor.Services.Imaging
                 .Where(p => p.Key.guildId == guild.Id)
                 .OrderByDescending(p => p.Value)
                 .Select(async p => (p.Key.userId, user: await guild.GetUserAsync(p.Key.userId))));
-            var missingUsers = activeUsers.Where(t => t.user == null);
+            var missingUsers = activeUsers.Where(t => t.user == null).ToList();
             foreach (var (missingUserId, _) in missingUsers)
                 _activeUsers.TryRemove((guild.Id, missingUserId), out _);
             return activeUsers
+                .Except(missingUsers)
                 .Select(t => t.user);
         }
     }
