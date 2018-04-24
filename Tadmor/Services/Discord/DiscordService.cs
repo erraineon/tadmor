@@ -62,23 +62,10 @@ namespace Tadmor.Services.Discord
             _commands.Log += LogCommandError;
             _discord.MessageReceived += _activityMonitor.UpdateUserActivity;
             _discord.MessageReceived += TryExecuteCommand;
-            _discord.MessageReceived += ByeBui;
             await _commands.AddModulesAsync(Assembly.GetExecutingAssembly());
             await _discord.LoginAsync(TokenType.Bot, _discordOptions.Token);
             await _discord.StartAsync();
             await discordReady.Task;
-        }
-
-        private async Task ByeBui(SocketMessage socketMessage)
-        {
-            if (socketMessage.Channel is IGuildChannel &&
-                socketMessage is SocketUserMessage message &&
-                message.Author.Id == 62207735730536448 &&
-                message.Content.IndexOf("bye", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                var byeEmbed = new EmbedBuilder().WithImageUrl("https://i.imgur.com/PbCXqg1.png").Build();
-                await socketMessage.Channel.SendMessageAsync(message.Author.Mention, embed: byeEmbed);
-            }
         }
 
         private Task Log(LogMessage logMessage)
