@@ -20,5 +20,8 @@ namespace Tadmor.Modules
 
         [Command("leave")]
         public Task LeaveGuild(ulong guildId) => Context.Client.GetGuild(guildId)?.LeaveAsync();
+
+        [Command("say")]
+        public Task Say(string message) => ReplyAsync(message);
     }
 }
