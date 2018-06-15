@@ -14,6 +14,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Services\Imaging\down.gif" />
+    <None Remove="Services\Imaging\GothamRoundedLight.ttf" />
+    <None Remove="Services\Imaging\up.gif" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ApplicationDefinition Include="appsettings.sample.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ApplicationDefinition>
@@ -37,13 +43,19 @@
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="NewTumblrSharp" Version="1.1.27" />
     <PackageReference Include="Scrutor" Version="2.2.2" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0003" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0004" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0003" />
     <PackageReference Include="SixLabors.Shapes" Version="1.0.0-beta0004" />
   </ItemGroup>
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Services\Imaging\down.gif" />
+    <EmbeddedResource Include="Services\Imaging\up.gif" />
+    <EmbeddedResource Include="Services\Imaging\GothamRoundedLight.ttf" />
   </ItemGroup>
 
   <ItemGroup>

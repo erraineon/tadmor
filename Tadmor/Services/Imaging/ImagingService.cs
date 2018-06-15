@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using MoreLinq;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -22,7 +23,15 @@ namespace Tadmor.Services.Imaging
     {
         private static readonly Font LargeBoldArial = SystemFonts.CreateFont("Arial", 35, FontStyle.Bold);
         private static readonly Font LargeSerif = SystemFonts.CreateFont("Times New Roman", 40);
+        private static readonly Font UpDownGifFont = CreateUpDownGifFont();
         private static readonly Font SmallArial = new Font(LargeBoldArial, 28, FontStyle.Regular);
+
+        private static Font CreateUpDownGifFont()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), "GothamRoundedLight.ttf"))
+                return new FontCollection().Install(resource).CreateFont(108);
+        }
 
         public MemoryStream Triangle(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string opt1,
             string opt2, string opt3, string title)
@@ -84,7 +93,8 @@ namespace Tadmor.Services.Imaging
             return output;
         }
 
-        public MemoryStream AlignmentChart(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string[] options)
+        public MemoryStream AlignmentChart(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas,
+            string[] options)
         {
             //constants
             const int cellW = 500;
@@ -95,7 +105,7 @@ namespace Tadmor.Services.Imaging
             const int textMargin = 10;
             var color = Rgba32.LightGray;
 
-            if (options.Length%2 != 0) throw new Exception("need an even number of options");
+            if (options.Length % 2 != 0) throw new Exception("need an even number of options");
             if (options.Length > 16) throw new Exception("please no");
             //computed variables
             var axisLength = options.Length / 2;
@@ -226,16 +236,69 @@ namespace Tadmor.Services.Imaging
             return output;
         }
 
+        public MemoryStream UpDownGif(string text, byte[] avatarData, string baseFilename)
+        {
+            //credits to https://twitter.com/reedjeyy for base images, font and constants
+            //constants
+            const int textRightMargin = 1037;
+            const int avatarLeftMargin = 1145;
+            const int fontHeightCorrection = 26;
+            const float fadeDuration = 11;
+            const int fadeStartIndex = 65;
+
+            var output = new MemoryStream();
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), baseFilename))
+            using (var baseImage = Image.Load<Rgba32>(resource))
+            using (var textImage = new Image<Rgba32>(baseImage.Width, baseImage.Height))
+            {
+                //text overlay
+                var heightExtent = textImage.Height / 2;
+                textImage.Mutate(c =>
+                {
+                    var avatarImage = avatarData == null ? null : CropCircle(avatarData);
+                    var t = new TextGraphicsOptions(true)
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Right,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        WrapTextWidth = textRightMargin
+                    };
+                    var textPosition = new PointF(0, heightExtent - fontHeightCorrection);
+                    c.DrawText(t, text, UpDownGifFont, Rgba32.White, textPosition);
+                    if (avatarImage == null) return;
+                    c.DrawImage(avatarImage, 1, new Point(avatarLeftMargin, heightExtent - avatarImage.Height / 2));
+                });
+
+                //apply overlay to each frame with proper opacity
+                for (var i = 0; i < baseImage.Frames.Count; i++)
+                {
+                    var frame = baseImage.Frames.ExportFrame(i);
+                    var opacity = 1 - Math.Clamp(1 / fadeDuration * (i - fadeStartIndex), 0, 1);
+                    frame.Mutate(c => c.DrawImage(textImage, opacity));
+                    baseImage.Frames.InsertFrame(i, frame.Frames.Single());
+                }
+
+                baseImage.SaveAsGif(output);
+            }
+
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
+        }
+
         private Image<Rgba32> CropCircle(byte[] imageData)
         {
             var image = Image.Load(imageData);
             var circle = new EllipsePolygon(new PointF(image.Size() / 2), image.Size());
             var rectangle = new RectangularPolygon(circle.Bounds);
             var exceptCircle = rectangle.Clip(circle);
-            image.Mutate(i => i.Fill(
-                new GraphicsOptions(true) {BlenderMode = PixelBlenderMode.Src}, //use overlay colors
-                Rgba32.Transparent, //overlay with transparency
-                exceptCircle)); //outside of the circle's bounds
+            image.Mutate(i =>
+            {
+                i.Fill(
+                    new GraphicsOptions(true) {BlenderMode = PixelBlenderMode.Src}, //use overlay colors
+                    Rgba32.Transparent, //overlay with transparency
+                    exceptCircle); //outside of the circle's bounds
+                i.Resize(128, 128);
+            }); 
             return image;
         }
     }

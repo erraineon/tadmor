@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Tadmor.Extensions;
 using Tadmor.Services.Imaging;
@@ -53,6 +54,36 @@ namespace Tadmor.Modules
             var rngAndAvatars = await GetRngAndAvatars();
             var result = _imaging.AlignmentChart(rngAndAvatars, options);
             await Context.Channel.SendFileAsync(result, "result.png");
+        }
+
+        [Command("v")]
+        public async Task Down([Remainder]string text)
+        {
+            await UpDownGif(text, default, "down");
+        }
+
+        [Command("^")]
+        public async Task Up([Remainder]string text)
+        {
+            await UpDownGif(text, default, "up");
+        }
+        [Command("v")]
+        public async Task Down(IGuildUser user, [Remainder]string text)
+        {
+            await UpDownGif(text, user, "down");
+        }
+
+        [Command("^")]
+        public async Task Up(IGuildUser user, [Remainder]string text)
+        {
+            await UpDownGif(text, user, "up");
+        }
+
+        private async Task UpDownGif(string text, IUser user, string direction)
+        {
+            var avatar = user == default ? null : await Client.GetByteArrayAsync(user.GetAvatarUrl());
+            var result = _imaging.UpDownGif(text.ToUpper(), avatar, $"{direction}.gif");
+            await Context.Channel.SendFileAsync(result, "result.gif");
         }
 
         private async Task<(Random rng, byte[])[]> GetRngAndAvatars()
