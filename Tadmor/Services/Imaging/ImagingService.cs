@@ -30,7 +30,7 @@ namespace Tadmor.Services.Imaging
         {
             var assembly = Assembly.GetExecutingAssembly();
             using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), "GothamRoundedLight.ttf"))
-                return new FontCollection().Install(resource).CreateFont(108);
+                return new FontCollection().Install(resource).CreateFont(94);
         }
 
         public MemoryStream Triangle(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string opt1,
@@ -242,7 +242,7 @@ namespace Tadmor.Services.Imaging
             //constants
             const int textRightMargin = 1037;
             const int avatarLeftMargin = 1145;
-            const int fontHeightCorrection = 26;
+            const int fontHeightCorrection = 22;
             const float fadeDuration = 11;
             const int fadeStartIndex = 65;
 
