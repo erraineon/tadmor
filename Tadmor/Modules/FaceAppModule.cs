@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
-using Tadmor.Services.FaceAppService.Tadmor.Services.FaceApp;
+using Tadmor.Services.FaceApp;
 
 namespace Tadmor.Modules
 {
