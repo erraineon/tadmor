@@ -23,5 +23,14 @@ namespace Tadmor.Modules
             var stream = await _faceApp.Filter(imageUrl);
             await Context.Channel.SendFileAsync(stream, "result.png");
         }
+
+        [Command("faceapp")]
+        public async Task Faceapp(string filterId)
+        {
+            var imageUrl = Context.Message.Attachments.FirstOrDefault(a => a.Width != null)?.Url ??
+                           throw new Exception("upload an image");
+            var stream = await _faceApp.Filter(imageUrl, filterId);
+            await Context.Channel.SendFileAsync(stream, "result.png");
+        }
     }
 }

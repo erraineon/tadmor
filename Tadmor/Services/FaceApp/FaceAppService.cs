@@ -32,9 +32,22 @@ namespace Tadmor.Services.FaceApp
         public async Task<Stream> Filter(string imageUrl)
         {
             if (_filters == null) _filters = await GetAllFilters();
+            var (filter, cropped) = _filters.RandomSubset(1).Single();
+            return await Filter(imageUrl, filter, cropped);
+        }
+
+        public async Task<Stream> Filter(string imageUrl, string filterId)
+        {
+            if (_filters == null) _filters = await GetAllFilters();
+            return _filters.TryGetValue(filterId, out var cropped)
+                ? await Filter(imageUrl, filterId, cropped)
+                : throw new Exception($"available filters: {_filters.Keys.Humanize()}");
+        }
+
+        private async Task<Stream> Filter(string imageUrl, string filter, bool cropped)
+        {
             var response = await UploadImage(imageUrl);
             var code = response["code"].ToString();
-            var (filter, cropped) = _filters.RandomSubset(1).Single();
             await _rateLimiter.WaitToProceed();
             var filterResponse = await Client.GetAsync($"{ApiUrl}/{code}/filters/{filter}?cropped={cropped}");
             HandleErrors(filterResponse);
