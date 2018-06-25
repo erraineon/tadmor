@@ -14,7 +14,7 @@ namespace Tadmor.Services.FaceApp
 {
     public class FaceAppService
     {
-        private const string ApiUrl = "https://node-01.faceapp.io/api/v2.9/photos";
+        private const string ApiUrl = "https://node-01.faceapp.io/api/v2.11/photos";
 
         private static readonly HttpClient Client = new HttpClient
         {
@@ -27,14 +27,6 @@ namespace Tadmor.Services.FaceApp
 
         private readonly RateLimiter _rateLimiter = new RateLimiter(50, TimeSpan.FromMinutes(10));
         private Dictionary<string, bool> _filters;
-
-
-        public async Task<Stream> Filter(string imageUrl)
-        {
-            if (_filters == null) _filters = await GetAllFilters();
-            var (filter, cropped) = _filters.RandomSubset(1).Single();
-            return await Filter(imageUrl, filter, cropped);
-        }
 
         public async Task<Stream> Filter(string imageUrl, string filterId)
         {

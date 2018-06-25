@@ -1,7 +1,6 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord.Commands;
+using Tadmor.Extensions;
 using Tadmor.Services.FaceApp;
 
 namespace Tadmor.Modules
@@ -16,19 +15,9 @@ namespace Tadmor.Modules
         }
 
         [Command("faceapp")]
-        public async Task Faceapp()
+        public async Task Faceapp(string filterId, string url = null)
         {
-            var imageUrl = Context.Message.Attachments.FirstOrDefault(a => a.Width != null)?.Url ??
-                           throw new Exception("upload an image");
-            var stream = await _faceApp.Filter(imageUrl);
-            await Context.Channel.SendFileAsync(stream, "result.png");
-        }
-
-        [Command("faceapp")]
-        public async Task Faceapp(string filterId)
-        {
-            var imageUrl = Context.Message.Attachments.FirstOrDefault(a => a.Width != null)?.Url ??
-                           throw new Exception("upload an image");
+            var imageUrl = await Context.GetImageUrl(url);
             var stream = await _faceApp.Filter(imageUrl, filterId);
             await Context.Channel.SendFileAsync(stream, "result.png");
         }
