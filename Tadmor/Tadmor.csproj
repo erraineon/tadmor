@@ -17,6 +17,7 @@
     <None Remove="Services\Imaging\angry.png" />
     <None Remove="Services\Imaging\down.gif" />
     <None Remove="Services\Imaging\GothamRoundedLight.ttf" />
+    <None Remove="Services\Imaging\micross.ttf" />
     <None Remove="Services\Imaging\up.gif" />
   </ItemGroup>
 
@@ -57,6 +58,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Services\Imaging\angry.png" />
     <EmbeddedResource Include="Services\Imaging\down.gif" />
+    <EmbeddedResource Include="Services\Imaging\micross.ttf" />
     <EmbeddedResource Include="Services\Imaging\up.gif" />
     <EmbeddedResource Include="Services\Imaging\GothamRoundedLight.ttf" />
   </ItemGroup>

@@ -14,7 +14,6 @@ using SixLabors.ImageSharp.Processing.Dithering;
 using SixLabors.ImageSharp.Processing.Dithering.Ordered;
 using SixLabors.ImageSharp.Processing.Drawing;
 using SixLabors.ImageSharp.Processing.Drawing.Pens;
-using SixLabors.ImageSharp.Processing.Effects;
 using SixLabors.ImageSharp.Processing.Text;
 using SixLabors.ImageSharp.Processing.Transforms;
 using SixLabors.Primitives;
@@ -26,7 +25,7 @@ namespace Tadmor.Services.Imaging
     public class ImagingService
     {
         private static readonly Font LargeBoldArial = SystemFonts.CreateFont("Arial", 35, FontStyle.Bold);
-        private static readonly Font MsSansSerif = SystemFonts.CreateFont("Microsoft Sans Serif", 10);
+        private static readonly Font MsSansSerif = CreateOkFont();
         private static readonly Font LargeSerif = SystemFonts.CreateFont("Times New Roman", 40);
         private static readonly Font UpDownGifFont = CreateUpDownGifFont();
         private static readonly Font SmallArial = new Font(LargeBoldArial, 28, FontStyle.Regular);
@@ -36,6 +35,13 @@ namespace Tadmor.Services.Imaging
             var assembly = Assembly.GetExecutingAssembly();
             using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), "GothamRoundedLight.ttf"))
                 return new FontCollection().Install(resource).CreateFont(94);
+        }
+
+        private static Font CreateOkFont()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), "micross.ttf"))
+                return new FontCollection().Install(resource).CreateFont(10);
         }
 
         public MemoryStream Triangle(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string opt1,
