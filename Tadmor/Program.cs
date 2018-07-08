@@ -48,6 +48,8 @@ namespace Tadmor
                 .Scan(scan => scan
                     .FromEntryAssembly()
                     .AddClasses(classes => classes.Where(type => type.Name.EndsWith("Service")))
+                    .AsSelf()
+                    .WithSingletonLifetime()
                     .AddClasses(classes => classes.Where(type => type.Name.EndsWith("Job")))
                     .AsSelf()
                     .WithSingletonLifetime())

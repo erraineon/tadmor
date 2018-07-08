@@ -79,6 +79,19 @@ namespace Tadmor.Modules
             await UpDownGif(text, user, "up");
         }
 
+        [Command("ok")]
+        public async Task Ok(IGuildUser user, [Remainder]string text = null)
+        {
+            if (text == null)
+            {
+                var lastMessage = await _activityMonitor.GetLastMessage(user);
+                text = lastMessage?.Content ?? throw new Exception($"{user.Mention} hasn't talked");
+            }
+            var avatar = await Client.GetByteArrayAsync(user.GetAvatarUrl());
+            var result =  _imaging.Ok(text, avatar);
+            await Context.Channel.SendFileAsync(result, "result.png");
+        }
+
         private async Task UpDownGif(string text, IUser user, string direction)
         {
             var avatar = user == default ? null : await Client.GetByteArrayAsync(user.GetAvatarUrl());

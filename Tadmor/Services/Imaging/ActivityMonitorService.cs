@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using MoreLinq;
 
 namespace Tadmor.Services.Imaging
 {
@@ -12,8 +13,8 @@ namespace Tadmor.Services.Imaging
     {
         private static readonly TimeSpan CutoffTime = TimeSpan.FromDays(3);
 
-        private readonly ConcurrentDictionary<(ulong guildId, ulong userId), DateTime> _activeUsers =
-            new ConcurrentDictionary<(ulong guildId, ulong userId), DateTime>();
+        private readonly ConcurrentDictionary<(ulong guildId, ulong userId), IMessage> _activeUsers =
+            new ConcurrentDictionary<(ulong guildId, ulong userId), IMessage>();
 
         private readonly DiscordSocketClient _discord;
 
@@ -30,16 +31,15 @@ namespace Tadmor.Services.Imaging
                     .Select(channel => channel.GetMessagesAsync()
                         .Flatten()
                         .Where(message => !message.Author.IsWebhook && guild.GetUser(message.Author.Id) != null)
-                        .Select(message => (guildId: guild.Id, userId: message.Author.Id, message.Timestamp.DateTime))
+                        .Select(message => (guildId: guild.Id, message))
                         .ToList()));
             var userActivityTuples = (await Task.WhenAll(tasks))
                 .SelectMany(tuples => tuples)
-                    .GroupBy(u => (u.guildId, u.userId))
-                .Select(g => (g.Key.guildId, g.Key.userId, dateTime: g.Max(t => t.DateTime)))
-                .OrderByDescending(t => t.dateTime)
+                .OrderByDescending(t => t.message.Timestamp.DateTime)
+                .DistinctBy(u => (u.guildId, u.message.Author.Id))
                 .ToList();
-            foreach (var (guildId, userId, dateTime) in userActivityTuples)
-                _activeUsers[(guildId, userId)] = dateTime;
+            foreach (var (guildId, message) in userActivityTuples)
+                _activeUsers[(guildId, message.Author.Id)] = message;
         }
 
         public Task UpdateUserActivity(SocketMessage socketMessage)
@@ -47,14 +47,14 @@ namespace Tadmor.Services.Imaging
             if (socketMessage.Channel is IGuildChannel channel &&
                 socketMessage is SocketUserMessage message &&
                 !message.Author.IsWebhook)
-                _activeUsers[(channel.Guild.Id, message.Author.Id)] = DateTime.Now;
+                _activeUsers[(channel.Guild.Id, message.Author.Id)] = socketMessage;
             return Task.CompletedTask;
         }
 
         public async Task<IEnumerable<IGuildUser>> GetActiveUsers(IGuild guild)
         {
             var inactiveKeys = _activeUsers
-                .Where(p => p.Value < DateTime.Now - CutoffTime)
+                .Where(p => p.Value.Timestamp.DateTime < DateTime.Now - CutoffTime)
                 .Select(p => p.Key)
                 .ToList();
             foreach (var inactiveUser in inactiveKeys) _activeUsers.TryRemove(inactiveUser, out _);
@@ -68,6 +68,12 @@ namespace Tadmor.Services.Imaging
             return activeUsers
                 .Except(missingUsers)
                 .Select(t => t.user);
+        }
+
+        public async Task<IMessage> GetLastMessage(IGuildUser user)
+        {
+            _activeUsers.TryGetValue((user.GuildId, user.Id), out var message);
+            return message;
         }
     }
 }

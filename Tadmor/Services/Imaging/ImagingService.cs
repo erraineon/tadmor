@@ -8,9 +8,13 @@ using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Binarization;
 using SixLabors.ImageSharp.Processing.Convolution;
+using SixLabors.ImageSharp.Processing.Dithering;
+using SixLabors.ImageSharp.Processing.Dithering.Ordered;
 using SixLabors.ImageSharp.Processing.Drawing;
 using SixLabors.ImageSharp.Processing.Drawing.Pens;
+using SixLabors.ImageSharp.Processing.Effects;
 using SixLabors.ImageSharp.Processing.Text;
 using SixLabors.ImageSharp.Processing.Transforms;
 using SixLabors.Primitives;
@@ -22,6 +26,7 @@ namespace Tadmor.Services.Imaging
     public class ImagingService
     {
         private static readonly Font LargeBoldArial = SystemFonts.CreateFont("Arial", 35, FontStyle.Bold);
+        private static readonly Font MsSansSerif = SystemFonts.CreateFont("Microsoft Sans Serif", 10);
         private static readonly Font LargeSerif = SystemFonts.CreateFont("Times New Roman", 40);
         private static readonly Font UpDownGifFont = CreateUpDownGifFont();
         private static readonly Font SmallArial = new Font(LargeBoldArial, 28, FontStyle.Regular);
@@ -279,6 +284,41 @@ namespace Tadmor.Services.Imaging
                 }
 
                 baseImage.SaveAsGif(output);
+            }
+
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
+        }
+        public MemoryStream Ok(string text, byte[] avatarData)
+        {
+            const float leftMargin = 4;
+            const float topMargin = 4;
+            const float avatarWidth = 70;
+            const float avatarHeight = 74;
+            const float textX = 80;
+            const float textY = 12;
+            var avatarSize = new SizeF(avatarWidth, avatarHeight);
+            var avatarPosition = new PointF(leftMargin, topMargin);
+            var textPosition = new PointF(textX, textY);
+
+            var output = new MemoryStream();
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), "angry.png"))
+            using (var baseImage = Image.Load<Rgba32>(resource))
+            using (var avatar = Image.Load(avatarData))
+            {
+                var textOptions = new TextGraphicsOptions
+                {
+                    WrapTextWidth = baseImage.Width - textPosition.X
+                };
+                avatar.Mutate(a => a.Resize((Size)avatarSize).Dither(new BayerDither2x2()));
+                baseImage.Mutate(i =>
+                {
+                    i.DrawImage(avatar, 1, (Point)avatarPosition);
+                    i.DrawText(textOptions, text, MsSansSerif, Rgba32.Black, textPosition);
+                    i.Resize(baseImage.Size() * 3);
+                });
+                baseImage.SaveAsPng(output);
             }
 
             output.Seek(0, SeekOrigin.Begin);
