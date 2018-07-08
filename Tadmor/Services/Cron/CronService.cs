@@ -14,11 +14,9 @@ namespace Tadmor.Services.Cron
             BackgroundJob.Schedule<TJob>(job => job.Do(options), delay);
         }
 
-        public void Every<TJob, TOptions>(TimeSpan interval, TOptions options) where TJob : ICronJob<TOptions>
+        public void Every<TJob, TOptions>(string cron, TOptions options) where TJob : ICronJob<TOptions>
         {
-            BackgroundJob.Enqueue<TJob>(job => job.Do(options));
             var jobId = Guid.NewGuid().ToString();
-            var cron = Hangfire.Cron.MinuteInterval((int) Math.Round(interval.TotalMinutes));
             RecurringJob.AddOrUpdate<TJob>(jobId, j => j.Do(options), cron);
         }
 

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CronExpressionDescriptor;
 using Discord;
 using Discord.Commands;
+using Hangfire;
 using Humanizer;
 using Humanizer.Localisation;
+using Tadmor.Extensions;
 using Tadmor.Services.Cron;
 using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
@@ -34,9 +37,11 @@ namespace Tadmor.Modules
 
         [RequireOwner(Group = "admin"), RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Command("every")]
-        public async Task Every(TimeSpan interval, [Remainder] string command)
+        public async Task Every(string cron, [Remainder] string command)
         {
-            _cron.Every<CommandJob, CommandJobOptions>(interval, new CommandJobOptions
+            var description = cron.ToCronDescription();
+            await ReplyAsync($"will execute '{command}' {description}");
+            _cron.Every<CommandJob, CommandJobOptions>(cron, new CommandJobOptions
             {
                 ChannelId = Context.Channel.Id,
                 Command = command,
@@ -56,9 +61,9 @@ namespace Tadmor.Modules
             }
             
             [Command("e621")]
-            public async Task RecurringE621Search(TimeSpan interval, [Remainder] string tags)
+            public async Task RecurringE621Search([Remainder] string tags)
             {
-                _cron.Every<E621SearchJob, E621SearchJobOptions>(interval, new E621SearchJobOptions
+                _cron.Every<E621SearchJob, E621SearchJobOptions>(Cron.HourInterval(6), new E621SearchJobOptions
                 {
                     ChannelId = Context.Channel.Id,
                     Tags = tags
