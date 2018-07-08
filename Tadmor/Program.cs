@@ -48,6 +48,7 @@ namespace Tadmor
                 .Scan(scan => scan
                     .FromEntryAssembly()
                     .AddClasses(classes => classes.Where(type => type.Name.EndsWith("Service")))
+                    .AddClasses(classes => classes.Where(type => type.Name.EndsWith("Job")))
                     .AsSelf()
                     .WithSingletonLifetime())
                 .BuildServiceProvider();

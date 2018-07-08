@@ -9,7 +9,7 @@ namespace Tadmor.Modules
 {
     [Group("sona")]
     [Name(nameof(SonagenModule))]
-    public class SonagenModule : ModuleBase<SocketCommandContext>
+    public class SonagenModule : ModuleBase<ICommandContext>
     {
         private static readonly Random Random = new Random();
         private readonly SonagenService _sonagen;

@@ -95,10 +95,15 @@ namespace Tadmor.Services.Discord
                 message.Content.StartsWith(commandPrefix))
             {
                 var context = new SocketCommandContext(_discord, message);
-                using (var scope = _scopeFactory.CreateScope())
-                {
-                    await _commands.ExecuteAsync(context, commandPrefix.Length, scope.ServiceProvider);
-                }
+                await ExecuteCommand(context, commandPrefix);
+            }
+        }
+
+        public async Task ExecuteCommand(ICommandContext context, string prefix)
+        {
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                await _commands.ExecuteAsync(context, prefix.Length, scope.ServiceProvider);
             }
         }
 

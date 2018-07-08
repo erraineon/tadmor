@@ -1,64 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Discord.WebSocket;
 using Hangfire;
 using Hangfire.Storage;
-using Tadmor.Extensions;
-using Tadmor.Services.E621;
 
 namespace Tadmor.Services.Cron
 {
     public class CronService
     {
-        private readonly DiscordSocketClient _discord;
-        private readonly E621Service _e621;
-
-        public CronService(DiscordSocketClient discord, E621Service e621)
+        public void Once<TJob, TOptions>(TimeSpan delay, TOptions options) where TJob : ICronJob<TOptions>
         {
-            _discord = discord;
-            _e621 = e621;
+            BackgroundJob.Schedule<TJob>(job => job.Do(options), delay);
         }
 
-        [UpdateArguments]
-        [CancelRecurrenceUponFailure]
-        public async Task Search(E621CronJobOptions options)
+        public void Every<TJob, TOptions>(TimeSpan interval, TOptions options) where TJob : ICronJob<TOptions>
         {
-            if (_discord.GetChannel(options.ChannelId) is SocketTextChannel destChannel)
-            {
-                var (newPosts, newAfterId) = await _e621.SearchAfter(options.Tags, options.AfterId);
-                if (newPosts.Any())
-                {
-                    options.AfterId = newAfterId;
-                    foreach (var e621Post in newPosts)
-                        await destChannel.SendMessageAsync("new submission", embed: e621Post.ToEmbed());
-                }
-            }
-            else
-            {
-                throw new Exception("channel gone, delete schedule");
-            }
-        }
-
-        public Task PostReminder(string reminder, ulong channelId, string userMention)
-        {
-            var channel = (SocketTextChannel) _discord.GetChannel(channelId);
-            return channel.SendMessageAsync($"{userMention}: {reminder}");
-        }
-
-        public void Remind(TimeSpan delay, string reminder, ulong channelId, string userMention)
-        {
-            BackgroundJob.Schedule<CronService>(
-                discord => discord.PostReminder(reminder, channelId, userMention), delay);
-        }
-
-        public async Task RecurringSearch(E621CronJobOptions options, TimeSpan minutesInterval)
-        {
-            await Search(options);
+            BackgroundJob.Enqueue<TJob>(job => job.Do(options));
             var jobId = Guid.NewGuid().ToString();
-            var cron = Hangfire.Cron.MinuteInterval((int) Math.Round(minutesInterval.TotalMinutes));
-            RecurringJob.AddOrUpdate<CronService>(jobId, job => job.Search(options), cron);
+            var cron = Hangfire.Cron.MinuteInterval((int) Math.Round(interval.TotalMinutes));
+            RecurringJob.AddOrUpdate<TJob>(jobId, j => j.Do(options), cron);
         }
 
         public List<string> GetRecurringJobInfos(SocketGuild guild)

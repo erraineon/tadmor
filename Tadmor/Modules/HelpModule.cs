@@ -8,7 +8,7 @@ using Tadmor.Services.Discord;
 
 namespace Tadmor.Modules
 {
-    public class HelpModule : ModuleBase<SocketCommandContext>
+    public class HelpModule : ModuleBase<ICommandContext>
     {
         private readonly CommandService _commands;
         private readonly DiscordService _discord;

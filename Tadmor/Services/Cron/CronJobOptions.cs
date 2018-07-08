@@ -7,5 +7,6 @@ namespace Tadmor.Services.Cron
     {
         public ulong ChannelId { get; set; }
         public abstract string ToString(RecurringJobDto job, SocketTextChannel channel);
+        public ulong OwnerId { get; set; }
     }
 }

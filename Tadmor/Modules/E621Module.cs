@@ -6,7 +6,7 @@ using Tadmor.Services.E621;
 
 namespace Tadmor.Modules
 {
-    public class E621Module : ModuleBase<SocketCommandContext>
+    public class E621Module : ModuleBase<ICommandContext>
     {
         private readonly E621Service _e621;
 

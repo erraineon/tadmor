@@ -1,9 +1,11 @@
 ﻿using Discord.WebSocket;
 using Hangfire.Storage;
+using Tadmor.Services.Cron;
+using Tadmor.Services.Discord;
 
-namespace Tadmor.Services.Cron
+namespace Tadmor.Services.E621
 {
-    public class E621CronJobOptions : CronJobOptions
+    public class E621SearchJobOptions : CronJobOptions
     {
         public string Tags { get; set; }
         public long AfterId { get; set; }

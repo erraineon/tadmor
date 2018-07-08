@@ -9,7 +9,7 @@ namespace Tadmor.Modules
 {
     [RequireOwner(Group = "admin")]
     [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
-    public class GuildOptionsModule : ModuleBase<SocketCommandContext>
+    public class GuildOptionsModule : ModuleBase<ICommandContext>
     {
         private readonly DiscordOptions _discordOptions;
 

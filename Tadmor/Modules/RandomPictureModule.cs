@@ -5,7 +5,7 @@ using Tadmor.Services.Tumblr;
 
 namespace Tadmor.Modules
 {
-    public class RandomPictureModule : ModuleBase<SocketCommandContext>
+    public class RandomPictureModule : ModuleBase<ICommandContext>
     {
         private readonly TumblrService _tumblr;
 

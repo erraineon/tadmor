@@ -6,10 +6,12 @@ using Discord.Commands;
 using Humanizer;
 using Humanizer.Localisation;
 using Tadmor.Services.Cron;
+using Tadmor.Services.Discord;
+using Tadmor.Services.E621;
 
 namespace Tadmor.Modules
 {
-    public class CronModule : ModuleBase<SocketCommandContext>
+    public class CronModule : ModuleBase<ICommandContext>
     {
         private readonly CronService _cron;
 
@@ -19,10 +21,27 @@ namespace Tadmor.Modules
         }
 
         [Command("in")]
-        public async Task Remind(TimeSpan timeSpan, [Remainder] string reminder)
+        public async Task Once(TimeSpan delay, [Remainder] string command)
         {
-            _cron.Remind(timeSpan, reminder, Context.Channel.Id, Context.User.Mention);
-            await ReplyAsync($"will remind in {timeSpan.Humanize(maxUnit: TimeUnit.Year)}");
+            _cron.Once<CommandJob, CommandJobOptions>(delay, new CommandJobOptions
+            {
+                ChannelId = Context.Channel.Id,
+                Command = command,
+                OwnerId = Context.User.Id
+            });
+            await ReplyAsync($"will execute in {delay.Humanize(maxUnit: TimeUnit.Year)}");
+        }
+
+        [RequireOwner(Group = "admin"), RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
+        [Command("every")]
+        public async Task Every(TimeSpan interval, [Remainder] string command)
+        {
+            _cron.Every<CommandJob, CommandJobOptions>(interval, new CommandJobOptions
+            {
+                ChannelId = Context.Channel.Id,
+                Command = command,
+                OwnerId = Context.User.Id
+            });
         }
 
         [RequireOwner(Group = "admin"), RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
@@ -37,13 +56,13 @@ namespace Tadmor.Modules
             }
             
             [Command("e621")]
-            public Task RecurringE621Search(TimeSpan interval, [Remainder] string tags)
+            public async Task RecurringE621Search(TimeSpan interval, [Remainder] string tags)
             {
-                return _cron.RecurringSearch(new E621CronJobOptions
+                _cron.Every<E621SearchJob, E621SearchJobOptions>(interval, new E621SearchJobOptions
                 {
                     ChannelId = Context.Channel.Id,
                     Tags = tags
-                }, interval);
+                });
             }
             
             [Command("ls")]

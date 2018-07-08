@@ -4,7 +4,7 @@ using Discord.Commands;
 
 namespace Tadmor.Modules
 {
-    public class RandomModule : ModuleBase<SocketCommandContext>
+    public class RandomModule : ModuleBase<ICommandContext>
     {
         private static readonly Random Random = new Random();
 

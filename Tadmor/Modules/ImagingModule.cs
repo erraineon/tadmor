@@ -9,7 +9,7 @@ using Tadmor.Services.Imaging;
 
 namespace Tadmor.Modules
 {
-    public class ImagingModule : ModuleBase<SocketCommandContext>
+    public class ImagingModule : ModuleBase<ICommandContext>
     {
         private static readonly HttpClient Client = new HttpClient();
         private readonly ActivityMonitorService _activityMonitor;

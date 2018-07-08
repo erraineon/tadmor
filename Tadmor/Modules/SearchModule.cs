@@ -5,7 +5,7 @@ using Tadmor.Services.CustomSearch;
 
 namespace Tadmor.Modules
 {
-    public class SearchModule : ModuleBase<SocketCommandContext>
+    public class SearchModule : ModuleBase<ICommandContext>
     {
         private readonly CustomSearchService _search;
 

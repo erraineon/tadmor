@@ -5,7 +5,7 @@ using Tadmor.Services.FaceApp;
 
 namespace Tadmor.Modules
 {
-    public class FaceAppModule : ModuleBase<SocketCommandContext>
+    public class FaceAppModule : ModuleBase<ICommandContext>
     {
         private readonly FaceAppService _faceApp;
 

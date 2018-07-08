@@ -7,7 +7,7 @@ using Humanizer;
 namespace Tadmor.Modules
 {
     [RequireOwner]
-    public class DevModule : ModuleBase<SocketCommandContext>
+    public class DevModule : ModuleBase<ICommandContext>
     {
         [Command("ping")]
         public Task Ping() => ReplyAsync("pong");
@@ -16,12 +16,20 @@ namespace Tadmor.Modules
         public Task Uptime() => ReplyAsync((DateTime.Now - Process.GetCurrentProcess().StartTime).Humanize());
 
         [Command("guilds")]
-        public Task Guilds() => ReplyAsync(Context.Client.Guilds.Humanize(g => $"{g.Name} ({g.Id})"));
+        public async Task Guilds()
+        {
+            var guilds = await Context.Client.GetGuildsAsync();
+            await ReplyAsync(guilds.Humanize(g => $"{g.Name} ({g.Id})"));
+        }
 
         [Command("leave")]
-        public Task LeaveGuild(ulong guildId) => Context.Client.GetGuild(guildId)?.LeaveAsync();
+        public async Task LeaveGuild(ulong guildId)
+        {
+            var guild = await Context.Client.GetGuildAsync(guildId);
+            if (guild != null) await guild.LeaveAsync();
+        }
 
         [Command("say")]
-        public Task Say(string message) => ReplyAsync(message);
+        public Task Say([Remainder] string message) => ReplyAsync(message);
     }
 }
