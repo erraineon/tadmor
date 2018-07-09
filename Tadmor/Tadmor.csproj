@@ -14,6 +14,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\helvetica-neue-bold.ttf" />
+    <None Remove="Resources\HelveticaNeue.ttf" />
+    <None Remove="Resources\HelveticaNeueBold.ttf" />
+    <None Remove="Resources\HelveticaNeueMedium.ttf" />
+    <None Remove="Resources\text1.png" />
     <None Remove="Services\Imaging\angry.png" />
     <None Remove="Services\Imaging\down.gif" />
     <None Remove="Services\Imaging\GothamRoundedLight.ttf" />
@@ -25,6 +30,18 @@
     <ApplicationDefinition Include="appsettings.sample.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ApplicationDefinition>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\HelveticaNeueMedium.ttf">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\text1.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -56,11 +73,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Services\Imaging\angry.png" />
-    <EmbeddedResource Include="Services\Imaging\down.gif" />
-    <EmbeddedResource Include="Services\Imaging\micross.ttf" />
-    <EmbeddedResource Include="Services\Imaging\up.gif" />
-    <EmbeddedResource Include="Services\Imaging\GothamRoundedLight.ttf" />
+    <EmbeddedResource Include="Resources\angry.png" />
+    <EmbeddedResource Include="Resources\down.gif" />
+    <EmbeddedResource Include="Resources\HelveticaNeue.ttf" />
+    <EmbeddedResource Include="Resources\micross.ttf" />
+    <EmbeddedResource Include="Resources\up.gif" />
+    <EmbeddedResource Include="Resources\GothamRoundedLight.ttf" />
   </ItemGroup>
 
   <ItemGroup>

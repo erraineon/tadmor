@@ -8,7 +8,6 @@ using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Binarization;
 using SixLabors.ImageSharp.Processing.Convolution;
 using SixLabors.ImageSharp.Processing.Dithering;
 using SixLabors.ImageSharp.Processing.Dithering.Ordered;
@@ -24,26 +23,20 @@ namespace Tadmor.Services.Imaging
 {
     public class ImagingService
     {
-        private static readonly Font LargeBoldArial = SystemFonts.CreateFont("Arial", 35, FontStyle.Bold);
-        private static readonly Font MsSansSerif = CreateOkFont();
-        private static readonly Font LargeSerif = SystemFonts.CreateFont("Times New Roman", 40);
-        private static readonly Font UpDownGifFont = CreateUpDownGifFont();
-        private static readonly Font SmallArial = new Font(LargeBoldArial, 28, FontStyle.Regular);
 
-        private static Font CreateUpDownGifFont()
+
+        public static Stream Load(string resourceName)
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), "GothamRoundedLight.ttf"))
-                return new FontCollection().Install(resource).CreateFont(94);
+            return Assembly.GetExecutingAssembly().GetManifestResourceStream($"Tadmor.Resources.{resourceName}");
         }
 
-        private static Font CreateOkFont()
-        {
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), "micross.ttf"))
-                return new FontCollection().Install(resource).CreateFont(10);
-        }
-
+        private static readonly FontFamily Arial = SystemFonts.Find("Arial");
+        private static readonly FontFamily TimesNewRoman = SystemFonts.Find("Times New Roman");
+        private static readonly FontFamily MsSansSerif = new FontCollection().Install(Load("micross.ttf"));
+        private static readonly FontFamily GothamRoundedLight = new FontCollection().Install(Load("GothamRoundedLight.ttf"));
+        private static readonly FontFamily HelveticaNeue = new FontCollection().Install(Load("HelveticaNeue.ttf"));
+        private static readonly FontFamily HelveticaNeueMedium = new FontCollection().Install(Load("HelveticaNeueMedium.ttf"));
+        
         public MemoryStream Triangle(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string opt1,
             string opt2, string opt3, string title)
         {
@@ -60,7 +53,9 @@ namespace Tadmor.Services.Imaging
             //computed variables
             title = title.ToUpper();
             var parametersSeed = $"{opt1}{opt2}{opt3}".ToLower();
-            var rendererOptions = new RendererOptions(SmallArial);
+            var smallArial = Arial.CreateFont(28);
+            var largeArial = Arial.CreateFont(35, FontStyle.Bold);
+            var rendererOptions = new RendererOptions(smallArial);
             var opt2Extent = TextMeasurer.Measure(opt2, rendererOptions).Width / 2;
             var opt3Extent = TextMeasurer.Measure(opt3, rendererOptions).Width / 2;
             var triangle = new RegularPolygon(trianglePosition, 3, (int) triangleRadius, (float) Math.PI);
@@ -77,10 +72,10 @@ namespace Tadmor.Services.Imaging
                     {
                         HorizontalAlignment = HorizontalAlignment.Center
                     };
-                    c.DrawText(t, title, LargeBoldArial, color, new PointF(extent, topTitleMargin));
-                    c.DrawText(t, opt1, SmallArial, color, new PointF(extent, topMargin));
-                    c.DrawText(t, opt2, SmallArial, color, new PointF(opt2Extent + s * .02F, s - botMargin));
-                    c.DrawText(t, opt3, SmallArial, color, new PointF(s - (opt3Extent + s * .02F), s - botMargin));
+                    c.DrawText(t, title, largeArial, color, new PointF(extent, topTitleMargin));
+                    c.DrawText(t, opt1, smallArial, color, new PointF(extent, topMargin));
+                    c.DrawText(t, opt2, smallArial, color, new PointF(opt2Extent + s * .02F, s - botMargin));
+                    c.DrawText(t, opt3, smallArial, color, new PointF(s - (opt3Extent + s * .02F), s - botMargin));
 
                     //avatars
                     foreach (var (rng, avatarData) in rngAndAvatarDatas)
@@ -133,6 +128,7 @@ namespace Tadmor.Services.Imaging
                 .ToLookup(
                     tuple => (tuple.rng.Next(cols), tuple.rng.Next(rows)),
                     tuple => CropCircle(tuple.avatarData));
+            var font = TimesNewRoman.CreateFont(40);
             var textOptions = new TextGraphicsOptions(true) {HorizontalAlignment = HorizontalAlignment.Center};
             var output = new MemoryStream();
             using (var canvas = new Image<Rgba32>(cellW * cols, cellH * rows))
@@ -151,7 +147,7 @@ namespace Tadmor.Services.Imaging
 
                         //alignment text
                         var textPosition = cellCenter + new PointF(0, cellRect.Height / 2 + textMargin);
-                        c.DrawText(textOptions, text, LargeSerif, color, textPosition);
+                        c.DrawText(textOptions, text, font, color, textPosition);
 
                         //avatars
                         var avatarsForCell = avatarsByCell[(x, y)].ToList();
@@ -200,7 +196,7 @@ namespace Tadmor.Services.Imaging
             //computed variables
             var parametersSeed = $"{opt1}{opt2}{opt3}{opt4}".ToLower();
             const int med = s / 2;
-            var rendererOptions = new RendererOptions(LargeBoldArial);
+            var rendererOptions = new RendererOptions(Arial.CreateFont(35, FontStyle.Bold));
             var opt3Extent = TextMeasurer.Measure(opt3, rendererOptions).Width / 2;
             var opt4Extent = TextMeasurer.Measure(opt4, rendererOptions).Width / 2;
             var output = new MemoryStream();
@@ -256,10 +252,10 @@ namespace Tadmor.Services.Imaging
             const int fontHeightCorrection = 22;
             const float fadeDuration = 11;
             const int fadeStartIndex = 65;
+            var font = GothamRoundedLight.CreateFont(94);
 
             var output = new MemoryStream();
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), baseFilename))
+            using (var resource = Load(baseFilename))
             using (var baseImage = Image.Load<Rgba32>(resource))
             using (var textImage = new Image<Rgba32>(baseImage.Width, baseImage.Height))
             {
@@ -275,7 +271,7 @@ namespace Tadmor.Services.Imaging
                         WrapTextWidth = textRightMargin
                     };
                     var textPosition = new PointF(0, heightExtent - fontHeightCorrection);
-                    c.DrawText(t, text, UpDownGifFont, Rgba32.White, textPosition);
+                    c.DrawText(t, text, font, Rgba32.White, textPosition);
                     if (avatarImage == null) return;
                     c.DrawImage(avatarImage, 1, new Point(avatarLeftMargin, heightExtent - avatarImage.Height / 2));
                 });
@@ -306,10 +302,10 @@ namespace Tadmor.Services.Imaging
             var avatarSize = new SizeF(avatarWidth, avatarHeight);
             var avatarPosition = new PointF(leftMargin, topMargin);
             var textPosition = new PointF(textX, textY);
+            var font = MsSansSerif.CreateFont(10);
 
             var output = new MemoryStream();
-            var assembly = Assembly.GetExecutingAssembly();
-            using (var resource = assembly.GetManifestResourceStream(typeof(ImagingService), "angry.png"))
+            using (var resource = Load("angry.png"))
             using (var baseImage = Image.Load<Rgba32>(resource))
             using (var avatar = Image.Load(avatarData))
             {
@@ -321,7 +317,40 @@ namespace Tadmor.Services.Imaging
                 baseImage.Mutate(i =>
                 {
                     i.DrawImage(avatar, 1, (Point)avatarPosition);
-                    i.DrawText(textOptions, text, MsSansSerif, Rgba32.Black, textPosition);
+                    i.DrawText(textOptions, text, font, Rgba32.Black, textPosition);
+                    i.Resize(baseImage.Size() * 3);
+                });
+                baseImage.SaveAsPng(output);
+            }
+
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
+        }
+
+        public MemoryStream Text(string name, string text)
+        {
+            const int textX = 19;
+            const int nameY = 252;
+            const int textY = 269;
+            const int textRightMargin = 20;
+            var namePosition = new PointF(textX, nameY);
+            var textPosition = new PointF(textX, textY);
+            var nameFont = HelveticaNeueMedium.CreateFont(14);
+            var textFont = HelveticaNeue.CreateFont(14.75F);
+            var textColor = new Rgba32(4, 4, 4);
+
+            var output = new MemoryStream();
+            using (var resource = Load("text1.png"))
+            using (var baseImage = Image.Load<Rgba32>(resource))
+            {
+                var textOptions = new TextGraphicsOptions
+                {
+                    WrapTextWidth = baseImage.Width - textPosition.X - textRightMargin
+                };
+                baseImage.Mutate(i =>
+                {
+                    i.DrawText(textOptions, name, nameFont, textColor, namePosition);
+                    i.DrawText(textOptions, text, textFont, textColor, textPosition);
                     i.Resize(baseImage.Size() * 3);
                 });
                 baseImage.SaveAsPng(output);

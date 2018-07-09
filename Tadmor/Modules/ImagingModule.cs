@@ -98,6 +98,27 @@ namespace Tadmor.Modules
             if (Context.User is IGuildUser guildUser) await Ok(guildUser, text);
         }
 
+        [Command("sms")]
+        public async Task Text(IGuildUser user, [Remainder]string text = null)
+        {
+            if (text == null) text = await GetLastMessage(user);
+            var result =  _imaging.Text(user.Nickname ?? user.Username, text);
+            await Context.Channel.SendFileAsync(result, "result.png");
+        }
+
+        [Command("sms")]
+        public async Task Text([Remainder]string text)
+        {
+            if (Context.User is IGuildUser guildUser) await Text(guildUser, text);
+        }
+
+        private async Task<string> GetLastMessage(IGuildUser user)
+        {
+            var lastMessage = await _activityMonitor.GetLastMessage(user);
+            var text = (lastMessage as IUserMessage)?.Resolve() ?? throw new Exception($"{user.Mention} hasn't talked");
+            return text;
+        }
+
         private async Task UpDownGif(string text, IUser user, string direction)
         {
             var avatar = user == default ? null : await Client.GetByteArrayAsync(user.GetAvatarUrl());
