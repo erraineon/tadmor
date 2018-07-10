@@ -103,7 +103,8 @@ namespace Tadmor.Services.Discord
         {
             using (var scope = _scopeFactory.CreateScope())
             {
-                await _commands.ExecuteAsync(context, prefix.Length, scope.ServiceProvider);
+                var result = await _commands.ExecuteAsync(context, prefix.Length, scope.ServiceProvider);
+                if (result.Error == CommandError.UnmetPrecondition) await context.Channel.SendMessageAsync("no");
             }
         }
 
