@@ -60,7 +60,7 @@ namespace Tadmor.Services.Imaging
             foreach (var inactiveUser in inactiveKeys) _activeUsers.TryRemove(inactiveUser, out _);
             var activeUsers = await Task.WhenAll(_activeUsers
                 .Where(p => p.Key.guildId == guild.Id)
-                .OrderByDescending(p => p.Value)
+                .OrderByDescending(p => p.Value.Timestamp)
                 .Select(async p => (p.Key.userId, user: await guild.GetUserAsync(p.Key.userId))));
             var missingUsers = activeUsers.Where(t => t.user == null).ToList();
             foreach (var (missingUserId, _) in missingUsers)
