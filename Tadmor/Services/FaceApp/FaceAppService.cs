@@ -30,10 +30,10 @@ namespace Tadmor.Services.FaceApp
 
         public async Task<Stream> Filter(string imageUrl, string filterId)
         {
-            if (_filters == null) _filters = await GetAllFilters();
-            return _filters.TryGetValue(filterId, out var cropped)
+            var filters = await GetFilters();
+            return filters.TryGetValue(filterId, out var cropped)
                 ? await Filter(imageUrl, filterId, cropped)
-                : throw new Exception($"available filters: {_filters.Keys.Humanize()}");
+                : throw new Exception($"available filters: {filters.Keys.Humanize()}");
         }
 
         private async Task<Stream> Filter(string imageUrl, string filter, bool cropped)
@@ -46,15 +46,20 @@ namespace Tadmor.Services.FaceApp
             return await filterResponse.Content.ReadAsStreamAsync();
         }
 
-        private async Task<Dictionary<string, bool>> GetAllFilters()
+        public async Task<Dictionary<string, bool>> GetFilters()
         {
-            var sampleResponse = await UploadImage("https://i.imgur.com/nVsxMNp.jpg");
-            var filters = sampleResponse["objects"].SelectMany(o => o["children"])
-                .Where(o => (string) o["type"] == "filter")
-                .Select(o => (id: (string) o["id"], crop: (bool) o["is_paid"] || (bool) o["only_cropped"]))
-                .Where(t => t.id != "no-filter")
-                .ToDictionary(t => t.id, t => t.crop);
-            return filters;
+            if (_filters == null)
+            {
+                var sampleResponse = await UploadImage("https://i.imgur.com/nVsxMNp.jpg");
+                var filters = sampleResponse["objects"].SelectMany(o => o["children"])
+                    .Where(o => (string)o["type"] == "filter")
+                    .Select(o => (id: (string)o["id"], crop: (bool)o["is_paid"] || (bool)o["only_cropped"]))
+                    .Where(t => t.id != "no-filter")
+                    .ToDictionary(t => t.id, t => t.crop);
+                _filters = filters; return _filters;
+            }
+            
+            return _filters;
         }
 
         private async Task<JObject> UploadImage(string imageUrl)
