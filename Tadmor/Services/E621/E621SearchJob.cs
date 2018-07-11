@@ -19,6 +19,8 @@ namespace Tadmor.Services.E621
             _e621 = e621;
         }
 
+        [UpdateArguments]
+        [CancelRecurrenceUponFailure]
         public async Task Do(E621SearchJobOptions options)
         {
             var destChannel = _discord.GetChannel(options.ChannelId) as IMessageChannel ??

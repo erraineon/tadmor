@@ -17,6 +17,8 @@ namespace Tadmor.Services.Discord
             _discordClient = discordClient;
             _discordService = discordService;
         }
+
+        [CancelRecurrenceUponFailure]
         public async Task Do(CommandJobOptions options)
         {
             var channel = _discordClient.GetChannel(options.ChannelId) as IMessageChannel ??
