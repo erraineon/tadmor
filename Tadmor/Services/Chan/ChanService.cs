@@ -34,6 +34,7 @@ namespace Tadmor.Services.Chan
                     var mostRepliedToPosts = posts
                         .SelectMany(GetReply)
                         .GroupBy(t => t.Item2, t => t.Item1)
+                        .Where(t => t.Key != threadNumber)
                         .OrderByDescending(g => g.Count())
                         .Select(g => (post: posts.SingleOrDefault(p => p.PostNumber == g.Key), replies: g.Count()))
                         .Where(t => t.post != null)
