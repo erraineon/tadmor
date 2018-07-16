@@ -27,17 +27,17 @@ namespace Tadmor.Services.Discord
         private readonly DiscordSocketClient _discord;
         private readonly DiscordOptions _discordOptions;
         private readonly ILogger _logger;
-        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IServiceProvider _services;
 
         public DiscordService(
-            IServiceScopeFactory scopeFactory,
+            IServiceProvider services,
             ILogger<DiscordService> logger,
             DiscordSocketClient discord,
             CommandService commands,
             ActivityMonitorService activityMonitor,
             IOptions<DiscordOptions> discordOptions)
         {
-            _scopeFactory = scopeFactory;
+            _services = services;
             _logger = logger;
             _discord = discord;
             _commands = commands;
@@ -62,7 +62,7 @@ namespace Tadmor.Services.Discord
             _commands.Log += LogCommandError;
             _discord.MessageReceived += _activityMonitor.UpdateUserActivity;
             _discord.MessageReceived += TryExecuteCommand;
-            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly());
+            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), _services);
             await _discord.LoginAsync(TokenType.Bot, _discordOptions.Token);
             await _discord.StartAsync();
             await discordReady.Task;
@@ -101,7 +101,7 @@ namespace Tadmor.Services.Discord
 
         public async Task ExecuteCommand(ICommandContext context, string prefix)
         {
-            using (var scope = _scopeFactory.CreateScope())
+            using (var scope = _services.CreateScope())
             {
                 var result = await _commands.ExecuteAsync(context, prefix.Length, scope.ServiceProvider);
                 if (result.Error == CommandError.UnmetPrecondition) await context.Channel.SendMessageAsync("no");
@@ -110,7 +110,7 @@ namespace Tadmor.Services.Discord
 
         public string GetCommandsPrefix(IGuild guild)
         {
-            using (var scope = _scopeFactory.CreateScope())
+            using (var scope = _services.CreateScope())
             {
                 var discordOptions = scope.ServiceProvider.GetService<IOptionsSnapshot<DiscordOptions>>().Value;
                 var guildOptions = discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guild.Id);

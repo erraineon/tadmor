@@ -17,14 +17,16 @@ namespace Tadmor.Modules
         [Command("inviteurl")]
         public async Task CreateInviteUrl(params string[] words)
         {
+            var options = new RequestOptions {RetryMode = RetryMode.RetryRatelimit};
             await ReplyAsync($"searching for {words.Humanize()}");
             var channel = (SocketGuildChannel) Context.Channel;
             RestInviteMetadata invite;
             while (true)
             {
-                invite = await channel.CreateInviteAsync(null, isUnique: true);
+                invite = await channel.CreateInviteAsync(null, isUnique: true, options: options);
                 if (words.Any(w => invite.Url.IndexOf(w, StringComparison.OrdinalIgnoreCase) >= 0)) break;
-                await invite.DeleteAsync();
+                Console.WriteLine(invite.Url);
+                await invite.DeleteAsync(options);
             }
 
             await ReplyAsync(invite.Url);

@@ -83,6 +83,11 @@ namespace Tadmor.Services.Cron
             throw new NotImplementedException();
         }
 
+        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit = 100, ulong? afterUserId = null, RequestOptions options = null)
         {
             throw new NotImplementedException();
