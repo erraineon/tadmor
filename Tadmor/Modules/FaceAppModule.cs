@@ -23,7 +23,7 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(stream, "result.png");
         }
 
-        [Command("filters")]
+        [Command("faceapp")]
         public async Task Faceapp()
         {
             var filters = await _faceApp.GetFilters();
