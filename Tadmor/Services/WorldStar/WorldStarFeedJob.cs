@@ -18,6 +18,9 @@ namespace Tadmor.Services.WorldStar
             _discord = discord;
             _worldStar = worldStar;
         }
+
+        [UpdateArguments]
+        [CancelRecurrenceUponFailure]
         public async Task Do(WorldStarFeedJobOptions options)
         {
             var destChannel = _discord.GetChannel(options.ChannelId) as IMessageChannel ??
