@@ -32,8 +32,8 @@ namespace Tadmor.Services.WorldStar
                 .Select(v => _worldStar.WithVideoUrl(v)));
             if (newVideos.Any())
             {
-                options.LastLink = newVideos.First().Url;
-                foreach (var newVideo in newVideos)
+                options.LastLink = newVideos.First().PageUrl;
+                foreach (var newVideo in newVideos.Where(v => !string.IsNullOrEmpty(v.Url)))
                     await destChannel.SendMessageAsync($"new video: {newVideo.Title} {newVideo.Url}");
             }
         }
