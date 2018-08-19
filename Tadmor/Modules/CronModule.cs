@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using CronExpressionDescriptor;
 using Discord;
 using Discord.Commands;
 using Hangfire;
@@ -11,6 +10,7 @@ using Tadmor.Extensions;
 using Tadmor.Services.Cron;
 using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
+using Tadmor.Services.WorldStar;
 
 namespace Tadmor.Modules
 {
@@ -35,7 +35,8 @@ namespace Tadmor.Modules
             await ReplyAsync($"will execute in {delay.Humanize(maxUnit: TimeUnit.Year)}");
         }
 
-        [RequireOwner(Group = "admin"), RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
+        [RequireOwner(Group = "admin")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Command("every")]
         public async Task Every(string cron, [Remainder] string command)
         {
@@ -49,7 +50,8 @@ namespace Tadmor.Modules
             });
         }
 
-        [RequireOwner(Group = "admin"), RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
+        [RequireOwner(Group = "admin")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Group("sched")]
         public class RecurringModule : ModuleBase<SocketCommandContext>
         {
@@ -59,7 +61,7 @@ namespace Tadmor.Modules
             {
                 _cron = cron;
             }
-            
+
             [Command("e621")]
             public async Task RecurringE621Search([Remainder] string tags)
             {
@@ -69,7 +71,16 @@ namespace Tadmor.Modules
                     Tags = tags
                 });
             }
-            
+
+            [Command("wsh")]
+            public async Task WorldStarFeed()
+            {
+                _cron.Every<WorldStarFeedJob, WorldStarFeedJobOptions>(Cron.HourInterval(1), new WorldStarFeedJobOptions
+                {
+                    ChannelId = Context.Channel.Id
+                });
+            }
+
             [Command("ls")]
             public async Task ViewJobs()
             {
@@ -79,7 +90,7 @@ namespace Tadmor.Modules
                     : throw new Exception("no jobs on this guild");
                 await ReplyAsync(jobInfo);
             }
-            
+
             [Command("rm")]
             public async Task RemoveJob(string jobId)
             {

@@ -4,8 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Discord.Rest;
-using Discord.WebSocket;
 using Humanizer;
 
 namespace Tadmor.Modules
@@ -14,10 +12,16 @@ namespace Tadmor.Modules
     public class DevModule : ModuleBase<ICommandContext>
     {
         [Command("ping")]
-        public Task Ping() => ReplyAsync("pong");
+        public Task Ping()
+        {
+            return ReplyAsync("pong");
+        }
 
         [Command("uptime")]
-        public Task Uptime() => ReplyAsync((DateTime.Now - Process.GetCurrentProcess().StartTime).Humanize());
+        public Task Uptime()
+        {
+            return ReplyAsync((DateTime.Now - Process.GetCurrentProcess().StartTime).Humanize());
+        }
 
         [Command("guilds")]
         public async Task Guilds()
@@ -34,15 +38,18 @@ namespace Tadmor.Modules
         }
 
         [Command("say")]
-        public Task Say([Remainder] string message) => ReplyAsync(message);
+        public Task Say([Remainder] string message)
+        {
+            return ReplyAsync(message);
+        }
 
         [RequireBotPermission(ChannelPermission.CreateInstantInvite)]
         [Command("inviteurl")]
         public async Task CreateInviteUrl(params string[] words)
         {
-            var options = new RequestOptions { RetryMode = RetryMode.RetryRatelimit };
+            var options = new RequestOptions {RetryMode = RetryMode.RetryRatelimit};
             await ReplyAsync($"searching for {words.Humanize()}");
-            var channel = (ITextChannel)Context.Channel;
+            var channel = (ITextChannel) Context.Channel;
             IInviteMetadata invite;
             while (true)
             {
@@ -53,11 +60,12 @@ namespace Tadmor.Modules
 
             await ReplyAsync(invite.Url);
         }
+
         [RequireBotPermission(ChannelPermission.ManageMessages)]
         [Command("prune")]
         public async Task Prune(int count)
         {
-            var channel = (ITextChannel)Context.Channel;
+            var channel = (ITextChannel) Context.Channel;
             var messages = await channel.GetMessagesAsync(count).FlattenAsync();
             await channel.DeleteMessagesAsync(messages);
         }

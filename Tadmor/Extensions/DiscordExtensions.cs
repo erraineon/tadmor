@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using E621;
 using Humanizer;
+using Tadmor.Services.WorldStar;
 
 namespace Tadmor.Extensions
 {
