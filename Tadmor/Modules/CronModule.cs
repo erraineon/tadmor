@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Hangfire;
 using Humanizer;
 using Humanizer.Localisation;
@@ -26,11 +27,13 @@ namespace Tadmor.Modules
         [Command("remind")]
         public async Task Remind(TimeSpan delay, [Remainder] string reminder)
         {
+            //to avoid permission issues
+            var ownerId = (await Context.Client.GetApplicationInfoAsync()).Owner.Id;
             _cron.Once<CommandJob, CommandJobOptions>(delay, new CommandJobOptions
             {
                 ChannelId = Context.Channel.Id,
                 Command = $"say {Context.User.Mention}: {reminder}",
-                OwnerId = Context.Client.CurrentUser.Id //to avoid permission issues
+                OwnerId = ownerId
             });
             await ReplyAsync($"will remind in {delay.Humanize(maxUnit: TimeUnit.Year)}");
         }
