@@ -23,6 +23,18 @@ namespace Tadmor.Modules
             _cron = cron;
         }
 
+        [Command("remind")]
+        public async Task Remind(TimeSpan delay, [Remainder] string reminder)
+        {
+            _cron.Once<CommandJob, CommandJobOptions>(delay, new CommandJobOptions
+            {
+                ChannelId = Context.Channel.Id,
+                Command = $"say {Context.User.Mention}: {reminder}",
+                OwnerId = Context.Client.CurrentUser.Id //to avoid permission issues
+            });
+            await ReplyAsync($"will remind in {delay.Humanize(maxUnit: TimeUnit.Year)}");
+        }
+
         [Command("in")]
         public async Task Once(TimeSpan delay, [Remainder] string command)
         {
