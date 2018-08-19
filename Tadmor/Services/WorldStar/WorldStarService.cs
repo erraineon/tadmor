@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -29,7 +30,12 @@ namespace Tadmor.Services.WorldStar
         {
             var html = await Client.GetStringAsync(video.PageUrl);
             //no html parsing because it's malformed
-            var videoUrl = Regex.Match(html, @"[^""]+?(?="" type=""video/mp4)").Value;
+            var videoUrl =
+                Regex.Match(html, @"[^""]+?(?="" type=""video/mp4)") is var onSiteMatch && onSiteMatch.Success
+                    ? onSiteMatch.Value
+                    : Regex.Match(html, @"(?<=youtube\.com/embed/).+?(?=\?)") is var ytMatch && ytMatch.Success
+                        ? $"https://youtube.com/watch?v={ytMatch.Value}"
+                        : string.Empty;
             video.Url = videoUrl;
             return video;
         }
