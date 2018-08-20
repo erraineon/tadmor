@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Hangfire;
 using Humanizer;
 using Humanizer.Localisation;
@@ -11,7 +10,6 @@ using Tadmor.Extensions;
 using Tadmor.Services.Cron;
 using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
-using Tadmor.Services.WorldStar;
 
 namespace Tadmor.Modules
 {
@@ -84,15 +82,6 @@ namespace Tadmor.Modules
                 {
                     ChannelId = Context.Channel.Id,
                     Tags = tags
-                });
-            }
-
-            [Command("wsh")]
-            public async Task WorldStarFeed()
-            {
-                _cron.Every<WorldStarFeedJob, WorldStarFeedJobOptions>(Cron.HourInterval(1), new WorldStarFeedJobOptions
-                {
-                    ChannelId = Context.Channel.Id
                 });
             }
 

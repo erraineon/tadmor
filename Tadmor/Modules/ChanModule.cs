@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
-using FChan.Library;
 using Humanizer;
+using System.Linq;
+using System.Threading.Tasks;
 using Tadmor.Extensions;
 using Tadmor.Preconditions;
 using Tadmor.Services.Chan;
-using StringExtensions = Tadmor.Extensions.StringExtensions;
 
 namespace Tadmor.Modules
 {
