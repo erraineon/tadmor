@@ -8,21 +8,23 @@ using Humanizer;
 
 namespace Tadmor.Modules
 {
-    [RequireOwner]
     public class DevModule : ModuleBase<ICommandContext>
     {
+        [RequireOwner]
         [Command("ping")]
         public Task Ping()
         {
             return ReplyAsync("pong");
         }
 
+        [RequireOwner]
         [Command("uptime")]
         public Task Uptime()
         {
             return ReplyAsync((DateTime.Now - Process.GetCurrentProcess().StartTime).Humanize());
         }
 
+        [RequireOwner]
         [Command("guilds")]
         public async Task Guilds()
         {
@@ -30,6 +32,7 @@ namespace Tadmor.Modules
             await ReplyAsync(guilds.Humanize(g => $"{g.Name} ({g.Id})"));
         }
 
+        [RequireOwner]
         [Command("leave")]
         public async Task LeaveGuild(ulong guildId)
         {
@@ -37,6 +40,7 @@ namespace Tadmor.Modules
             if (guild != null) await guild.LeaveAsync();
         }
 
+        [RequireOwner]
         [Command("say")]
         public Task Say([Remainder] string message)
         {
@@ -45,6 +49,7 @@ namespace Tadmor.Modules
 
         [RequireBotPermission(ChannelPermission.CreateInstantInvite)]
         [Command("inviteurl")]
+        [RequireOwner]
         public async Task CreateInviteUrl(params string[] words)
         {
             var options = new RequestOptions {RetryMode = RetryMode.RetryRatelimit};
@@ -61,6 +66,8 @@ namespace Tadmor.Modules
             await ReplyAsync(invite.Url);
         }
 
+        [RequireUserPermission(ChannelPermission.ManageMessages, Group = "admin")]
+        [RequireOwner(Group = "admin")]
         [RequireBotPermission(ChannelPermission.ManageMessages)]
         [Command("prune")]
         public async Task Prune(int count)
