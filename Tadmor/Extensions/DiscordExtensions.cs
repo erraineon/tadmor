@@ -27,7 +27,8 @@ namespace Tadmor.Extensions
 
         public static async Task<string> GetImageUrl(this ICommandContext context, string linkedUrl)
         {
-            if (context.Message.Attachments.FirstOrDefault(a => a.Width != null)?.Url is string attachedUrl)
+            if (string.IsNullOrEmpty(linkedUrl) && 
+                context.Message.Attachments.FirstOrDefault(a => a.Width != null)?.Url is string attachedUrl)
                 return attachedUrl;
             if (!Uri.TryCreate(linkedUrl, UriKind.Absolute, out _))
                 throw new Exception("you must upload or link an image");
@@ -38,7 +39,9 @@ namespace Tadmor.Extensions
 
             bool TryGetProxyUrl(IMessage message, out string url)
             {
-                url = message.Embeds.Select(e => e.Thumbnail?.ProxyUrl).FirstOrDefault();
+                url = message.Embeds
+                    .Where(e => e.Thumbnail?.Url == linkedUrl)
+                    .Select(e => e.Thumbnail?.ProxyUrl).FirstOrDefault();
                 return url != null;
             }
 

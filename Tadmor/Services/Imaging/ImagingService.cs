@@ -18,24 +18,18 @@ using SixLabors.ImageSharp.Processing.Transforms;
 using SixLabors.Primitives;
 using SixLabors.Shapes;
 using Tadmor.Extensions;
+using Tadmor.Resources;
 
 namespace Tadmor.Services.Imaging
 {
     public class ImagingService
     {
-
-
-        public static Stream Load(string resourceName)
-        {
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream($"Tadmor.Resources.{resourceName}");
-        }
-
         private static readonly FontFamily Arial = SystemFonts.Find("Arial");
         private static readonly FontFamily TimesNewRoman = SystemFonts.Find("Times New Roman");
-        private static readonly FontFamily MsSansSerif = new FontCollection().Install(Load("micross.ttf"));
-        private static readonly FontFamily GothamRoundedLight = new FontCollection().Install(Load("GothamRoundedLight.ttf"));
-        private static readonly FontFamily HelveticaNeue = new FontCollection().Install(Load("HelveticaNeue.ttf"));
-        private static readonly FontFamily HelveticaNeueMedium = new FontCollection().Install(Load("HelveticaNeueMedium.ttf"));
+        private static readonly FontFamily MsSansSerif = new FontCollection().Install(Resource.Load("micross.ttf"));
+        private static readonly FontFamily GothamRoundedLight = new FontCollection().Install(Resource.Load("GothamRoundedLight.ttf"));
+        private static readonly FontFamily HelveticaNeue = new FontCollection().Install(Resource.Load("HelveticaNeue.ttf"));
+        private static readonly FontFamily HelveticaNeueMedium = new FontCollection().Install(Resource.Load("HelveticaNeueMedium.ttf"));
         
         public MemoryStream Triangle(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string opt1,
             string opt2, string opt3, string title)
@@ -255,7 +249,7 @@ namespace Tadmor.Services.Imaging
             var font = GothamRoundedLight.CreateFont(94);
 
             var output = new MemoryStream();
-            using (var resource = Load(baseFilename))
+            using (var resource = Resource.Load(baseFilename))
             using (var baseImage = Image.Load<Rgba32>(resource))
             using (var textImage = new Image<Rgba32>(baseImage.Width, baseImage.Height))
             {
@@ -305,7 +299,7 @@ namespace Tadmor.Services.Imaging
             var font = MsSansSerif.CreateFont(10);
 
             var output = new MemoryStream();
-            using (var resource = Load("angry.png"))
+            using (var resource = Resource.Load("angry.png"))
             using (var baseImage = Image.Load<Rgba32>(resource))
             using (var avatar = Image.Load(avatarData))
             {
@@ -340,7 +334,7 @@ namespace Tadmor.Services.Imaging
             var textColor = new Rgba32(4, 4, 4);
 
             var output = new MemoryStream();
-            using (var resource = Load("text1.png"))
+            using (var resource = Resource.Load("text1.png"))
             using (var baseImage = Image.Load<Rgba32>(resource))
             {
                 var textOptions = new TextGraphicsOptions
