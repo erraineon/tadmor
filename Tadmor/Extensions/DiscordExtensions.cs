@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,15 +26,27 @@ namespace Tadmor.Extensions
             return builder.Build();
         }
 
-        public static async Task<string> GetImageUrl(this ICommandContext context, string linkedUrl)
+        public static async Task<IList<string>> GetAllImageUrls(this ICommandContext context, ICollection<string> linkedUrls)
         {
-            if (string.IsNullOrEmpty(linkedUrl) && 
-                context.Message.Attachments.FirstOrDefault(a => a.Width != null)?.Url is string attachedUrl)
-                return attachedUrl;
-            if (!Uri.TryCreate(linkedUrl, UriKind.Absolute, out _))
-                throw new Exception("you must upload or link an image");
+            var urlAttachments = context.Message.Attachments.Where(a => a.Width != null).Select(a => a.Url);
+            var linkedProxyUrls = await Task.WhenAll(linkedUrls
+                .Where(linkedUrl => Uri.TryCreate(linkedUrl, UriKind.Absolute, out _))
+                .Select(context.GetProxyImageUrl));
+            var oldMessages = await context.Channel
+                .GetMessagesAsync(context.Message, Direction.Before, mode: CacheMode.CacheOnly).FlattenAsync();
+            var oldEmbeds = oldMessages
+                .SelectMany(m => m.Embeds
+                    .Select(e => e.Thumbnail?.ProxyUrl)
+                    .Concat(m.Attachments
+                        .Select(a => a.Url)))
+                .Where(t => t != null);
+            return urlAttachments.Concat(linkedProxyUrls).Concat(oldEmbeds).ToList();
+        }
+
+        public static async Task<string> GetProxyImageUrl(this ICommandContext context, string linkedUrl)
+        {
             if (TryGetProxyUrl(context.Message, out var proxyUrl)) return proxyUrl;
-            var client = (DiscordSocketClient) context.Client;
+            var client = (DiscordSocketClient)context.Client;
             var tcs = new TaskCompletionSource<string>();
             var cts = new CancellationTokenSource();
 
@@ -70,7 +83,7 @@ namespace Tadmor.Extensions
             }
             catch (TaskCanceledException)
             {
-                throw new Exception("link must contain an image");
+                return null;
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Tadmor.Extensions;
@@ -17,10 +18,11 @@ namespace Tadmor.Modules
         }
 
         [Command("tf")]
-        public async Task Morph(string url1 = null, string url2 = null)
+        public async Task Morph(params string[] urls)
         {
-            var sourceImageUrl = await Context.GetImageUrl(url1);
-            var destImageUrl = await Context.GetImageUrl(url2);
+            var allUrls = await Context.GetAllImageUrls(urls);
+            if (allUrls.Count < 2) throw new Exception("need at least two images");
+            var (sourceImageUrl, destImageUrl) = (allUrls[0], allUrls[1]);
             var sourceImage = await Client.GetByteArrayAsync(sourceImageUrl);
             var destImage = await Client.GetByteArrayAsync(destImageUrl);
             var stream = await _vision.Morph(sourceImage, destImage);

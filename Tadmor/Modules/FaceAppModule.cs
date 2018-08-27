@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Discord.Commands;
 using Humanizer;
 using Tadmor.Extensions;
@@ -18,7 +20,8 @@ namespace Tadmor.Modules
         [Command("faceapp")]
         public async Task Faceapp(string filterId, string url = null)
         {
-            var imageUrl = await Context.GetImageUrl(url);
+            var imageUrls = await Context.GetAllImageUrls(new[]{ url });
+            var imageUrl = imageUrls.FirstOrDefault() ?? throw new Exception("need an image");
             var stream = await _faceApp.Filter(imageUrl, filterId);
             await Context.Channel.SendFileAsync(stream, "result.png");
         }
