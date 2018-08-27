@@ -296,7 +296,7 @@ namespace Tadmor.Services.Imaging
             });
 
             var output = new MemoryStream();
-            output1.SaveAsPng(output);
+            output1.SaveAsJpeg(output);
             output.Seek(0, SeekOrigin.Begin);
             return output;
 

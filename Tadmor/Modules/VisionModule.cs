@@ -37,7 +37,7 @@ namespace Tadmor.Modules
             if (!allUrls.Any()) throw new Exception("need at least an image");
             var images = await Task.WhenAll(allUrls.Take(2).Select(url => Client.GetByteArrayAsync(url)));
             var result = await _vision.Swap(images);
-            await Context.Channel.SendFileAsync(result, "result.png");
+            await Context.Channel.SendFileAsync(result, "result.jpg");
         }
     }
 }
