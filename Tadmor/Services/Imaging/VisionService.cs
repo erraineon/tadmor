@@ -190,9 +190,9 @@ namespace Tadmor.Services.Imaging
                 var srcTri = indexes.Select(i => srcFace[i]).ToList();
                 var dstTri = indexes.Select(i => dstFace[i]).ToList();
                 var avgTri = indexes.Select(i => averageFace[i]).ToList();
-                var srcRect = Cv2.BoundingRect(srcTri);
-                var dstRect = Cv2.BoundingRect(dstTri);
-                var avgRect = Cv2.BoundingRect(avgTri);
+                var srcRect = Cv2.BoundingRect(srcTri).Intersect(new Rect(0, 0, srcImg.Width, srcImg.Height));
+                var dstRect = Cv2.BoundingRect(dstTri).Intersect(new Rect(0, 0, dstImg.Width, dstImg.Height));
+                var avgRect = Cv2.BoundingRect(avgTri).Intersect(new Rect(0, 0, morphImage.Width, morphImage.Height));
 
                 var srcOffsetRect = new List<Point2f>();
                 var dstOffsetRect = new List<Point2f>();
@@ -244,6 +244,7 @@ namespace Tadmor.Services.Imaging
 
         private static IEnumerable<int[]> GetDelaunayTriangulationIndexes(Rect rect, List<Point2f> points)
         {
+            rect = Cv2.BoundingRect(points).Union(rect);
             using (var subdivision = new Subdiv2D(rect))
             {
                 subdivision.Insert(points);
@@ -310,15 +311,10 @@ namespace Tadmor.Services.Imaging
             var rect = new Rect(0, 0, img1Warped.Cols, img1Warped.Rows);
             var hullIndex = Cv2.ConvexHullIndices(points2);
 
-            Point2f Clamp(Point2f point)
-            {
-                return new Point2f(Math.Clamp(point.X, 0, rect.Width), Math.Clamp(point.Y, 0, rect.Height));
-            }
+            var hull1 = hullIndex.Select(i => points1[i]).ToList();
+            var hull2 = hullIndex.Select(i => points2[i]).ToList();
 
-            var hull1 = hullIndex.Select(i => Clamp(points1[i])).ToList();
-            var hull2 = hullIndex.Select(i => Clamp(points2[i])).ToList();
-
-            var dt = GetDelaunayTriangulationIndexes(rect, hull2);
+            var dt = GetDelaunayTriangulationIndexes(rect, hull2).ToList();
 
             foreach (var triangleIndexes in dt)
             {
@@ -332,7 +328,7 @@ namespace Tadmor.Services.Imaging
             using (var mask = Mat.Zeros(img2.Rows, img2.Cols, MatType.CV_8UC3).ToMat())
             {
                 Cv2.FillConvexPoly(mask, hull8U, new Scalar(255, 255, 255));
-                var r = Cv2.BoundingRect(hull2);
+                var r = Cv2.BoundingRect(hull2).Intersect(rect);
                 var center = r.Location + new Point(r.Width / 2, r.Height / 2);
                 img1Warped.ConvertTo(img1Warped, MatType.CV_8UC3);
                 img2.ConvertTo(img2, MatType.CV_8UC3);
@@ -346,9 +342,9 @@ namespace Tadmor.Services.Imaging
 
         private void WarpTriangle(Mat img1, Mat img2, List<Point2f> t1, List<Point2f> t2)
         {
-            var r1 = Cv2.BoundingRect(t1);
-            var r2 = Cv2.BoundingRect(t2);
-
+            var r1 = Cv2.BoundingRect(t1).Intersect(new Rect(0, 0, img1.Width, img1.Height));
+            var r2 = Cv2.BoundingRect(t2).Intersect(new Rect(0, 0, img2.Width, img2.Height));
+            if (r1 == Rect.Empty || r2 == Rect.Empty) return;
 
             var t1Rect = new List<Point2f>();
             var t2Rect = new List<Point2f>();
