@@ -55,8 +55,7 @@ namespace Tadmor.Services.Discord
                 discordReady.SetResult(default);
                 return Task.CompletedTask;
             }
-
-            _discord.Ready += _activityMonitor.PopulateActivity;
+            
             _discord.Ready += OnReady;
             _discord.Log += Log;
             _commands.Log += LogCommandError;
