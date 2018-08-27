@@ -307,10 +307,16 @@ namespace Tadmor.Services.Imaging
             img1.ConvertTo(img1, MatType.CV_32F);
             img1Warped.ConvertTo(img1Warped, MatType.CV_32F);
 
-            var hullIndex = Cv2.ConvexHullIndices(points2);
-            var hull1 = hullIndex.Select(i => points1[i]).ToList();
-            var hull2 = hullIndex.Select(i => points2[i]).ToList();
             var rect = new Rect(0, 0, img1Warped.Cols, img1Warped.Rows);
+            var hullIndex = Cv2.ConvexHullIndices(points2);
+
+            Point2f Clamp(Point2f point)
+            {
+                return new Point2f(Math.Clamp(point.X, 0, rect.Width), Math.Clamp(point.Y, 0, rect.Height));
+            }
+
+            var hull1 = hullIndex.Select(i => Clamp(points1[i])).ToList();
+            var hull2 = hullIndex.Select(i => Clamp(points2[i])).ToList();
 
             var dt = GetDelaunayTriangulationIndexes(rect, hull2);
 
