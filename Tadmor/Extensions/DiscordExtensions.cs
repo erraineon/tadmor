@@ -33,7 +33,7 @@ namespace Tadmor.Extensions
                 .Where(linkedUrl => Uri.TryCreate(linkedUrl, UriKind.Absolute, out _))
                 .Select(context.GetProxyImageUrl));
             var oldMessages = await context.Channel
-                .GetMessagesAsync(context.Message, Direction.Before, mode: CacheMode.CacheOnly).FlattenAsync();
+                .GetMessagesAsync(context.Message, Direction.Before).FlattenAsync();
             var oldEmbeds = oldMessages
                 .SelectMany(m => m.Embeds
                     .Select(e => e.Thumbnail?.ProxyUrl)

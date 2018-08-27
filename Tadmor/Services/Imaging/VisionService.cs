@@ -8,7 +8,11 @@ using DlibDotNet;
 using OpenCvSharp;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Drawing;
+using SixLabors.ImageSharp.Processing.Transforms;
 using Point = OpenCvSharp.Point;
+using Size = SixLabors.Primitives.Size;
 
 namespace Tadmor.Services.Imaging
 {
@@ -59,9 +63,10 @@ namespace Tadmor.Services.Imaging
             using (var origSrcImg = Mat.FromImageData(source))
             using (var origDstImg = Mat.FromImageData(dest))
             {
-                var faces = await GetFaces(origSrcImg, origDstImg);
-                var origSourceFace = faces.FirstOrDefault() ?? throw new Exception("no faces detected");
-                var origDstFace = faces.Skip(1).FirstOrDefault() ?? throw new Exception("only one face detected");
+                var facesLookup = await DetectFaces(new[]{ origSrcImg, origDstImg });
+                var faces = facesLookup.Select(g => g.FirstOrDefault()).ToList();
+                if (faces.Count < 2) throw new Exception("not enough faces");
+                var (origSourceFace, origDstFace) = (faces[0], faces[1]);
                 origSrcImg.ConvertTo(origSrcImg, MatType.CV_32F);
                 origDstImg.ConvertTo(origDstImg, MatType.CV_32F);
                 var (srcImg, sourceFace) = SimilarityTransform(outputWidth, outputHeight, origSourceFace, origSrcImg);
@@ -105,7 +110,7 @@ namespace Tadmor.Services.Imaging
         }
 
 
-        private async Task<List<List<Point2f>>> GetFaces(Mat srcImg, Mat dstImg)
+        private async Task<ILookup<Mat, List<Point2f>>> DetectFaces(IEnumerable<Mat> images)
         {
             const string faceModelPath = "facemodel.dat";
             if (!File.Exists(faceModelPath))
@@ -122,9 +127,9 @@ namespace Tadmor.Services.Imaging
             using (var detector = Dlib.GetFrontalFaceDetector())
             using (var predictor = ShapePredictor.Deserialize(faceModelPath))
             {
-                var faces = DetectFaces(detector, predictor, srcImg)
-                    .Concat(DetectFaces(detector, predictor, dstImg))
-                    .ToList();
+                var faces = images
+                    .SelectMany(image => DetectFaces(detector, predictor, image), (image, face) => (image, face))
+                    .ToLookup(t => t.image, t => t.face);
                 return faces;
             }
         }
@@ -178,9 +183,70 @@ namespace Tadmor.Services.Imaging
                 ))
                 .ToList();
             var rect = new Rect(0, 0, morphImage.Cols, morphImage.Rows);
+            var indexesList = GetDelaunayTriangulationIndexes(rect, averageFace);
+
+            foreach (var indexes in indexesList)
+            {
+                var srcTri = indexes.Select(i => srcFace[i]).ToList();
+                var dstTri = indexes.Select(i => dstFace[i]).ToList();
+                var avgTri = indexes.Select(i => averageFace[i]).ToList();
+                var srcRect = Cv2.BoundingRect(srcTri);
+                var dstRect = Cv2.BoundingRect(dstTri);
+                var avgRect = Cv2.BoundingRect(avgTri);
+
+                var srcOffsetRect = new List<Point2f>();
+                var dstOffsetRect = new List<Point2f>();
+                var avgOffsetRect = new List<Point2f>();
+                var avgOffsetRectInt = new List<Point>();
+                for (var i = 0; i < 3; i++)
+                {
+                    srcOffsetRect.Add(new Point2f(srcTri[i].X - srcRect.X, srcTri[i].Y - srcRect.Y));
+                    dstOffsetRect.Add(new Point2f(dstTri[i].X - dstRect.X, dstTri[i].Y - dstRect.Y));
+                    avgOffsetRect.Add(new Point2f(avgTri[i].X - avgRect.X, avgTri[i].Y - avgRect.Y));
+                    avgOffsetRectInt.Add(new Point(avgTri[i].X - avgRect.X, avgTri[i].Y - avgRect.Y));
+                }
+
+                using (var mask = Mat.Zeros(avgRect.Height, avgRect.Width, MatType.CV_32FC3).ToMat())
+                {
+                    var scalar = new Scalar(1, 1, 1);
+                    Cv2.FillConvexPoly(mask, avgOffsetRectInt, scalar, LineTypes.AntiAlias);
+                    var srcImgRect = new Mat();
+                    var dstImgRect = new Mat();
+                    srcImg[srcRect].CopyTo(srcImgRect);
+                    dstImg[dstRect].CopyTo(dstImgRect);
+
+                    void ApplyAffineTransform(Mat warpImage, Mat imgRect, List<Point2f> offsetRect)
+                    {
+                        using (var warpMat = Cv2.GetAffineTransform(offsetRect, avgOffsetRect))
+                        {
+                            Cv2.WarpAffine(imgRect, warpImage, warpMat, warpImage.Size(),
+                                InterpolationFlags.Linear,
+                                BorderTypes.Reflect101);
+                        }
+                    }
+
+                    using (var warpImage1 = Mat.Zeros(avgRect.Height, avgRect.Width, srcImgRect.Type()).ToMat())
+                    using (var warpImage2 = Mat.Zeros(avgRect.Height, avgRect.Width, dstImgRect.Type()).ToMat())
+                    {
+                        ApplyAffineTransform(warpImage1, srcImgRect, srcOffsetRect);
+                        ApplyAffineTransform(warpImage2, dstImgRect, dstOffsetRect);
+
+                        using (var avgImgRect = ((1.0 - alpha) * warpImage1 + alpha * warpImage2).ToMat())
+                        {
+                            Cv2.Multiply(avgImgRect, mask, avgImgRect);
+                            Cv2.Multiply(morphImage[avgRect], scalar - mask, morphImage[avgRect]);
+                            morphImage[avgRect] = morphImage[avgRect] + avgImgRect;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static IEnumerable<int[]> GetDelaunayTriangulationIndexes(Rect rect, List<Point2f> points)
+        {
             using (var subdivision = new Subdiv2D(rect))
             {
-                subdivision.Insert(averageFace);
+                subdivision.Insert(points);
                 var triangulation = subdivision.GetTriangleList();
                 foreach (var cell in triangulation)
                 {
@@ -189,62 +255,121 @@ namespace Tadmor.Services.Imaging
                     var p3 = new Point2f(cell.Item4, cell.Item5);
                     if (rect.Contains(p1) && rect.Contains(p2) && rect.Contains(p3))
                     {
-                        var indexA = averageFace.IndexOf(p1);
-                        var indexB = averageFace.IndexOf(p2);
-                        var indexC = averageFace.IndexOf(p3);
+                        var indexA = points.IndexOf(p1);
+                        var indexB = points.IndexOf(p2);
+                        var indexC = points.IndexOf(p3);
                         var indexes = new[] {indexA, indexB, indexC};
-                        var srcTri = indexes.Select(i => srcFace[i]).ToList();
-                        var dstTri = indexes.Select(i => dstFace[i]).ToList();
-                        var avgTri = indexes.Select(i => averageFace[i]).ToList();
-                        var srcRect = Cv2.BoundingRect(srcTri);
-                        var dstRect = Cv2.BoundingRect(dstTri);
-                        var avgRect = Cv2.BoundingRect(avgTri);
+                        yield return indexes;
+                    }
+                }
+            }
+        }
 
-                        var srcOffsetRect = new List<Point2f>();
-                        var dstOffsetRect = new List<Point2f>();
-                        var avgOffsetRect = new List<Point2f>();
-                        var avgOffsetRectInt = new List<Point>();
-                        for (var i = 0; i < 3; i++)
-                        {
-                            srcOffsetRect.Add(new Point2f(srcTri[i].X - srcRect.X, srcTri[i].Y - srcRect.Y));
-                            dstOffsetRect.Add(new Point2f(dstTri[i].X - dstRect.X, dstTri[i].Y - dstRect.Y));
-                            avgOffsetRect.Add(new Point2f(avgTri[i].X - avgRect.X, avgTri[i].Y - avgRect.Y));
-                            avgOffsetRectInt.Add(new Point(avgTri[i].X - avgRect.X, avgTri[i].Y - avgRect.Y));
-                        }
+        public async Task<MemoryStream> Swap(IList<byte[]> images)
+        {
+            var imgs = images.Select(image => Mat.FromImageData(image)).ToList();
+            var facesLookup = (await DetectFaces(imgs));
+                if (facesLookup.Count < 2) throw new Exception("not enough faces");
 
-                        using (var mask = Mat.Zeros(avgRect.Height, avgRect.Width, MatType.CV_32FC3).ToMat())
-                        {
-                            var scalar = new Scalar(1, 1, 1);
-                            Cv2.FillConvexPoly(mask, avgOffsetRectInt, scalar, LineTypes.AntiAlias);
-                            var srcImgRect = new Mat();
-                            var dstImgRect = new Mat();
-                            srcImg[srcRect].CopyTo(srcImgRect);
-                            dstImg[dstRect].CopyTo(dstImgRect);
+            var img1 = facesLookup.First();
+            var img2 = facesLookup.Last();
+            var output1 = Swap(img1.Key, img1.First(), img2.Key, img2.Last());
+            var output2 = Swap(img2.Key, img2.Last(), img1.Key, img1.First());
 
-                            void ApplyAffineTransform(Mat warpImage, Mat imgRect, List<Point2f> offsetRect)
-                            {
-                                using (var warpMat = Cv2.GetAffineTransform(offsetRect, avgOffsetRect))
-                                {
-                                    Cv2.WarpAffine(imgRect, warpImage, warpMat, warpImage.Size(),
-                                        InterpolationFlags.Linear,
-                                        BorderTypes.Reflect101);
-                                }
-                            }
+            output1.Mutate(i =>
+            {
+                var currentSize = output1.Size();
+                var newSizeVert = new Size(Math.Max(output1.Width, output2.Width), output1.Height + output2.Height);
+                var newSizeHor = new Size(output1.Width + output2.Width, Math.Max(output1.Height, output2.Height));
+                var (newSize, location) =
+                    newSizeVert.Height + newSizeVert.Width > newSizeHor.Height + newSizeHor.Width
+                        ? (newSizeHor, new SixLabors.Primitives.Point(currentSize.Width, 0))
+                        : (newSizeVert, new SixLabors.Primitives.Point(0, currentSize.Height));
+                i.Resize(new ResizeOptions
+                {
+                    Mode = ResizeMode.BoxPad,
+                    Size = newSize,
+                    Position = AnchorPositionMode.TopLeft
+                });
+                i.DrawImage(output2, 1, location);
+            });
 
-                            using (var warpImage1 = Mat.Zeros(avgRect.Height, avgRect.Width, srcImgRect.Type()).ToMat())
-                            using (var warpImage2 = Mat.Zeros(avgRect.Height, avgRect.Width, dstImgRect.Type()).ToMat())
-                            {
-                                ApplyAffineTransform(warpImage1, srcImgRect, srcOffsetRect);
-                                ApplyAffineTransform(warpImage2, dstImgRect, dstOffsetRect);
+            var output = new MemoryStream();
+            output1.SaveAsPng(output);
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
 
-                                using (var avgImgRect = ((1.0 - alpha) * warpImage1 + alpha * warpImage2).ToMat())
-                                {
-                                    Cv2.Multiply(avgImgRect, mask, avgImgRect);
-                                    Cv2.Multiply(morphImage[avgRect], scalar - mask, morphImage[avgRect]);
-                                    morphImage[avgRect] = morphImage[avgRect] + avgImgRect;
-                                }
-                            }
-                        }
+        }
+
+        private Image<Rgba32> Swap(Mat img1, List<Point2f> points1, Mat img2, IList<Point2f> points2)
+        {
+            var img1Warped = img2.Clone();
+            img1.ConvertTo(img1, MatType.CV_32F);
+            img1Warped.ConvertTo(img1Warped, MatType.CV_32F);
+
+            var hullIndex = Cv2.ConvexHullIndices(points2);
+            var hull1 = hullIndex.Select(i => points1[i]).ToList();
+            var hull2 = hullIndex.Select(i => points2[i]).ToList();
+            var rect = new Rect(0, 0, img1Warped.Cols, img1Warped.Rows);
+
+            var dt = GetDelaunayTriangulationIndexes(rect, hull2);
+
+            foreach (var triangleIndexes in dt)
+            {
+                var t1 = triangleIndexes.Select(i => hull1[i]).ToList();
+                var t2 = triangleIndexes.Select(i => hull2[i]).ToList();
+                WarpTriangle(img1, img1Warped, t1, t2);
+            }
+
+            var hull8U = hull2.Select(p => new Point((int) p.X, (int) p.Y)).ToList();
+
+            using (var mask = Mat.Zeros(img2.Rows, img2.Cols, MatType.CV_8UC3).ToMat())
+            {
+                Cv2.FillConvexPoly(mask, hull8U, new Scalar(255, 255, 255));
+                var r = Cv2.BoundingRect(hull2);
+                var center = r.Location + new Point(r.Width / 2, r.Height / 2);
+                img1Warped.ConvertTo(img1Warped, MatType.CV_8UC3);
+                img2.ConvertTo(img2, MatType.CV_8UC3);
+                using (var outputMat = new Mat())
+                {
+                    Cv2.SeamlessClone(img1Warped, img2, mask, center, outputMat, SeamlessCloneMethods.NormalClone);
+                    return Image.Load(outputMat.ToBytes());
+                }
+            }
+        }
+
+        private void WarpTriangle(Mat img1, Mat img2, List<Point2f> t1, List<Point2f> t2)
+        {
+            var r1 = Cv2.BoundingRect(t1);
+            var r2 = Cv2.BoundingRect(t2);
+
+
+            var t1Rect = new List<Point2f>();
+            var t2Rect = new List<Point2f>();
+            var t2RectInt = new List<Point>();
+            for (var i = 0; i < 3; i++)
+            {
+                t1Rect.Add(new Point2f(t1[i].X - r1.X, t1[i].Y - r1.Y));
+                t2Rect.Add(new Point2f(t2[i].X - r2.X, t2[i].Y - r2.Y));
+                t2RectInt.Add(new Point(t2[i].X - r2.X, t2[i].Y - r2.Y));
+            }
+
+            using (var mask = Mat.Zeros(r2.Height, r2.Width, MatType.CV_32FC3).ToMat())
+            {
+                var scalar = new Scalar(1, 1, 1);
+                Cv2.FillConvexPoly(mask, t2RectInt, scalar, LineTypes.AntiAlias);
+                using (var img1Rect = new Mat())
+                {
+                    img1[r1].CopyTo(img1Rect);
+                    var img2Rect = Mat.Zeros(r2.Height, r2.Width, img1Rect.Type()).ToMat();
+                    using (var warpMat = Cv2.GetAffineTransform(t1Rect, t2Rect))
+                    {
+                        Cv2.WarpAffine(img1Rect, img2Rect, warpMat, img2Rect.Size(),
+                            InterpolationFlags.Linear,
+                            BorderTypes.Reflect101);
+                        Cv2.Multiply(img2Rect, mask, img2Rect);
+                        Cv2.Multiply(img2[r2], scalar - mask, img2[r2]);
+                        img2[r2] = img2[r2] + img2Rect;
                     }
                 }
             }

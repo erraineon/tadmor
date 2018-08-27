@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Discord.Commands;
@@ -27,6 +28,16 @@ namespace Tadmor.Modules
             var destImage = await Client.GetByteArrayAsync(destImageUrl);
             var stream = await _vision.Morph(sourceImage, destImage);
             await Context.Channel.SendFileAsync(stream, "result.gif");
+        }
+
+        [Command("swap")]
+        public async Task Swap(params string[] urls)
+        {
+            var allUrls = await Context.GetAllImageUrls(urls);
+            if (!allUrls.Any()) throw new Exception("need at least an image");
+            var images = await Task.WhenAll(allUrls.Take(2).Select(url => Client.GetByteArrayAsync(url)));
+            var result = await _vision.Swap(images);
+            await Context.Channel.SendFileAsync(result, "result.png");
         }
     }
 }
