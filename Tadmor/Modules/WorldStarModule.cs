@@ -26,7 +26,6 @@ namespace Tadmor.Modules
         {
             var videos = (await _worldStar.GetVideoInfosFromSite())
                 .Where(v => !Regex.IsMatch(v.Title, "^.+ - .+$"))
-                .Take(5)
                 .ToList();
             var channelId = Context.Channel.Id;
             foreach (var video in videos)
