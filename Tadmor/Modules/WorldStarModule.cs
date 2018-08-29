@@ -26,12 +26,13 @@ namespace Tadmor.Modules
         {
             var videos = (await _worldStar.GetVideoInfosFromSite())
                 .Where(v => !Regex.IsMatch(v.Title, "^.+ - .+$"))
+                .Take(5)
                 .ToList();
             var channelId = Context.Channel.Id;
             foreach (var video in videos)
             {
                 var key = (video.PageUrl, channelId);
-                var tuple = !VideosCache.TryGetValue(key, out var v) ? v : default;
+                var tuple = VideosCache.TryGetValue(key, out var v) ? v : default;
                 tuple.video = video;
                 VideosCache[key] = tuple;
             }

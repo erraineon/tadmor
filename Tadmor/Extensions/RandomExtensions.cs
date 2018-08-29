@@ -24,11 +24,18 @@ namespace Tadmor.Extensions
             var itemsAndWeight = sequence
                 .Select(item => (item, weight: weightAccumulator += weightFunc(item)))
                 .ToList();
-            var totalWeight = itemsAndWeight.Last().weight;
-            for (var i = 0; i < subsetSize; i++)
+            if (itemsAndWeight.Count == 1)
             {
-                var weightIndex = random.NextDouble() * totalWeight;
-                yield return itemsAndWeight.First(t => t.weight >= weightIndex).item;
+                yield return itemsAndWeight.Single().item;
+            }
+            else if (itemsAndWeight.Count > 1)
+            {
+                var totalWeight = itemsAndWeight.Last().weight;
+                for (var i = 0; i < subsetSize; i++)
+                {
+                    var weightIndex = random.NextDouble() * totalWeight;
+                    yield return itemsAndWeight.First(t => t.weight >= weightIndex).item;
+                }
             }
         }
 
