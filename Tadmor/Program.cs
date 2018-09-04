@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -9,12 +10,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
-using Tadmor.Data;
+using Scrutor;
 using Tadmor.Extensions;
-using Tadmor.Services.Cron;
+using Tadmor.Services.Data;
 using Tadmor.Services.Discord;
+using Tadmor.Services.E621;
+using Tadmor.Services.Hangfire;
 
 namespace Tadmor
 {
@@ -22,44 +27,44 @@ namespace Tadmor
     {
         private static async Task Main(string[] args)
         {
-            var services = ConfigureServices();
-            var dbContext = services.GetRequiredService<AppDbContext>();
-            await dbContext.Database.MigrateAsync();
-            var discord = services.GetRequiredService<DiscordService>();
-            await discord.StartAsync();
-            //WorkerCount must be one when using sqlite or jobs will fire multiple times
-            var hangfireServer = new BackgroundJobServer(new BackgroundJobServerOptions {WorkerCount = 1});
-            await Task.Delay(-1);
+            var host = ConfigureHost();
+            await host.RunAsync();
         }
 
-        public static ServiceProvider ConfigureServices()
+        public static IHost ConfigureHost()
         {
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", false, true)
-                .AddJsonFile("sonagen.json")
+            var host = new HostBuilder()
+                .ConfigureAppConfiguration(configApp => configApp
+                    .AddJsonFile("appsettings.json", false, true)
+                    .AddJsonFile("sonagen.json"))
+                .ConfigureHostConfiguration(configApp => configApp
+                    .AddJsonFile("appsettings.json", false, true)
+                    .AddJsonFile("sonagen.json"))
+                .ConfigureServices((hostContext, services) =>
+                {
+                    //((ServiceCollection)services).Configure(hostContext.Configuration)
+                    services
+                        .AddOptions(hostContext.Configuration)
+                        .AddLogging()
+                        .AddDbContext<AppDbContext>(builder => builder
+                            .UseSqlite(hostContext.Configuration.GetConnectionString("Main")))
+                        .AddHostedService<DataService>()
+                        .AddHostedService<HangfireService>()
+                        .AddHostedService<DiscordService>()
+                        .AddSingleton(new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async}))
+                        .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig {MessageCacheSize = 100}))
+                        .Scan(scan => scan
+                            .FromEntryAssembly()
+                            .AddClasses(classes => classes
+                                .Where(type => new[] {"Service", "Job"}.Any(type.Name.EndsWith)))
+                            .UsingRegistrationStrategy(RegistrationStrategy.Skip)
+                            .AsSelf()
+                            .WithSingletonLifetime());
+                })
+                .ConfigureLogging(configLogging => configLogging.AddConsole())
+                .UseConsoleLifetime()
                 .Build();
-
-            var services = new ServiceCollection()
-                .Configure(configuration)
-                .AddLogging(logger => logger.AddConsole())
-                .AddDbContext<AppDbContext>(builder => builder.UseSqlite(configuration.GetConnectionString("Main")))
-                .AddSingleton(new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async}))
-                .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig {MessageCacheSize = 100}))
-                .Scan(scan => scan
-                    .FromEntryAssembly()
-                    .AddClasses(classes => classes.Where(type => type.Name.EndsWith("Service")))
-                    .AsSelf()
-                    .WithSingletonLifetime()
-                    .AddClasses(classes => classes.Where(type => type.Name.EndsWith("Job")))
-                    .AsSelf()
-                    .WithSingletonLifetime())
-                .BuildServiceProvider();
-
-            GlobalConfiguration.Configuration
-                .UseActivator(new InjectedJobActivator(services))
-                .UseSQLiteStorage(configuration.GetConnectionString("Hangfire"))
-                .UseFilter(new AutomaticRetryAttribute {Attempts = 0});
-            return services;
+            return host;
         }
 
         public static async Task UpdateOptions<TSection>(TSection section) where TSection : class, new()

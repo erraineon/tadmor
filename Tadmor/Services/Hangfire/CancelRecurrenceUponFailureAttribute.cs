@@ -5,7 +5,7 @@ using Hangfire.Common;
 using Hangfire.Server;
 using Hangfire.Storage;
 
-namespace Tadmor.Services.Cron
+namespace Tadmor.Services.Hangfire
 {
     public class CancelRecurrenceUponFailureAttribute : JobFilterAttribute, IServerFilter
     {

@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Tadmor.Services.Cron;
+using Tadmor.Services.Hangfire;
 
 namespace Tadmor.Services.Discord
 {
-    public class CommandJob : ICronJob<CommandJobOptions>
+    public class CommandJob : IHangfireJob<CommandJobOptions>
     {
         private readonly DiscordSocketClient _discordClient;
         private readonly DiscordService _discordService;
@@ -24,7 +24,7 @@ namespace Tadmor.Services.Discord
             var channel = _discordClient.GetChannel(options.ChannelId) as IMessageChannel ??
                           throw new Exception("channel gone, delete schedule");
             var owner = _discordClient.GetUser(options.OwnerId);
-            var message = new CronUserMessage(channel, owner, options.Command);
+            var message = new HangfireUserMessage(channel, owner, options.Command);
             var context = new CommandContext(_discordClient, message);
             await _discordService.ExecuteCommand(context, string.Empty);
         }

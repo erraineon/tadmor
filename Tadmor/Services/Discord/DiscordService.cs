@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tadmor.Extensions;
@@ -13,7 +15,7 @@ using Tadmor.Services.Imaging;
 
 namespace Tadmor.Services.Discord
 {
-    public class DiscordService
+    public class DiscordService : IHostedService
     {
         private static readonly LogLevel[] LogLevels =
         {
@@ -43,28 +45,6 @@ namespace Tadmor.Services.Discord
             _commands = commands;
             _activityMonitor = activityMonitor;
             _discordOptions = discordOptions.Value;
-        }
-
-        public async Task StartAsync()
-        {
-            var discordReady = new TaskCompletionSource<object>();
-
-            Task OnReady()
-            {
-                _discord.Ready -= OnReady;
-                discordReady.SetResult(default);
-                return Task.CompletedTask;
-            }
-            
-            _discord.Ready += OnReady;
-            _discord.Log += Log;
-            _commands.Log += LogCommandError;
-            _discord.MessageReceived += _activityMonitor.UpdateUserActivity;
-            _discord.MessageReceived += TryExecuteCommand;
-            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), _services);
-            await _discord.LoginAsync(TokenType.Bot, _discordOptions.Token);
-            await _discord.StartAsync();
-            await discordReady.Task;
         }
 
         private Task Log(LogMessage logMessage)
@@ -116,6 +96,34 @@ namespace Tadmor.Services.Discord
                 var commandPrefix = guildOptions?.CommandPrefix ?? ".";
                 return commandPrefix;
             }
+        }
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            var discordReady = new TaskCompletionSource<object>();
+
+            Task OnReady()
+            {
+                _discord.Ready -= OnReady;
+                discordReady.SetResult(default);
+                return Task.CompletedTask;
+            }
+
+            _discord.Ready += OnReady;
+            _discord.Log += Log;
+            _commands.Log += LogCommandError;
+            _discord.MessageReceived += _activityMonitor.UpdateUserActivity;
+            _discord.MessageReceived += TryExecuteCommand;
+            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly());
+            await _discord.LoginAsync(TokenType.Bot, _discordOptions.Token);
+            await _discord.StartAsync();
+            await discordReady.Task;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _discord.Dispose();
+            return Task.CompletedTask;
         }
     }
 }

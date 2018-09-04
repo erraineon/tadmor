@@ -11,7 +11,7 @@ namespace Tadmor.Extensions
         /// <summary>
         ///     automatically map all subsections to types with the same name
         /// </summary>
-        public static ServiceCollection Configure(this ServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddOptions(this IServiceCollection services, IConfiguration configuration)
         {
             var openMethod = typeof(OptionsConfigurationServiceCollectionExtensions)
                 .GetMethod(nameof(OptionsConfigurationServiceCollectionExtensions.Configure),

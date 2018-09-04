@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 
-namespace Tadmor.Services.Cron
+namespace Tadmor.Services.Hangfire
 {
-    public interface ICronJob<in TOptions>
+    public interface IHangfireJob<in TOptions>
     {
         Task Do(TOptions options);
     }

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Tadmor.Data
+namespace Tadmor.Services.Data
 {
     public class AppDbContext : DbContext
     {
@@ -18,7 +18,7 @@ namespace Tadmor.Data
             {
                 //ef cli tools will create the db in the project dir without this
                 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                var services = Program.ConfigureServices();
+                var services = Program.ConfigureHost().Services;
                 return services.GetService<AppDbContext>();
             }
         }

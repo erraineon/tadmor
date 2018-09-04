@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Tadmor.Extensions;
-using Tadmor.Services.Cron;
+using Tadmor.Services.Hangfire;
 
 namespace Tadmor.Services.E621
 {
-    public class E621SearchJob : ICronJob<E621SearchJobOptions>
+    public class E621SearchJob : IHangfireJob<E621SearchJobOptions>
     {
         private readonly DiscordSocketClient _discord;
         private readonly E621Service _e621;

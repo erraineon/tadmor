@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
-using Tadmor.Data;
+using Tadmor.Services.Data;
 
 namespace Tadmor.Migrations
 {

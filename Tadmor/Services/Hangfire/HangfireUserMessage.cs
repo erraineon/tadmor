@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 
-namespace Tadmor.Services.Cron
+namespace Tadmor.Services.Hangfire
 {
-    public class CronUserMessage : IUserMessage
+    public class HangfireUserMessage : IUserMessage
     {
-        public CronUserMessage(IMessageChannel channel, IUser author, string content)
+        public HangfireUserMessage(IMessageChannel channel, IUser author, string content)
         {
             Channel = channel;
             Author = author;

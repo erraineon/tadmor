@@ -1,7 +1,7 @@
 ﻿using System;
 using Hangfire;
 
-namespace Tadmor.Services.Cron
+namespace Tadmor.Services.Hangfire
 {
     public class InjectedJobActivator : JobActivator
     {

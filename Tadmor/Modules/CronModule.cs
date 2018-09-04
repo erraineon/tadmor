@@ -7,19 +7,19 @@ using Hangfire;
 using Humanizer;
 using Humanizer.Localisation;
 using Tadmor.Extensions;
-using Tadmor.Services.Cron;
 using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
+using Tadmor.Services.Hangfire;
 
 namespace Tadmor.Modules
 {
     public class CronModule : ModuleBase<ICommandContext>
     {
-        private readonly CronService _cron;
+        private readonly HangfireService _hangfire;
 
-        public CronModule(CronService cron)
+        public CronModule(HangfireService hangfire)
         {
-            _cron = cron;
+            _hangfire = hangfire;
         }
 
         [Command("remind")]
@@ -27,7 +27,7 @@ namespace Tadmor.Modules
         {
             //to avoid permission issues
             var ownerId = (await Context.Client.GetApplicationInfoAsync()).Owner.Id;
-            _cron.Once<CommandJob, CommandJobOptions>(delay, new CommandJobOptions
+            _hangfire.Once<CommandJob, CommandJobOptions>(delay, new CommandJobOptions
             {
                 ChannelId = Context.Channel.Id,
                 Command = $"say {Context.User.Mention}: {reminder}",
@@ -39,7 +39,7 @@ namespace Tadmor.Modules
         [Command("in")]
         public async Task Once(TimeSpan delay, [Remainder] string command)
         {
-            _cron.Once<CommandJob, CommandJobOptions>(delay, new CommandJobOptions
+            _hangfire.Once<CommandJob, CommandJobOptions>(delay, new CommandJobOptions
             {
                 ChannelId = Context.Channel.Id,
                 Command = command,
@@ -55,7 +55,7 @@ namespace Tadmor.Modules
         {
             var description = cron.ToCronDescription();
             await ReplyAsync($"will execute '{command}' {description}");
-            _cron.Every<CommandJob, CommandJobOptions>(cron, new CommandJobOptions
+            _hangfire.Every<CommandJob, CommandJobOptions>(cron, new CommandJobOptions
             {
                 ChannelId = Context.Channel.Id,
                 Command = command,
@@ -68,17 +68,17 @@ namespace Tadmor.Modules
         [Group("sched")]
         public class RecurringModule : ModuleBase<SocketCommandContext>
         {
-            private readonly CronService _cron;
+            private readonly HangfireService _hangfire;
 
-            public RecurringModule(CronService cron)
+            public RecurringModule(HangfireService hangfire)
             {
-                _cron = cron;
+                _hangfire = hangfire;
             }
 
             [Command("e621")]
             public async Task RecurringE621Search([Remainder] string tags)
             {
-                _cron.Every<E621SearchJob, E621SearchJobOptions>(Cron.HourInterval(6), new E621SearchJobOptions
+                _hangfire.Every<E621SearchJob, E621SearchJobOptions>(Cron.HourInterval(6), new E621SearchJobOptions
                 {
                     ChannelId = Context.Channel.Id,
                     Tags = tags
@@ -88,7 +88,7 @@ namespace Tadmor.Modules
             [Command("ls")]
             public async Task ViewJobs()
             {
-                var jobStrings = _cron.GetRecurringJobInfos(Context.Guild);
+                var jobStrings = _hangfire.GetRecurringJobInfos(Context.Guild);
                 var jobInfo = jobStrings.Any()
                     ? string.Join(Environment.NewLine, jobStrings)
                     : throw new Exception("no jobs on this guild");
@@ -98,7 +98,7 @@ namespace Tadmor.Modules
             [Command("rm")]
             public async Task RemoveJob(string jobId)
             {
-                _cron.RemoveRecurringJob(jobId);
+                _hangfire.RemoveRecurringJob(jobId);
                 await ReplyAsync("ok");
             }
         }
