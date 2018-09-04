@@ -80,11 +80,21 @@ namespace Tadmor.Services.Discord
 
         public async Task ExecuteCommand(ICommandContext context, string prefix)
         {
-            using (var scope = _services.CreateScope())
+            var scope = _services.CreateScope();
+            var result = await _commands.ExecuteAsync(context, prefix.Length, scope.ServiceProvider);
+
+            // as of DependencyInjection v2.1 scope disposal is immediate whereas precondition check is asynchronous
+            // therefore scope disposal must be made asynchronous too
+            _commands.CommandExecuted += DisposeScope;
+
+            Task DisposeScope(CommandInfo _, ICommandContext __, IResult ___)
             {
-                var result = await _commands.ExecuteAsync(context, prefix.Length, scope.ServiceProvider);
-                if (result.Error == CommandError.UnmetPrecondition) await context.Channel.SendMessageAsync("no");
+                scope.Dispose();
+                _commands.CommandExecuted -= DisposeScope;
+                return Task.CompletedTask;
             }
+
+            if (result.Error == CommandError.UnmetPrecondition) await context.Channel.SendMessageAsync("no");
         }
 
         public string GetCommandsPrefix(IGuild guild)
