@@ -29,13 +29,14 @@ namespace Tadmor.Services.Twitter
 
         private async Task<List<TwitterMedia>> GetImagePosts(AppDbContext context, string displayName)
         {
-            var lastCachedTweet = context.TwitterMedia
-                .Where(m => m.Username == displayName)
+            var mediaQuery = context.TwitterMedia
+                .Where(m => string.Equals(m.Username, displayName, StringComparison.OrdinalIgnoreCase));
+            var lastCachedTweet = mediaQuery
                 .Select(m => m.TweetId)
                 .DefaultIfEmpty(0UL)
                 .Max();
             var tweets = await GetTweets(displayName, lastCachedTweet);
-            var posts = tweets
+            var newMedia = tweets
                 .SelectMany(tweet => tweet.ExtendedEntities.MediaEntities
                     .Select(entity => new TwitterMedia
                     {
@@ -49,14 +50,13 @@ namespace Tadmor.Services.Twitter
                         Username = tweet.ScreenName,
                     }))
                 .ToList();
-            if (posts.Any())
+            if (newMedia.Any())
             {
-                await context.TwitterMedia.AddRangeAsync(posts);
+                await context.TwitterMedia.AddRangeAsync(newMedia);
                 await context.SaveChangesAsync();
             }
 
-            return await EntityFrameworkQueryableExtensions.ToListAsync(context.TwitterMedia
-                .Where(m => m.Username == displayName));
+            return await EntityFrameworkQueryableExtensions.ToListAsync(mediaQuery);
         }
 
         private async Task<List<Status>> GetTweets(string displayName, ulong minId)
