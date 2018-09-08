@@ -3,13 +3,22 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
+using Tadmor.Services.Twitter;
 
 namespace Tadmor.Services.Data
 {
     public class AppDbContext : DbContext
     {
+        public DbSet<TwitterMedia> TwitterMedia { get; set; }
+
         public AppDbContext(DbContextOptions options) : base(options)
         {
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<TwitterMedia>()
+                .HasKey(media => new {media.TweetId, media.MediaId});
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>

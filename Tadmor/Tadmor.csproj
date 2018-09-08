@@ -58,6 +58,7 @@
     <PackageReference Include="Hangfire.SQLite" Version="1.4.2" />
     <PackageReference Include="HtmlAgilityPack" Version="1.8.7" />
     <PackageReference Include="Humanizer.Core" Version="2.4.2" />
+    <PackageReference Include="linqtotwitter" Version="5.0.0-beta3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.0" />
