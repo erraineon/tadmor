@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using DlibDotNet;
+﻿using DlibDotNet;
 using OpenCvSharp;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Drawing;
 using SixLabors.ImageSharp.Processing.Transforms;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Point = OpenCvSharp.Point;
 using Size = SixLabors.Primitives.Size;
 
@@ -135,7 +135,7 @@ namespace Tadmor.Services.Imaging
         }
 
         private static (Mat transformedImage, List<Point2f> transformedPoints) SimilarityTransform(int outputWidth,
-            int outputHeight, List<Point2f> face, Mat img)
+            int outputHeight, IList<Point2f> face, Mat img)
         {
             var s60 = (float) Math.Sin(60 * Math.PI / 180.0);
             var c60 = (float) Math.Cos(60 * Math.PI / 180.0);
@@ -153,22 +153,18 @@ namespace Tadmor.Services.Imaging
                 new Point2f(0.7F * outputWidth, outputHeight / 3f));
 
             using (var inputArray = InputArray.Create(eyeCornersSource))
+            using (var array = InputArray.Create(eyeCornersDest))
+            using (var transform = Cv2.EstimateRigidTransform(inputArray, array, false))
             {
-                using (var array = InputArray.Create(eyeCornersDest))
+                var transformedImage = Mat.Zeros(outputWidth, outputHeight, MatType.CV_32FC3).ToMat();
+                Cv2.WarpAffine(img, transformedImage, transform, transformedImage.Size());
+                using (var src = InputArray.Create(face))
+                using (var dst = new Mat())
                 {
-                    using (var transform = Cv2.EstimateRigidTransform(inputArray, array, false))
-                    {
-                        var transformedImage = Mat.Zeros(outputWidth, outputHeight, MatType.CV_32FC3).ToMat();
-                        Cv2.WarpAffine(img, transformedImage, transform, transformedImage.Size());
-                        using (var src = InputArray.Create(face))
-                        using (var dst = new Mat())
-                        {
-                            Cv2.Transform(src, dst, transform);
-                            var transformedPoints = new Point2f[dst.Rows * dst.Cols];
-                            dst.GetArray(0, 0, transformedPoints);
-                            return (transformedImage, transformedPoints.ToList());
-                        }
-                    }
+                    Cv2.Transform(src, dst, transform);
+                    var transformedPoints = new Point2f[dst.Rows * dst.Cols];
+                    dst.GetArray(0, 0, transformedPoints);
+                    return (transformedImage, transformedPoints.ToList());
                 }
             }
         }
@@ -302,7 +298,7 @@ namespace Tadmor.Services.Imaging
 
         }
 
-        private Image<Rgba32> Swap(Mat img1, List<Point2f> points1, Mat img2, IList<Point2f> points2)
+        private Image<Rgba32> Swap(Mat img1, IList<Point2f> points1, Mat img2, IList<Point2f> points2)
         {
             var img1Warped = img2.Clone();
             img1.ConvertTo(img1, MatType.CV_32F);

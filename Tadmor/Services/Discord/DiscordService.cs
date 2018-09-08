@@ -124,7 +124,7 @@ namespace Tadmor.Services.Discord
             _commands.Log += LogCommandError;
             _discord.MessageReceived += _activityMonitor.UpdateUserActivity;
             _discord.MessageReceived += TryExecuteCommand;
-            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly());
+            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), _services);
             await _discord.LoginAsync(TokenType.Bot, _discordOptions.Token);
             await _discord.StartAsync();
             await discordReady.Task;

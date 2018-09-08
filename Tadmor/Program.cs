@@ -11,11 +11,8 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using Scrutor;
 using Tadmor.Extensions;
 using Tadmor.Services.Data;
-using Tadmor.Services.Discord;
-using Tadmor.Services.Hangfire;
 
 namespace Tadmor
 {
@@ -33,25 +30,18 @@ namespace Tadmor
                 .ConfigureAppConfiguration(configApp => configApp
                     .AddJsonFile("appsettings.json", false, true)
                     .AddJsonFile("sonagen.json"))
-                .ConfigureHostConfiguration(configApp => configApp
-                    .AddJsonFile("appsettings.json", false, true)
-                    .AddJsonFile("sonagen.json"))
                 .ConfigureServices((hostContext, services) => services
                     .AddOptions(hostContext.Configuration)
                     .AddLogging()
                     .AddDbContext<AppDbContext>(builder => builder
                         .UseSqlite(hostContext.Configuration.GetConnectionString("Main")))
-                    .AddHostedService<DataService>()
-                    .AddHostedService<HangfireService>()
-                    .AddHostedService<DiscordService>()
                     .AddSingleton(new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async}))
                     .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig {MessageCacheSize = 100}))
                     .Scan(scan => scan
                         .FromEntryAssembly()
                         .AddClasses(classes => classes
                             .Where(type => new[] {"Service", "Job"}.Any(type.Name.EndsWith)))
-                        .UsingRegistrationStrategy(RegistrationStrategy.Skip)
-                        .AsSelf()
+                        .AsSelfWithInterfaces()
                         .WithSingletonLifetime()))
                 .ConfigureLogging(configLogging => configLogging.AddConsole())
                 .UseConsoleLifetime()
