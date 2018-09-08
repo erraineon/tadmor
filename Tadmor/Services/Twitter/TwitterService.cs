@@ -72,7 +72,7 @@ namespace Tadmor.Services.Twitter
                     tweet.ScreenName == displayName &&
                     tweet.Count == 200 &&
                     tweet.TweetMode == TweetMode.Compat &&
-                    !tweet.IncludeRetweets);
+                    tweet.IncludeRetweets == false);
                 if (maxId != default) query = query.Where(tweet => tweet.MaxID == maxId);
                 if (minId != default) query = query.Where(tweet => tweet.SinceID == minId);
                 tweets = await query.ToListAsync();
