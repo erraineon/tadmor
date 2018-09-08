@@ -55,7 +55,8 @@ namespace Tadmor.Services.Twitter
                 await context.SaveChangesAsync();
             }
 
-            return await EntityFrameworkQueryableExtensions.ToListAsync(context.TwitterMedia);
+            return await EntityFrameworkQueryableExtensions.ToListAsync(context.TwitterMedia
+                .Where(m => m.Username == displayName));
         }
 
         private async Task<List<Status>> GetTweets(string displayName, ulong minId)
