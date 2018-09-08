@@ -87,10 +87,14 @@ namespace Tadmor.Services.Discord
             // therefore scope disposal must be made asynchronous too
             _commands.CommandExecuted += DisposeScope;
 
-            Task DisposeScope(CommandInfo _, ICommandContext __, IResult ___)
+            Task DisposeScope(CommandInfo _, ICommandContext completedContext, IResult __)
             {
-                scope.Dispose();
-                _commands.CommandExecuted -= DisposeScope;
+                if (completedContext == context)
+                {
+                    scope.Dispose();
+                    _commands.CommandExecuted -= DisposeScope;
+                }
+
                 return Task.CompletedTask;
             }
 
