@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Discord.Commands;
-using Tadmor.Extensions;
 using Tadmor.Services.E621;
 
 namespace Tadmor.Modules
@@ -14,12 +13,12 @@ namespace Tadmor.Modules
         {
             _e621 = e621;
         }
-        
+
         [Command("e621")]
         public async Task SearchRandom([Remainder] string tags)
         {
-            var post = await _e621.SearchRandom(tags) ?? throw new Exception("no results");
-            await ReplyAsync(string.Empty, embed: post.ToEmbed());
+            var post = await _e621.SearchRandom(tags);
+            await ReplyAsync(post.FileUrl);
         }
     }
 }

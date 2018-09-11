@@ -30,7 +30,7 @@ namespace Tadmor.Services.E621
             {
                 options.AfterId = newAfterId;
                 foreach (var e621Post in newPosts)
-                    await destChannel.SendMessageAsync("new submission", embed: e621Post.ToEmbed());
+                    await destChannel.SendMessageAsync($"new submission: {e621Post.FileUrl}");
             }
         }
     }

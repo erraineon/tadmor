@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using E621;
@@ -24,7 +25,7 @@ namespace Tadmor.Services.E621
                 TypedTags = true
             };
             var posts = await _client.Search(options);
-            return posts.FirstOrDefault();
+            return posts.FirstOrDefault() ?? throw new Exception("no results");
         }
 
         public async Task<(List<E621Post>, long)> SearchAfter(string tags, long afterId)
