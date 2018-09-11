@@ -79,7 +79,7 @@ namespace Tadmor.Modules
 
         [RequireBotPermission(GuildPermission.ChangeNickname)]
         [Command("nick")]
-        public async Task Nick(IGuildUser target, string nickname)
+        public async Task Nick(IGuildUser target, [Remainder] string nickname)
         {
             if (target.Id == Context.User.Id)
             {
