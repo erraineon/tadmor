@@ -76,21 +76,5 @@ namespace Tadmor.Modules
             var messages = await channel.GetMessagesAsync(count).FlattenAsync();
             await channel.DeleteMessagesAsync(messages);
         }
-
-        [RequireBotPermission(GuildPermission.ChangeNickname)]
-        [Command("nick")]
-        public async Task Nick(IGuildUser target, [Remainder] string nickname)
-        {
-            if (target.Id == Context.User.Id)
-            {
-                await ReplyAsync("you can't change your own nickname");
-            }
-            else
-            {
-                var truncatedNick = nickname.Truncate(32, string.Empty);
-                await target.ModifyAsync(u => u.Nickname = truncatedNick);
-                await ReplyAsync($"{target.Mention}'s nickname changed to `{truncatedNick}`");
-            }
-        }
     }
 }
