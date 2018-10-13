@@ -2,6 +2,7 @@
 using Hangfire.Storage;
 using Tadmor.Extensions;
 using Tadmor.Services.Hangfire;
+using Tadmor.Utils;
 
 namespace Tadmor.Services.Discord
 {
@@ -9,9 +10,9 @@ namespace Tadmor.Services.Discord
     {
         public string Command { get; set; }
 
-        public override string ToString(RecurringJobDto job, SocketTextChannel channel)
+        public override string ToString(string jobId, string scheduleDescription, SocketTextChannel channel)
         {
-            return $"{job.Id}: execute '{Command}' in {channel.Mention} {job.Cron.ToCronDescription()}";
+            return $"{jobId}: execute '{Command}' in {channel.Mention} {scheduleDescription}";
         }
     }
 }

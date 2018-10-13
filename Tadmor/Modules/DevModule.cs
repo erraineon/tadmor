@@ -8,6 +8,7 @@ using Humanizer;
 
 namespace Tadmor.Modules
 {
+    [Summary("utilities")]
     public class DevModule : ModuleBase<ICommandContext>
     {
         [RequireOwner]
@@ -40,7 +41,9 @@ namespace Tadmor.Modules
             if (guild != null) await guild.LeaveAsync();
         }
 
-        [RequireOwner]
+        [Summary("make the bot say something")]
+        [RequireOwner(Group = "admin")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Command("say")]
         public Task Say([Remainder] string message)
         {
@@ -66,6 +69,7 @@ namespace Tadmor.Modules
             await ReplyAsync(invite.Url);
         }
 
+        [Summary("delete the specified number of messages")]
         [RequireUserPermission(ChannelPermission.ManageMessages, Group = "admin")]
         [RequireOwner(Group = "admin")]
         [RequireBotPermission(ChannelPermission.ManageMessages)]

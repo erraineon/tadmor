@@ -6,13 +6,14 @@ using Discord.Commands;
 using Hangfire;
 using Humanizer;
 using Humanizer.Localisation;
-using Tadmor.Extensions;
 using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
 using Tadmor.Services.Hangfire;
+using Tadmor.Utils;
 
 namespace Tadmor.Modules
 {
+    [Summary("scheduling")]
     public class CronModule : ModuleBase<ICommandContext>
     {
         private readonly HangfireService _hangfire;
@@ -22,6 +23,7 @@ namespace Tadmor.Modules
             _hangfire = hangfire;
         }
 
+        [Summary("reminds you the message after the specified amount of time")]
         [Command("remind")]
         public async Task Remind(TimeSpan delay, [Remainder] string reminder)
         {
@@ -36,6 +38,7 @@ namespace Tadmor.Modules
             await ReplyAsync($"will remind in {delay.Humanize(maxUnit: TimeUnit.Year)}");
         }
 
+        [Summary("executes the command after the specified amount of time")]
         [Command("in")]
         public async Task Once(TimeSpan delay, [Remainder] string command)
         {
@@ -48,12 +51,13 @@ namespace Tadmor.Modules
             await ReplyAsync($"will execute in {delay.Humanize(maxUnit: TimeUnit.Year)}");
         }
 
+        [Summary("executes the command based on the specified cron schedule")]
         [RequireOwner(Group = "admin")]
         [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Command("every")]
         public async Task Every(string cron, [Remainder] string command)
         {
-            var description = cron.ToCronDescription();
+            var description = StringUtils.ToCronDescription(cron);
             await ReplyAsync($"will execute '{command}' {description}");
             _hangfire.Every<CommandJob, CommandJobOptions>(cron, new CommandJobOptions
             {
@@ -75,26 +79,32 @@ namespace Tadmor.Modules
                 _hangfire = hangfire;
             }
 
+            [Summary("schedules a recurring e621 search to stay up to date with the specified tags")]
             [Command("e621")]
             public async Task RecurringE621Search([Remainder] string tags)
             {
-                _hangfire.Every<E621SearchJob, E621SearchJobOptions>(Cron.HourInterval(6), new E621SearchJobOptions
+                var cron = Cron.HourInterval(6);
+                var description = StringUtils.ToCronDescription(cron);
+                _hangfire.Every<E621SearchJob, E621SearchJobOptions>(cron, new E621SearchJobOptions
                 {
                     ChannelId = Context.Channel.Id,
                     Tags = tags
                 });
+                await ReplyAsync($"will search '{tags}' {description}");
             }
 
+            [Summary("lists pending jobs")]
             [Command("ls")]
             public async Task ViewJobs()
             {
-                var jobStrings = _hangfire.GetRecurringJobInfos(Context.Guild);
+                var jobStrings = _hangfire.GetJobInfos(Context.Guild);
                 var jobInfo = jobStrings.Any()
                     ? string.Join(Environment.NewLine, jobStrings)
                     : throw new Exception("no jobs on this guild");
                 await ReplyAsync(jobInfo);
             }
 
+            [Summary("removes the job with the specified id")]
             [Command("rm")]
             public async Task RemoveJob(string jobId)
             {

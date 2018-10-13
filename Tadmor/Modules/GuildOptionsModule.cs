@@ -7,6 +7,7 @@ using Tadmor.Services.Discord;
 
 namespace Tadmor.Modules
 {
+    [Summary("guild options")]
     [RequireOwner(Group = "admin")]
     [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
     public class GuildOptionsModule : ModuleBase<ICommandContext>
@@ -18,6 +19,7 @@ namespace Tadmor.Modules
             _discordOptions = discordOptions.Value;
         }
 
+        [Summary("change the prefix for commands on this guild")]
         [Command("prefix")]
         public async Task ChangePrefix(string newPrefix)
         {

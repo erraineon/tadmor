@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Tadmor.Services.Imaging;
 
 namespace Tadmor.Modules
 {
+    [Summary("images")]
     public class ImagingModule : ModuleBase<ICommandContext>
     {
         private static readonly HttpClient Client = new HttpClient();
@@ -21,6 +23,7 @@ namespace Tadmor.Modules
             _activityMonitor = activityMonitor;
         }
 
+        [Summary("make a triangular chart")]
         [Command("tri")]
         public async Task Triangle(string opt1, string opt2, string opt3, [Remainder] string title = "")
         {
@@ -29,6 +32,7 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
+        [Summary("make a quadrant chart")]
         [Command("quad")]
         public async Task Quadrant(string opt1, string opt2, string opt3, string opt4)
         {
@@ -37,16 +41,7 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
-        [Command("mcd")]
-        public Task McDonalds()
-        {
-            const string opt1 = "\"We have food at home\"";
-            const string opt2 = "*Pulls into the drive through as chilren cheer*\n" +
-                                "*Orders a single black coffee and leaves*";
-            const string opt3 = "\"MCDONALDS!\nMCDONALDS! MCDONALDS!\"";
-            return Triangle(opt1, opt2, opt3, "CHILDREN YELLING: MCDONALDS! MCDONALDS! MCDONALDS!");
-        }
-
+        [Summary("make an alignment chart")]
         [Command("align")]
         public async Task AlignmentChart(params string[] options)
         {
@@ -56,31 +51,36 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
+        [Browsable(false)]
         [Command("v")]
         public async Task Down([Remainder]string text)
         {
             await UpDownGif(text, default, "down");
         }
 
+        [Browsable(false)]
         [Command("^")]
         public async Task Up([Remainder]string text)
         {
             await UpDownGif(text, default, "up");
         }
+        [Summary("meme gif pointing down")]
         [Command("v")]
-        public async Task Down(IGuildUser user, [Remainder]string text)
+        public async Task Down(IGuildUser user = default, [Remainder]string text = "")
         {
             await UpDownGif(text, user, "down");
         }
 
+        [Summary("meme gif pointing up")]
         [Command("^")]
-        public async Task Up(IGuildUser user, [Remainder]string text)
+        public async Task Up(IGuildUser user = default, [Remainder]string text = "")
         {
             await UpDownGif(text, user, "up");
         }
 
+        [Summary("ok msg box with the specified text")]
         [Command("ok")]
-        public async Task Ok(IGuildUser user, [Remainder]string text = null)
+        public async Task Ok(IGuildUser user = default, [Remainder]string text = null)
         {
             if (text == null)
             {
@@ -92,20 +92,24 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
+        [Browsable(false)]
         [Command("ok")]
         public async Task Ok([Remainder]string text)
         {
             if (Context.User is IGuildUser guildUser) await Ok(guildUser, text);
         }
 
+        [Summary("fake sms with the specified text")]
         [Command("sms")]
-        public async Task Text(IGuildUser user, [Remainder]string text = null)
+        public async Task Text(IGuildUser user = default, [Remainder]string text = null)
         {
+            if (user == default) user = (IGuildUser) Context.User;
             if (text == null) text = await GetLastMessage(user);
             var result =  _imaging.Text(user.Nickname ?? user.Username, text);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
+        [Browsable(false)]
         [Command("sms")]
         public async Task Text([Remainder]string text)
         {

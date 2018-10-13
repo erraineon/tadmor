@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CodeHollow.FeedReader;
 using HtmlAgilityPack;
 using Tadmor.Extensions;
+using Tadmor.Utils;
 
 namespace Tadmor.Services.WorldStar
 {
@@ -27,7 +28,7 @@ namespace Tadmor.Services.WorldStar
                 .Select(video => new WorldStarVideo
                 {
                     PageUrl = $"{BaseUrl}{video.SelectSingleNode("a").GetAttributeValue("href", string.Empty)}",
-                    Title = video.SelectSingleNode("strong[@class='title']/a").InnerText.StripHtml(),
+                    Title = StringUtils.StripHtml(video.SelectSingleNode("strong[@class='title']/a").InnerText),
                     Views = int.Parse(
                         video.SelectSingleNode("*//span[@class='views']").InnerText,
                         NumberStyles.AllowThousands),

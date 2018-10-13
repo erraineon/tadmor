@@ -7,6 +7,7 @@ using Tadmor.Services.Sonagen;
 
 namespace Tadmor.Modules
 {
+    [Summary("fursona generator")]
     [Group("sona")]
     [Name(nameof(SonagenModule))]
     public class SonagenModule : ModuleBase<ICommandContext>
@@ -31,24 +32,28 @@ namespace Tadmor.Modules
             return ReplyAsync(string.Empty, embed: builder.Build());
         }
 
+        [Summary("get your sona")]
         [Command]
         public Task GenerateUserSona()
         {
             return GenerateRandomSona((IGuildUser) Context.User);
         }
 
+        [Summary("get a random sona")]
         [Command("random")]
         public Task GenerateRandomSona()
         {
             return GenerateSona(Random);
         }
 
+        [Summary("get a sona for the specified name")]
         [Command]
         [Priority(-2)]
         public Task GenerateRandomSona([Remainder] string seed)
         {
             return GenerateSona(seed.ToRandom(), seed: seed);
         }
+        [Summary("get a sona for the specified user")]
         [Command]
         [Priority(-1)]
         public Task GenerateRandomSona(IGuildUser user)

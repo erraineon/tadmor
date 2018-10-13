@@ -7,8 +7,10 @@ using Discord.WebSocket;
 using Hangfire;
 using Hangfire.SQLite;
 using Hangfire.Storage;
+using Humanizer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Tadmor.Utils;
 
 namespace Tadmor.Services.Hangfire
 {
@@ -40,23 +42,33 @@ namespace Tadmor.Services.Hangfire
             RecurringJob.AddOrUpdate<TJob>(jobId, j => j.Do(options), cron);
         }
 
-        public List<string> GetRecurringJobInfos(SocketGuild guild)
+        public List<string> GetJobInfos(SocketGuild guild)
         {
-            var recurringJobDtos = JobStorage.Current.GetConnection().GetRecurringJobs();
+            var storageConnection = JobStorage.Current.GetConnection();
+            var recurringJobDtos = storageConnection.GetRecurringJobs();
+            var oneTimeJobs = JobStorage.Current.GetMonitoringApi().ScheduledJobs(0, int.MaxValue);
             var jobStrings = (from dto in recurringJobDtos
                     let options = (HangfireJobOptions) dto.Job.Args.Single()
                     let channel = guild.GetTextChannel(options.ChannelId)
                     where channel != null
-                    select options.ToString(dto, channel))
+                    select options.ToString(dto.Id, StringUtils.ToCronDescription(dto.Cron), channel))
+                .Concat(from job in oneTimeJobs
+                    let options = (HangfireJobOptions) job.Value.Job.Args.Single()
+                    let channel = guild.GetTextChannel(options.ChannelId)
+                    where channel != null
+                    select options.ToString(job.Key, job.Value.EnqueueAt.Humanize(), channel))
                 .ToList();
             return jobStrings;
         }
 
         public void RemoveRecurringJob(string jobId)
         {
-            var jobs = JobStorage.Current.GetConnection().GetRecurringJobs();
-            var jobToRemove = jobs.SingleOrDefault(job => job.Id == jobId) ?? throw new Exception("job not found");
-            RecurringJob.RemoveIfExists(jobToRemove.Id);
+            var recurringJobs = JobStorage.Current.GetConnection().GetRecurringJobs();
+            if (recurringJobs.SingleOrDefault(job => job.Id == jobId) is RecurringJobDto jobToRemove)
+                RecurringJob.RemoveIfExists(jobToRemove.Id);
+            else if (!BackgroundJob.Delete(jobId))
+                throw new Exception("job not found");
+
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

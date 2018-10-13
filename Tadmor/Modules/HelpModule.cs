@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace Tadmor.Modules
             _services = services;
         }
 
+        [Browsable(false)]
         [Command("help")]
         public async Task Help()
         {
@@ -30,29 +32,36 @@ namespace Tadmor.Modules
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("source code")
                 .WithUrl("https://github.com/erraineon/tadmor");
-            var commandsByRoot = _commands.Commands.GroupBy(command => Root(command.Module).Name);
+            var commandsByRoot = _commands.Commands
+                .Where(c => c.Attributes.OfType<BrowsableAttribute>().All(a => a.Browsable))
+                .GroupBy(command => Root(command.Module));
+            var sb = new StringBuilder();
             foreach (var commands in commandsByRoot)
             {
-                var sb = new StringBuilder();
                 foreach (var cmd in commands)
                 {
-                    var resultGroups = await Task.WhenAll(cmd.Preconditions
-                        .Concat(cmd.Module.Preconditions)
-                        .GroupBy(p => p.Group, p => p.CheckPermissionsAsync(Context, cmd, _services))
-                        .Select(Task.WhenAll));
-                    var preconditionsOk = resultGroups.All(resultGroup => resultGroup.Any(result => result.IsSuccess));
-                    if (preconditionsOk)
+                    var preconditionsResult = await cmd.CheckPreconditionsAsync(Context, _services);
+                    if (preconditionsResult.IsSuccess)
                     {
-                        var parameters = string.Join(" ", cmd.Parameters.Select(p => p.Name));
-                        sb.Append($"{prefix}{cmd.Aliases.First()} {parameters}");
-                        sb.AppendLine(cmd.Summary == default ? string.Empty : $": {cmd.Summary}");
+                        sb.Append($"**{prefix}{cmd.Aliases.First()}");
+                        foreach (var parameter in cmd.Parameters)
+                        {
+                            sb.Append(' ');
+                            if (parameter.IsOptional || parameter.IsMultiple) sb.Append("(optional) ");
+                            sb.Append(parameter.Name);
+                        }
+
+                        sb.Append("**");
+                        if (cmd.Summary != null) sb.Append($": {cmd.Summary}");
+                        sb.AppendLine();
                     }
                 }
 
                 if (sb.Length > 0)
                     embedBuilder.AddField(field => field
-                        .WithName(commands.Key.Replace("Module", string.Empty))
+                        .WithName(commands.Key.Summary ?? commands.Key.Name)
                         .WithValue(sb.ToString()));
+                sb.Clear();
             }
 
             await ReplyAsync(string.Empty, embed: embedBuilder.Build());

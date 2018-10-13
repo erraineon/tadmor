@@ -6,7 +6,7 @@ namespace Tadmor.Services.Hangfire
     public abstract class HangfireJobOptions
     {
         public ulong ChannelId { get; set; }
-        public abstract string ToString(RecurringJobDto job, SocketTextChannel channel);
+        public abstract string ToString(string jobId, string scheduleDescription, SocketTextChannel channel);
         public ulong OwnerId { get; set; }
     }
 }

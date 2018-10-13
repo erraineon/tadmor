@@ -3,12 +3,13 @@ using Discord.Commands;
 using Humanizer;
 using System.Linq;
 using System.Threading.Tasks;
-using Tadmor.Extensions;
 using Tadmor.Preconditions;
 using Tadmor.Services.Chan;
+using Tadmor.Utils;
 
 namespace Tadmor.Modules
 {
+    [Summary("4chan")]
     public class ChanModule : ModuleBase<ICommandContext>
     {
         private readonly ChanService _chan;
@@ -18,6 +19,7 @@ namespace Tadmor.Modules
             _chan = chan;
         }
 
+        [Summary("gets topmost replied-to posts on a board")]
         [Command("hot")]
         [Ratelimit(1, 1, Measure.Minutes, RatelimitFlags.ApplyPerGuild)]
         public async Task HotPosts(string boardName)
@@ -27,9 +29,8 @@ namespace Tadmor.Modules
             foreach (var post in hotPosts.OrderByDescending(post => post.Replies))
             {
                 var title = $"{post.ThreadUrlSlug} - {post.Replies} replies";
-                if (post.Name != null) title = $"{title} - {post.Name.StripHtml()}";
-                var description = (post.Comment ?? $"{post.OriginalFileName}{post.FileExtension}")
-                    .StripHtml()
+                if (post.Name != null) title = $"{title} - {StringUtils.StripHtml(post.Name)}";
+                var description = StringUtils.StripHtml(post.Comment ?? $"{post.OriginalFileName}{post.FileExtension}")
                     .Truncate(EmbedFieldBuilder.MaxFieldValueLength);
                 embed.AddField(builder => builder.WithName(title).WithValue(description));
             }

@@ -5,6 +5,7 @@ using Tadmor.Services.E621;
 
 namespace Tadmor.Modules
 {
+    [Summary("e621")]
     public class E621Module : ModuleBase<ICommandContext>
     {
         private readonly E621Service _e621;
@@ -14,6 +15,7 @@ namespace Tadmor.Modules
             _e621 = e621;
         }
 
+        [Summary("search on e621")]
         [Command("e621")]
         public async Task SearchRandom([Remainder] string tags)
         {

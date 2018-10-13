@@ -2,11 +2,11 @@ using System;
 using System.Text.RegularExpressions;
 using CronExpressionDescriptor;
 
-namespace Tadmor.Extensions
+namespace Tadmor.Utils
 {
-    public static class StringExtensions
+    public static class StringUtils
     {
-        public static string ToCronDescription(this string cron)
+        public static string ToCronDescription(string cron)
         {
             string description;
             try
@@ -21,7 +21,7 @@ namespace Tadmor.Extensions
             return description;
         }
 
-        public static string StripHtml(this string html)
+        public static string StripHtml(string html)
         {
             const string tagWhiteSpace = @"(>|$)(\W|\n|\r)+<";//matches one or more (white space or line breaks) between '>' and '<'
             const string stripFormatting = @"<[^>]*(>|$)";//match any character between '<' and '>', even when end tag is missing
