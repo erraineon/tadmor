@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using MoreLinq;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -27,71 +26,15 @@ namespace Tadmor.Services.Imaging
         private static readonly FontFamily Arial = SystemFonts.Find("Arial");
         private static readonly FontFamily TimesNewRoman = SystemFonts.Find("Times New Roman");
         private static readonly FontFamily MsSansSerif = new FontCollection().Install(Resource.Load("micross.ttf"));
-        private static readonly FontFamily GothamRoundedLight = new FontCollection().Install(Resource.Load("GothamRoundedLight.ttf"));
-        private static readonly FontFamily HelveticaNeue = new FontCollection().Install(Resource.Load("HelveticaNeue.ttf"));
-        private static readonly FontFamily HelveticaNeueMedium = new FontCollection().Install(Resource.Load("HelveticaNeueMedium.ttf"));
-        
-        public MemoryStream Triangle(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas, string opt1,
-            string opt2, string opt3, string title)
-        {
-            //constants
-            const int s = 1280; //picture size
-            const float extent = s * .5F;
-            var color = Rgba32.Black;
-            const double triangleRadius = s * 0.45;
-            var trianglePosition = new PointF(extent, s * .62F);
-            const float topTitleMargin = s * .02F;
-            const float botMargin = s * 0.08F;
-            const float topMargin = topTitleMargin + botMargin;
 
-            //computed variables
-            title = title.ToUpper();
-            var parametersSeed = $"{opt1}{opt2}{opt3}".ToLower();
-            var smallArial = Arial.CreateFont(28);
-            var largeArial = Arial.CreateFont(35, FontStyle.Bold);
-            var rendererOptions = new RendererOptions(smallArial);
-            var opt2Extent = TextMeasurer.Measure(opt2, rendererOptions).Width / 2;
-            var opt3Extent = TextMeasurer.Measure(opt3, rendererOptions).Width / 2;
-            var triangle = new RegularPolygon(trianglePosition, 3, (int) triangleRadius, (float) Math.PI);
-            var vertices = triangle.LineSegments.Single().Flatten();
-            var output = new MemoryStream();
-            using (var canvas = new Image<Rgba32>(s, s))
-            {
-                canvas.Mutate(c =>
-                {
-                    //background
-                    c.Fill(Rgba32.White);
-                    c.Draw(new Pen<Rgba32>(color, 5), triangle);
-                    var t = new TextGraphicsOptions(true)
-                    {
-                        HorizontalAlignment = HorizontalAlignment.Center
-                    };
-                    c.DrawText(t, title, largeArial, color, new PointF(extent, topTitleMargin));
-                    c.DrawText(t, opt1, smallArial, color, new PointF(extent, topMargin));
-                    c.DrawText(t, opt2, smallArial, color, new PointF(opt2Extent + s * .02F, s - botMargin));
-                    c.DrawText(t, opt3, smallArial, color, new PointF(s - (opt3Extent + s * .02F), s - botMargin));
+        private static readonly FontFamily GothamRoundedLight =
+            new FontCollection().Install(Resource.Load("GothamRoundedLight.ttf"));
 
-                    //avatars
-                    foreach (var (rng, avatarData) in rngAndAvatarDatas)
-                    {
-                        var saltedRng = (parametersSeed, rng.Next()).ToRandom();
-                        using (var avatar = CropCircle(avatarData))
-                        {
-                            var randomVertices = vertices.RandomSubset(2, saltedRng).ToList();
-                            var (a, b) = (randomVertices[0], randomVertices[1]);
-                            //select a random point on any of the vertices of the path
-                            //IPath.PointAlongPath seems to have a glitch so do it myself
-                            var avatarPosition = a + (b - a) * (float) saltedRng.NextDouble() - avatar.Size() / 2;
-                            c.DrawImage(avatar, 1, new Point((int) avatarPosition.X, (int) avatarPosition.Y));
-                        }
-                    }
-                });
-                canvas.SaveAsPng(output);
-            }
+        private static readonly FontFamily HelveticaNeue =
+            new FontCollection().Install(Resource.Load("HelveticaNeue.ttf"));
 
-            output.Seek(0, SeekOrigin.Begin);
-            return output;
-        }
+        private static readonly FontFamily HelveticaNeueMedium =
+            new FontCollection().Install(Resource.Load("HelveticaNeueMedium.ttf"));
 
         public MemoryStream AlignmentChart(IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas,
             string[] options)
@@ -178,65 +121,6 @@ namespace Tadmor.Services.Imaging
             return output;
         }
 
-        public MemoryStream Quadrant((Random rng, byte[])[] rngAndAvatarDatas, string opt1, string opt2, string opt3,
-            string opt4)
-        {
-            //constants
-            const int s = 1280; //picture size
-            const int margin = s / 25;
-            const int textMargin = s / 100;
-            var color = Rgba32.Black;
-
-            //computed variables
-            var parametersSeed = $"{opt1}{opt2}{opt3}{opt4}".ToLower();
-            const int med = s / 2;
-            var rendererOptions = new RendererOptions(Arial.CreateFont(35, FontStyle.Bold));
-            var opt3Extent = TextMeasurer.Measure(opt3, rendererOptions).Width / 2;
-            var opt4Extent = TextMeasurer.Measure(opt4, rendererOptions).Width / 2;
-            var output = new MemoryStream();
-            using (var canvas = new Image<Rgba32>(s, s))
-            {
-                canvas.Mutate(c =>
-                {
-                    //background
-                    c.Fill(Rgba32.White);
-                    var lineSegment = new LinearLineSegment(new PointF(med, margin), new PointF(med, s - margin));
-                    var verticalLine = new Polygon(lineSegment);
-                    var horizontalLine = verticalLine.Rotate((float) (Math.PI / 2));
-                    c.Draw(new Pen<Rgba32>(color, 5), new PathCollection(verticalLine, horizontalLine));
-
-                    //avatars
-                    foreach (var (rng, avatarData) in rngAndAvatarDatas)
-                    {
-                        var saltedRng = (parametersSeed, rng.Next()).ToRandom();
-                        using (var avatar = CropCircle(avatarData))
-                        {
-                            var avatarPosition = new Point(saltedRng.Next(s - avatar.Width),
-                                saltedRng.Next(s - avatar.Height));
-                            c.DrawImage(avatar, 1, avatarPosition);
-                        }
-                    }
-
-                    //text
-                    var t = new TextGraphicsOptions(true)
-                    {
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Center
-                    };
-                    c.DrawText(t, opt1, rendererOptions.Font, color, new PointF(med, textMargin));
-                    c.DrawText(t, opt2, rendererOptions.Font, color, new PointF(med, s - textMargin * 2));
-                    c.DrawText(t, opt3, rendererOptions.Font, color,
-                        new PointF(opt3Extent + textMargin, med + textMargin));
-                    c.DrawText(t, opt4, rendererOptions.Font, color,
-                        new PointF(s - (opt4Extent + textMargin), med + textMargin));
-                });
-                canvas.SaveAsPng(output);
-            }
-
-            output.Seek(0, SeekOrigin.Begin);
-            return output;
-        }
-
         public MemoryStream UpDownGif(string text, byte[] avatarData, string baseFilename)
         {
             //credits to https://twitter.com/reedjeyy for base images, font and constants
@@ -285,6 +169,7 @@ namespace Tadmor.Services.Imaging
             output.Seek(0, SeekOrigin.Begin);
             return output;
         }
+
         public MemoryStream Ok(string text, byte[] avatarData)
         {
             const float leftMargin = 4;
@@ -307,10 +192,10 @@ namespace Tadmor.Services.Imaging
                 {
                     WrapTextWidth = baseImage.Width - textPosition.X
                 };
-                avatar.Mutate(a => a.Resize((Size)avatarSize).Dither(new BayerDither2x2()));
+                avatar.Mutate(a => a.Resize((Size) avatarSize).Dither(new BayerDither2x2()));
                 baseImage.Mutate(i =>
                 {
-                    i.DrawImage(avatar, 1, (Point)avatarPosition);
+                    i.DrawImage(avatar, 1, (Point) avatarPosition);
                     i.DrawText(textOptions, text, font, Rgba32.Black, textPosition);
                     i.Resize(baseImage.Size() * 3);
                 });
@@ -367,8 +252,82 @@ namespace Tadmor.Services.Imaging
                     Rgba32.Transparent, //overlay with transparency
                     exceptCircle); //outside of the circle's bounds
                 i.Resize(128, 128);
-            }); 
+            });
             return image;
+        }
+
+        public MemoryStream Poly((Random rng, byte[])[] rngAndAvatars, string[] options)
+        {
+            //constants
+            const int s = 1280; //picture size
+            const float extent = s * .5F;
+            var color = Rgba32.Black;
+            const double polyRadius = s * 0.45;
+            var center = new PointF(extent, extent);
+            const float textMargin = 10;
+
+            //computed variables
+            var smallArial = Arial.CreateFont(28);
+            var rendererOptions = new RendererOptions(smallArial);
+            var poly = (IPath) new RegularPolygon(center, options.Length, (int) polyRadius, (float) Math.PI);
+            var polyBounds = poly.Bounds.Location + poly.Bounds.Size / 2;
+            var polyCenter = 2 * center - polyBounds;
+            poly = poly.Translate(polyCenter - center);
+            var vertices = poly.Flatten().Single().Points;
+            var output = new MemoryStream();
+            using (var canvas = new Image<Rgba32>(s, s))
+            {
+                canvas.Mutate(c =>
+                {
+                    //background
+                    c.Fill(Rgba32.White);
+                    c.Draw(new Pen<Rgba32>(color, 5), poly);
+                    var t = new TextGraphicsOptions(true)
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+                    var optionsAndVertices = options.EquiZip(vertices, (o, v) => (o, v));
+                    foreach (var (option, vertex) in optionsAndVertices)
+                    {
+                        var tPosition = vertex + (vertex - polyCenter) * 0.1F;
+                        var tExtent = TextMeasurer.Measure(option, rendererOptions) / 2;
+                        var clampedPosition = new PointF(
+                            Math.Clamp(tPosition.X, tExtent.Width + textMargin, s - tExtent.Width - textMargin),
+                            Math.Clamp(tPosition.Y, tExtent.Height + textMargin, s - tExtent.Height - textMargin));
+                        c.DrawText(t, option, smallArial, color, clampedPosition);
+                    }
+
+                    //avatars
+                    foreach (var (rng, avatarData) in rngAndAvatars)
+                    {
+                        var saltedRng = (options, rng.Next()).ToRandom();
+                        using (var avatar = CropCircle(avatarData))
+                        {
+                            var vIndex = saltedRng.Next(vertices.Count);
+                            var vA = polyCenter;
+                            var vB = vertices[vIndex];
+                            var vC = vertices[(vIndex + 1) % vertices.Count];
+                            var aPosition = RandomPointInTriangle(saltedRng, vA, vB, vC) - avatar.Size() / 2;
+                            c.DrawImage(avatar, 1, new Point((int) aPosition.X, (int) aPosition.Y));
+                        }
+                    }
+                });
+                canvas.SaveAsPng(output);
+            }
+
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
+        }
+
+        private static PointF RandomPointInTriangle(Random rng, PointF a, PointF b, PointF c)
+        {
+            var r1 = (float) rng.NextDouble();
+            var r2 = (float) rng.NextDouble();
+            var result = (1 - (float) Math.Sqrt(r1)) * a +
+                         (float) Math.Sqrt(r1) * (1 - r2) * b +
+                         r2 * (float) Math.Sqrt(r1) * c;
+            return result;
         }
     }
 }

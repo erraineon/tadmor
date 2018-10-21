@@ -23,21 +23,12 @@ namespace Tadmor.Modules
             _activityMonitor = activityMonitor;
         }
 
-        [Summary("make a triangular chart")]
-        [Command("tri")]
-        public async Task Triangle(string opt1, string opt2, string opt3, [Remainder] string title = "")
+        [Summary("make a polygonal chart")]
+        [Command("poly")]
+        public async Task Poly(params string[] sides)
         {
             var rngAndAvatars = await GetRngAndAvatars();
-            var result = _imaging.Triangle(rngAndAvatars, opt1, opt2, opt3, title);
-            await Context.Channel.SendFileAsync(result, "result.png");
-        }
-
-        [Summary("make a quadrant chart")]
-        [Command("quad")]
-        public async Task Quadrant(string opt1, string opt2, string opt3, string opt4)
-        {
-            var rngAndAvatars = await GetRngAndAvatars();
-            var result = _imaging.Quadrant(rngAndAvatars, opt1, opt2, opt3, opt4);
+            var result = _imaging.Poly(rngAndAvatars, sides);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
