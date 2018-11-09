@@ -14,13 +14,13 @@ namespace Tadmor.Services.FaceApp
 {
     public class FaceAppService
     {
-        private const string ApiUrl = "https://node-01.faceapp.io/api/v2.11/photos";
+        private const string ApiUrl = "https://node-01.faceapp.io/api/v2.8/photos";
 
         private static readonly HttpClient Client = new HttpClient
         {
             DefaultRequestHeaders =
             {
-                {HeaderNames.UserAgent, "FaceApp/1.0.229 (Linux; Android 4.4)"},
+                {HeaderNames.UserAgent, "FaceApp/2.0.957 (Linux; Android 4.4)"},
                 {"X-FaceApp-DeviceID", Guid.NewGuid().ToString().Replace("-", "").Substring(0, 8)}
             }
         };
@@ -51,12 +51,11 @@ namespace Tadmor.Services.FaceApp
             if (_filters == null)
             {
                 var sampleResponse = await UploadImage("https://i.imgur.com/nVsxMNp.jpg");
-                var filters = sampleResponse["objects"].SelectMany(o => o["children"])
-                    .Where(o => (string)o["type"] == "filter")
+                var filters = sampleResponse["filters"]
                     .Select(o => (id: (string)o["id"], crop: (bool)o["is_paid"] || (bool)o["only_cropped"]))
                     .Where(t => t.id != "no-filter")
                     .ToDictionary(t => t.id, t => t.crop);
-                _filters = filters; return _filters;
+                _filters = filters;
             }
             
             return _filters;
