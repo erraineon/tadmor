@@ -256,6 +256,65 @@ namespace Tadmor.Services.Imaging
             return image;
         }
 
+        public MemoryStream Quadrant((Random rng, byte[])[] rngAndAvatarDatas, string opt1, string opt2, string opt3,
+            string opt4)
+        {
+            //constants
+            const int s = 1280; //picture size
+            const int margin = s / 25;
+            const int textMargin = s / 100;
+            var color = Rgba32.Black;
+
+            //computed variables
+            var parametersSeed = $"{opt1}{opt2}{opt3}{opt4}".ToLower();
+            const int med = s / 2;
+            var rendererOptions = new RendererOptions(Arial.CreateFont(35, FontStyle.Bold));
+            var opt3Extent = TextMeasurer.Measure(opt3, rendererOptions).Width / 2;
+            var opt4Extent = TextMeasurer.Measure(opt4, rendererOptions).Width / 2;
+            var output = new MemoryStream();
+            using (var canvas = new Image<Rgba32>(s, s))
+            {
+                canvas.Mutate(c =>
+                {
+                    //background
+                    c.Fill(Rgba32.White);
+                    var lineSegment = new LinearLineSegment(new PointF(med, margin), new PointF(med, s - margin));
+                    var verticalLine = new Polygon(lineSegment);
+                    var horizontalLine = verticalLine.Rotate((float)(Math.PI / 2));
+                    c.Draw(new Pen<Rgba32>(color, 5), new PathCollection(verticalLine, horizontalLine));
+
+                    //avatars
+                    foreach (var (rng, avatarData) in rngAndAvatarDatas)
+                    {
+                        var saltedRng = (parametersSeed, rng.Next()).ToRandom();
+                        using (var avatar = CropCircle(avatarData))
+                        {
+                            var avatarPosition = new Point(saltedRng.Next(s - avatar.Width),
+                                saltedRng.Next(s - avatar.Height));
+                            c.DrawImage(avatar, 1, avatarPosition);
+                        }
+                    }
+
+                    //text
+                    var t = new TextGraphicsOptions(true)
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+                    c.DrawText(t, opt1, rendererOptions.Font, color, new PointF(med, textMargin));
+                    c.DrawText(t, opt2, rendererOptions.Font, color, new PointF(med, s - textMargin * 2));
+                    c.DrawText(t, opt3, rendererOptions.Font, color,
+                        new PointF(opt3Extent + textMargin, med + textMargin));
+                    c.DrawText(t, opt4, rendererOptions.Font, color,
+                        new PointF(s - (opt4Extent + textMargin), med + textMargin));
+                });
+                canvas.SaveAsPng(output);
+            }
+
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
+        }
+
         public MemoryStream Poly((Random rng, byte[])[] rngAndAvatars, string[] options)
         {
             //constants

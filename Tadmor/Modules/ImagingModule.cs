@@ -32,6 +32,15 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
+        [Summary("make a cartesian graph")]
+        [Command("quad")]
+        public async Task Quad(string top, string bottom, string left, string right)
+        {
+            var rngAndAvatars = await GetRngAndAvatars();
+            var result = _imaging.Quadrant(rngAndAvatars, top, bottom, left, right);
+            await Context.Channel.SendFileAsync(result, "result.png");
+        }
+
         [Summary("make an alignment chart")]
         [Command("align")]
         public async Task AlignmentChart(params string[] options)
