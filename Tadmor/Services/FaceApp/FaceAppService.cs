@@ -14,7 +14,7 @@ namespace Tadmor.Services.FaceApp
 {
     public class FaceAppService
     {
-        private const string ApiUrl = "https://node-01.faceapp.io/api/v2.8/photos";
+        private const string ApiUrl = "https://node-01.faceapp.io/api/v2.9/photos";
 
         private static readonly HttpClient Client = new HttpClient
         {
@@ -51,7 +51,8 @@ namespace Tadmor.Services.FaceApp
             if (_filters == null)
             {
                 var sampleResponse = await UploadImage("https://i.imgur.com/nVsxMNp.jpg");
-                var filters = sampleResponse["filters"]
+                var filters = sampleResponse["objects"].SelectMany(o => o["children"])
+                    .Where(o => (string)o["type"] == "filter")
                     .Select(o => (id: (string)o["id"], crop: (bool)o["is_paid"] || (bool)o["only_cropped"]))
                     .Where(t => t.id != "no-filter")
                     .ToDictionary(t => t.id, t => t.crop);
