@@ -100,19 +100,48 @@ namespace Tadmor.Modules
                 var nextMessages = await channel.GetMessagesAsync(lastMessage.Id, Direction.Before).Flatten().ToList();
                 // only messages more recent than two weeks ago can be deleted
                 DateTimeOffset twoWeeksAgo = DateTimeOffset.Now - new TimeSpan(14, 0, 0, 0);
-                var newMessages = nextMessages
-                    .Where(m => m.Timestamp > twoWeeksAgo)
-                    .ToList();
+                var newMessages = nextMessages.Where(m => m.Timestamp > twoWeeksAgo).ToList();
                 // if there are no more messages, stop looking now
                 if (newMessages.Count == 0)
                 {
                     break;
                 }
                 lastMessage = newMessages.Last();
-                var newTargetMessages = newMessages
-                    .Where(m => m.Author.Id == user.Id)
-                    .Take(remainingMessages)
-                    .ToList();
+                var newTargetMessages = newMessages.Where(m => m.Author.Id == user.Id).Take(remainingMessages).ToList();
+                messages.AddRange(newTargetMessages);
+                // if some messages were thrown away as too old, don't ask for more messages
+                if (newMessages.Count < nextMessages.Count)
+                {
+                    break;
+                }
+            }
+            await channel.DeleteMessagesAsync(messages);
+        }
+
+        [Summary("delete recent messages from a user")]
+        [RequireUserPermission(ChannelPermission.ManageMessages, Group = "admin")]
+        [RequireOwner(Group = "admin")]
+        [RequireBotPermission(ChannelPermission.ManageMessages)]
+        [Command("prune")]
+        public async Task Prune(IGuildUser user, TimeSpan timeSpan)
+        {
+            var channel = (ITextChannel)Context.Channel;
+            DateTimeOffset deleteStart = Context.Message.Timestamp - timeSpan;
+            // search backwards until enough messages have been collected
+            IMessage lastMessage = Context.Message;
+            List<IMessage> messages = new List<IMessage>();
+            while (true)
+            {
+                var nextMessages = await channel.GetMessagesAsync(lastMessage.Id, Direction.Before).Flatten().ToList();
+                // only messages more recent than the delete start
+                var newMessages = nextMessages.Where(m => m.Timestamp > deleteStart).ToList();
+                // if there are no more messages, stop looking now
+                if (newMessages.Count == 0)
+                {
+                    break;
+                }
+                lastMessage = newMessages.Last();
+                var newTargetMessages = newMessages.Where(m => m.Author.Id == user.Id).ToList();
                 messages.AddRange(newTargetMessages);
                 // if some messages were thrown away as too old, don't ask for more messages
                 if (newMessages.Count < nextMessages.Count)
