@@ -37,6 +37,7 @@ namespace Tadmor.Modules
             var guildId = Context.Guild.Id;
             var guildOptions = GetOrAddOptions(guildId);
             guildOptions.WelcomeMessage = newWelcomeMessage;
+            guildOptions.WelcomeChannel = Context.Channel.Id;
             await Program.UpdateOptions(_discordOptions);
             await ReplyAsync("ok");
         }

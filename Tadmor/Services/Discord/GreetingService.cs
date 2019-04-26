@@ -28,7 +28,11 @@ namespace Tadmor.Services.Discord
                 var guildOptions = discordOptions.GuildOptions.SingleOrDefault(options => options.Id == arg.Guild.Id);
                 var welcomeMessage = guildOptions?.WelcomeMessage;
                 if (!string.IsNullOrWhiteSpace(welcomeMessage))
-                    await arg.Guild.DefaultChannel.SendMessageAsync(welcomeMessage);
+                {
+                    var channelId = guildOptions.WelcomeChannel;
+                    var channel = arg.Guild.GetTextChannel(channelId);
+                    await channel.SendMessageAsync(welcomeMessage);
+                }
             }
         }
 

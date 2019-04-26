@@ -8,5 +8,6 @@ namespace Tadmor.Services.Discord
         public ulong Id { get; set; }
         public string CommandPrefix { get; set; }
         public string WelcomeMessage { get; set; }
+        public ulong WelcomeChannel { get; set; }
     }
 }
