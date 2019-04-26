@@ -24,6 +24,25 @@ namespace Tadmor.Modules
         public async Task ChangePrefix(string newPrefix)
         {
             var guildId = Context.Guild.Id;
+            var guildOptions = GetOrAddOptions(guildId);
+            guildOptions.CommandPrefix = newPrefix;
+            await Program.UpdateOptions(_discordOptions);
+            await ReplyAsync("ok");
+        }
+
+        [Summary("change the welcome message for this guild")]
+        [Command("welcome")]
+        public async Task ChangeWelcomeMessage(string newWelcomeMessage)
+        {
+            var guildId = Context.Guild.Id;
+            var guildOptions = GetOrAddOptions(guildId);
+            guildOptions.WelcomeMessage = newWelcomeMessage;
+            await Program.UpdateOptions(_discordOptions);
+            await ReplyAsync("ok");
+        }
+
+        private GuildOptions GetOrAddOptions(ulong guildId)
+        {
             var guildOptions = _discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guildId);
             if (guildOptions == null)
             {
@@ -31,9 +50,7 @@ namespace Tadmor.Modules
                 _discordOptions.GuildOptions.Add(guildOptions);
             }
 
-            guildOptions.CommandPrefix = newPrefix;
-            await Program.UpdateOptions(_discordOptions);
-            await ReplyAsync("ok");
+            return guildOptions;
         }
     }
 }

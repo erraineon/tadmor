@@ -2,14 +2,16 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Hosting;
 using MoreLinq;
 
 namespace Tadmor.Services.Imaging
 {
-    public class ActivityMonitorService
+    public class ActivityMonitorService : IHostedService
     {
         private static readonly TimeSpan CutoffTime = TimeSpan.FromDays(3);
 
@@ -74,6 +76,18 @@ namespace Tadmor.Services.Imaging
         {
             _activeUsers.TryGetValue((user.GuildId, user.Id), out var message);
             return message;
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            _discord.MessageReceived += UpdateUserActivity;
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            _discord.MessageReceived -= UpdateUserActivity;
+            return Task.CompletedTask;
         }
     }
 }

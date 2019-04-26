@@ -11,7 +11,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Tadmor.Extensions;
-using Tadmor.Services.Imaging;
 
 namespace Tadmor.Services.Discord
 {
@@ -22,8 +21,6 @@ namespace Tadmor.Services.Discord
             LogLevel.Critical, LogLevel.Error, LogLevel.Warning,
             LogLevel.Information, LogLevel.Trace, LogLevel.Debug
         };
-
-        private readonly ActivityMonitorService _activityMonitor;
 
         private readonly CommandService _commands;
         private readonly DiscordSocketClient _discord;
@@ -36,14 +33,12 @@ namespace Tadmor.Services.Discord
             ILogger<DiscordService> logger,
             DiscordSocketClient discord,
             CommandService commands,
-            ActivityMonitorService activityMonitor,
             IOptions<DiscordOptions> discordOptions)
         {
             _services = services;
             _logger = logger;
             _discord = discord;
             _commands = commands;
-            _activityMonitor = activityMonitor;
             _discordOptions = discordOptions.Value;
         }
 
@@ -126,7 +121,6 @@ namespace Tadmor.Services.Discord
             _discord.Ready += OnReady;
             _discord.Log += Log;
             _commands.Log += LogCommandError;
-            _discord.MessageReceived += _activityMonitor.UpdateUserActivity;
             _discord.MessageReceived += TryExecuteCommand;
             await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), _services);
             await _discord.LoginAsync(TokenType.Bot, _discordOptions.Token);

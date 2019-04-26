@@ -7,5 +7,6 @@ namespace Tadmor.Services.Discord
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public ulong Id { get; set; }
         public string CommandPrefix { get; set; }
+        public string WelcomeMessage { get; set; }
     }
 }
