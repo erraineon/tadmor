@@ -48,6 +48,32 @@ namespace Tadmor.Modules
             await ReplyAsync(mentions.Humanize());
         }
 
+        [Summary("pick a number of users who reacted to your last message with reactions")]
+        [Command("someonereaction")]
+        public async Task SomeoneReaction(int count = 1)
+        {
+            var lastMessages = await Context.Channel
+                .GetMessagesAsync()
+                .FlattenAsync();
+            var lastMessageWithReactions = lastMessages
+                .OfType<IUserMessage>()
+                .FirstOrDefault(m => m.Author.Id == Context.User.Id &&
+                                     m.Reactions.Any());
+            if (lastMessageWithReactions == null)
+                throw new Exception("none of your recent messages have reactions");
+            var reactions = lastMessageWithReactions.Reactions;
+            var usersByEmoji = await Task.WhenAll(reactions.Keys.Select(e => lastMessageWithReactions
+                .GetReactionUsersAsync(e, int.MaxValue)
+                .FlattenAsync()));
+            var mentions = usersByEmoji
+                .SelectMany(u => u)
+                .DistinctBy(u => u.Id)
+                .Where(u => u.Id != Context.User.Id)
+                .RandomSubset(count)
+                .Select(u => u.Mention);
+            await ReplyAsync(mentions.Humanize());
+        }
+
         [Summary("post a random food gore picture")]
         [Command("foodgore")]
         public Task FoodGore() => PostRandomTumblrPicture("someoneatethis");
