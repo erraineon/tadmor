@@ -32,7 +32,7 @@ namespace Tadmor.Modules
 
         [Summary("change the welcome message for this guild")]
         [Command("welcome")]
-        public async Task ChangeWelcomeMessage(string newWelcomeMessage)
+        public async Task ChangeWelcomeMessage([Remainder] string newWelcomeMessage = default)
         {
             var guildId = Context.Guild.Id;
             var guildOptions = GetOrAddOptions(guildId);
