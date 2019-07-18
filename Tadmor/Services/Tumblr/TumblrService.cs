@@ -36,8 +36,8 @@ namespace Tadmor.Services.Tumblr
             do
             {
                 var postNumber = Random.Next(postsCount);
-                var posts = await _client.GetPostsAsync(blogName, postNumber, 5, PostType.Photo);
-                post = posts.Result.FirstOrDefault() as PhotoPost;
+                var posts = await _client.GetPostsAsync(blogName, postNumber, 20, PostType.Photo);
+                post = posts.Result.OfType<PhotoPost>().FirstOrDefault();
                 if (post == null) _maxPostNumbersCache[blogName] = postsCount = postNumber;
             } while (post == null && postsCount > 0);
 
