@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Humanizer;
+using Tadmor.Preconditions;
 
 namespace Tadmor.Modules
 {
@@ -46,6 +47,7 @@ namespace Tadmor.Modules
         [Summary("make the bot say something")]
         [RequireOwner(Group = "admin")]
         [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
+        [RequireFakeUserMessage(Group = "admin")]
         [Command("say")]
         public Task Say([Remainder] string message)
         {

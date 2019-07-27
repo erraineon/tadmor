@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -92,7 +93,7 @@ namespace Tadmor.Services.Discord
             GuildEvent guildEvent)
         {
             var responseChannel = (SocketTextChannel) _discordClient.GetChannel(inputChannelId ?? guildEvent.ChannelId);
-            var author = _discordClient.GetUser(authorId);
+            var author = responseChannel.Guild.GetUser(authorId);
             var variablesByName = new Dictionary<string, string>
             {
                 ["user"] = author.Mention,
@@ -106,7 +107,7 @@ namespace Tadmor.Services.Discord
             var message = new FakeUserMessage(responseChannel, author, reaction);
             var context = new CommandContext(_discordClient, message);
             await _discordService.ExecuteCommand(context, string.Empty);
-            if (guildEvent.DeleteTrigger && messageId.HasValue)
+            if (guildEvent.DeleteTrigger && messageId.HasValue && !author.GuildPermissions.Administrator)
             {
                 await responseChannel.DeleteMessageAsync((ulong) messageId);
             }
