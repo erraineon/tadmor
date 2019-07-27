@@ -79,7 +79,7 @@ namespace Tadmor.Services.Discord
                     events = guildOptions.Events
                         .Where(e => e.TriggerType == GuildEventTriggerType.RegexMatch &&
                                     (e.Scope == GuildEventScope.Guild || e.ChannelId == channelId) &&
-                                    Regex.IsMatch(input, e.Trigger, RegexOptions.None, TimeSpan.FromMilliseconds(100)));
+                                    Regex.IsMatch(input, e.Trigger, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100)));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(triggerType), triggerType, null);
