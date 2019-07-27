@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 
-namespace Tadmor.Services.Hangfire
+namespace Tadmor.Utils
 {
-    public class HangfireUserMessage : IUserMessage
+    public class FakeUserMessage : IUserMessage
     {
-        public HangfireUserMessage(IMessageChannel channel, IUser author, string content)
+        public FakeUserMessage(IMessageChannel channel, IUser author, string content)
         {
             Channel = channel;
             Author = author;
@@ -31,7 +31,7 @@ namespace Tadmor.Services.Hangfire
 
         public bool IsPinned => throw new NotImplementedException();
 
-        public string Content {get; }
+        public string Content { get; }
 
         public DateTimeOffset Timestamp => throw new NotImplementedException();
 

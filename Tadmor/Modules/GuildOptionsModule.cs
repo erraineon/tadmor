@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -24,31 +25,107 @@ namespace Tadmor.Modules
         public async Task ChangePrefix(string newPrefix)
         {
             var guildId = Context.Guild.Id;
-            var guildOptions = GetOrAddOptions(guildId);
+            var guildOptions = GetOrAddOptions(_discordOptions, guildId);
             guildOptions.CommandPrefix = newPrefix;
             await Program.UpdateOptions(_discordOptions);
             await ReplyAsync("ok");
         }
 
-        [Summary("change the welcome message for this guild")]
-        [Command("welcome")]
-        public async Task ChangeWelcomeMessage([Remainder] string newWelcomeMessage = default)
+        [RequireOwner(Group = "admin")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
+        [Group("on")]
+        public class EventsModule : ModuleBase<SocketCommandContext>
         {
-            var guildId = Context.Guild.Id;
-            var guildOptions = GetOrAddOptions(guildId);
-            guildOptions.WelcomeMessage = newWelcomeMessage;
-            guildOptions.WelcomeChannel = Context.Channel.Id;
-            await Program.UpdateOptions(_discordOptions);
-            await ReplyAsync("ok");
+            private readonly DiscordEventService _events;
+            private readonly DiscordOptions _discordOptions;
+
+            public EventsModule(IOptionsSnapshot<DiscordOptions> discordOptions, DiscordEventService events)
+            {
+                _events = events;
+                _discordOptions = discordOptions.Value;
+            }
+
+            [Summary("add a welcome response command for this guild")]
+            [Command("join")]
+            public async Task OnJoin([Remainder] string reaction)
+            {
+                await AddGuildEvent(default, reaction, default, GuildEventTriggerType.GuildJoin);
+                await ReplyAsync("ok");
+            }
+
+            [Summary("add a word filter and a response command to a message")]
+            [Command("filter")]
+            public async Task OnInputDelete(string input, [Remainder] string reaction)
+            {
+                await AddRegexMatchGuildEvent(input, reaction, true);
+                await ReplyAsync("ok");
+            }
+
+            [Summary("lists events")]
+            [Command("ls")]
+            public async Task ViewEvents()
+            {
+                var eventStrings = _events.GetEventInfos(Context.Guild);
+                var eventsInfo = eventStrings.Any()
+                    ? string.Join(Environment.NewLine, eventStrings)
+                    : throw new Exception("no events on this guild");
+                await ReplyAsync(eventsInfo);
+            }
+
+            [Summary("removes the event with the specified id")]
+            [Command("rm")]
+            public async Task RemoveEvent(string eventId)
+            {
+                var guildId = Context.Guild.Id;
+                var guildOptions = GetOrAddOptions(_discordOptions, guildId);
+                if (guildOptions.Events.SingleOrDefault(e => e.Id == eventId) is GuildEvent guildEvent)
+                {
+                    guildOptions.Events.Remove(guildEvent);
+                    await Program.UpdateOptions(_discordOptions);
+                    await ReplyAsync("ok");
+                }
+                else throw new Exception("event not found");
+            }
+
+            [Summary("add an event in response to a message")]
+            [Command, Priority(-1)]
+            public async Task OnInput(string input, [Remainder] string reaction)
+            {
+                await AddRegexMatchGuildEvent(input, reaction, false);
+                await ReplyAsync("ok");
+            }
+
+            private async Task AddRegexMatchGuildEvent(string input, string reaction, bool deleteTrigger)
+            {
+                await AddGuildEvent(input, reaction, deleteTrigger, GuildEventTriggerType.RegexMatch);
+            }
+
+            private async Task AddGuildEvent(string input, string reaction, bool deleteTrigger, GuildEventTriggerType triggerType)
+            {
+                var guildId = Context.Guild.Id;
+                var guildOptions = GetOrAddOptions(_discordOptions, guildId);
+                guildOptions.Events.Add(new GuildEvent
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ChannelId = Context.Channel.Id,
+                    Scope = GuildEventScope.Guild,
+                    Reaction = reaction,
+                    Trigger = input,
+                    TriggerType = triggerType,
+                    DeleteTrigger = deleteTrigger
+                });
+                await Program.UpdateOptions(_discordOptions);
+            }
         }
 
-        private GuildOptions GetOrAddOptions(ulong guildId)
+
+        private static GuildOptions GetOrAddOptions(DiscordOptions discordOptions, ulong guildId)
         {
-            var guildOptions = _discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guildId);
+            var guildOptions = discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guildId);
             if (guildOptions == null)
             {
                 guildOptions = new GuildOptions {Id = guildId};
-                _discordOptions.GuildOptions.Add(guildOptions);
+                discordOptions.GuildOptions.Add(guildOptions);
             }
 
             return guildOptions;

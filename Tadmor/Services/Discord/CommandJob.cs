@@ -4,6 +4,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Tadmor.Services.Hangfire;
+using Tadmor.Utils;
 
 namespace Tadmor.Services.Discord
 {
@@ -24,7 +25,7 @@ namespace Tadmor.Services.Discord
             var channel = _discordClient.GetChannel(options.ChannelId) as IMessageChannel ??
                           throw new Exception("channel gone, delete schedule");
             var owner = _discordClient.GetUser(options.OwnerId);
-            var message = new HangfireUserMessage(channel, owner, options.Command);
+            var message = new FakeUserMessage(channel, owner, options.Command);
             var context = new CommandContext(_discordClient, message);
             await _discordService.ExecuteCommand(context, string.Empty);
         }
