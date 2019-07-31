@@ -5,13 +5,13 @@ using Tadmor.Utils;
 
 namespace Tadmor.Preconditions
 {
-    public class RequireFakeUserMessage : PreconditionAttribute
+    public class RequireServiceUser : PreconditionAttribute
     {
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            return Task.FromResult(context.Message is FakeUserMessage
+            return Task.FromResult(context.Message is ServiceUserMessage
                 ? PreconditionResult.FromSuccess()
-                : PreconditionResult.FromError("command must be executed through service account"));
+                : PreconditionResult.FromError("command must be executed through service user"));
         }
     }
 }

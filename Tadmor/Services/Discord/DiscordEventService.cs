@@ -96,15 +96,23 @@ namespace Tadmor.Services.Discord
             var author = responseChannel.Guild.GetUser(authorId);
             var variablesByName = new Dictionary<string, string>
             {
-                ["user"] = author.Mention,
-                ["time"] = DateTime.Now.ToString("g"),
-                ["random"] = new Random().Next(10000).ToString(),
-                ["input"] = input
+                ["{{user}}"] = author.Mention,
+                ["{{time}}"] = DateTime.Now.ToString("g"),
+                ["{{random}}"] = new Random().Next(10000).ToString(),
+                ["{{input}}"] = input
             };
+            if (guildEvent.TriggerType == GuildEventTriggerType.RegexMatch)
+            {
+                var match = Regex.Match(input, guildEvent.Trigger);
+                for (var i = 1; i < match.Groups.Count; i++)
+                {
+                    variablesByName[$"${i}"] = match.Groups[i].Value;
+                }
+            }
             var reaction = variablesByName
                 .Aggregate(guildEvent.Reaction,
-                    (output, variable) => output.Replace($"{{{{{variable.Key}}}}}", variable.Value));
-            var message = new FakeUserMessage(responseChannel, author, reaction);
+                    (output, variable) => output.Replace(variable.Key, variable.Value));
+            var message = new ServiceUserMessage(responseChannel, author, reaction);
             var context = new CommandContext(_discordClient, message);
             await _discordService.ExecuteCommand(context, string.Empty);
             if (guildEvent.DeleteTrigger && messageId.HasValue && !author.GuildPermissions.Administrator)

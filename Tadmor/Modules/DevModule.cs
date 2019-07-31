@@ -47,7 +47,7 @@ namespace Tadmor.Modules
         [Summary("make the bot say something")]
         [RequireOwner(Group = "admin")]
         [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
-        [RequireFakeUserMessage(Group = "admin")]
+        [RequireServiceUser(Group = "admin")]
         [Command("say")]
         public Task Say([Remainder] string message)
         {

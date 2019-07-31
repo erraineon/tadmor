@@ -5,9 +5,9 @@ using Discord;
 
 namespace Tadmor.Utils
 {
-    public class FakeUserMessage : IUserMessage
+    public class ServiceUserMessage : IUserMessage
     {
-        public FakeUserMessage(IMessageChannel channel, IUser author, string content)
+        public ServiceUserMessage(IMessageChannel channel, IUser author, string content)
         {
             Channel = channel;
             Author = author;
