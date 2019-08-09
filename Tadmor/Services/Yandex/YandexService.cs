@@ -24,7 +24,7 @@ namespace Tadmor.Services.Yandex
         {
             await EnsureLanguagesLoaded();
             var languagesChain = new[] {"en"}
-                .Concat(new[] {"zh", "ja"}.Concat(_languages.RandomSubset(12)).Distinct())
+                .Concat(new[] {"zh", "ja"}.Concat(_languages.RandomSubset(8)).Distinct())
                 .Concat(new[] {"en"}).ToList();
             for (var index = 1; index < languagesChain.Count; index++)
             {

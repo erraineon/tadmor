@@ -19,7 +19,7 @@ namespace Tadmor.Modules
         [Command("tr")]
         public async Task BadTranslate([Remainder]string input)
         {
-            if (input.Length > 140) throw new Exception("no more than 140 characters");
+            if (input.Length > 500) throw new Exception("no more than 500 characters");
             var badTranslation = await _yandex.BadTranslate(input);
             await ReplyAsync(badTranslation);
         }
