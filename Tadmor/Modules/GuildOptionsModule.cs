@@ -31,6 +31,17 @@ namespace Tadmor.Modules
             await ReplyAsync("ok");
         }
 
+        [Summary("toggles good boy mode where nsfw commands are limited to nsfw channels")]
+        [Command("goodboymode")]
+        public async Task GoodBoyMode()
+        {
+            var guildId = Context.Guild.Id;
+            var guildOptions = GetOrAddOptions(_discordOptions, guildId);
+            guildOptions.GoodBoyMode = !guildOptions.GoodBoyMode;
+            await Program.UpdateOptions(_discordOptions);
+            await ReplyAsync($"good boy mode is {(guildOptions.GoodBoyMode ? "on" : "off")}");
+        }
+
         [RequireOwner(Group = "admin")]
         [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Group("on")]

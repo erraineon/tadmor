@@ -95,7 +95,7 @@ namespace Tadmor.Services.Discord
 
             if (result.Error == CommandError.UnmetPrecondition) await context.Channel.SendMessageAsync("no");
         }
-
+    
         public string GetCommandsPrefix(IGuild guild)
         {
             using (var scope = _services.CreateScope())

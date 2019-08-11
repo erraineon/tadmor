@@ -9,5 +9,6 @@ namespace Tadmor.Services.Discord
         public ulong Id { get; set; }
         public string CommandPrefix { get; set; }
         public List<GuildEvent> Events { get; set; } = new List<GuildEvent>();
+        public bool GoodBoyMode { get; set; }
     }
 }

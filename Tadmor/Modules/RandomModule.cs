@@ -8,6 +8,7 @@ using Discord.Commands;
 using Humanizer;
 using MoreLinq.Extensions;
 using Tadmor.Extensions;
+using Tadmor.Preconditions;
 using Tadmor.Services.Data;
 using Tadmor.Services.Tumblr;
 using Tadmor.Services.Twitter;
@@ -101,6 +102,7 @@ namespace Tadmor.Modules
 
         [Summary("post a random video from world star hiphop")]
         [Command("wsh")]
+        [RequireNoGoodBoyMode]
         public async Task RandomVideo()
         {
             var videos = (await _worldStar.GetVideoInfosFromSite())

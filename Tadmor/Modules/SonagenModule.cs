@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Tadmor.Extensions;
+using Tadmor.Preconditions;
 using Tadmor.Services.Sonagen;
 
 namespace Tadmor.Modules
@@ -34,6 +35,7 @@ namespace Tadmor.Modules
 
         [Summary("get your sona")]
         [Command]
+        [RequireNoGoodBoyMode]
         public Task GenerateUserSona()
         {
             return GenerateRandomSona((IGuildUser) Context.User);
@@ -41,6 +43,7 @@ namespace Tadmor.Modules
 
         [Summary("get a random sona")]
         [Command("random")]
+        [RequireNoGoodBoyMode]
         public Task GenerateRandomSona()
         {
             return GenerateSona(Random);
@@ -49,6 +52,7 @@ namespace Tadmor.Modules
         [Summary("get a sona for the specified name")]
         [Command]
         [Priority(-2)]
+        [RequireNoGoodBoyMode]
         public Task GenerateRandomSona([Remainder] string seed)
         {
             return GenerateSona(seed.ToRandom(), seed: seed);
@@ -56,6 +60,7 @@ namespace Tadmor.Modules
         [Summary("get a sona for the specified user")]
         [Command]
         [Priority(-1)]
+        [RequireNoGoodBoyMode]
         public Task GenerateRandomSona(IGuildUser user)
         {
             var random = (user.Nickname, user.AvatarId).ToRandom();

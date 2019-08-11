@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Tadmor.Preconditions;
 using Tadmor.Services.E621;
 
 namespace Tadmor.Modules
@@ -17,6 +18,7 @@ namespace Tadmor.Modules
 
         [Summary("search on e621")]
         [Command("e621")]
+        [RequireNoGoodBoyMode]
         public async Task SearchRandom([Remainder] string tags)
         {
             var post = await _e621.SearchRandom(tags);
