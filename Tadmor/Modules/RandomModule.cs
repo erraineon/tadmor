@@ -100,6 +100,14 @@ namespace Tadmor.Modules
             await ReplyAsync(statusUrl);
         }
 
+        [Summary("pick a random option among the supplied ones")]
+        [Command("pick")]
+        public async Task Pick(params string[] options)
+        {
+            var option = options.RandomSubset(1).Single();
+            await ReplyAsync(option);
+        }
+
         [Summary("post a random video from world star hiphop")]
         [Command("wsh")]
         [RequireNoGoodBoyMode]
