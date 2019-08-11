@@ -102,7 +102,7 @@ namespace Tadmor.Services.Discord
             {
                 var discordOptions = scope.ServiceProvider.GetService<IOptionsSnapshot<DiscordOptions>>().Value;
                 var guildOptions = discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guild.Id);
-                var commandPrefix = guildOptions?.CommandPrefix ?? ".";
+                var commandPrefix = guildOptions?.CommandPrefix is string p && !string.IsNullOrEmpty(p) ? p : ".";
                 return commandPrefix;
             }
         }

@@ -8,8 +8,6 @@ namespace Tadmor.Services.Discord
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public ulong Id { get; set; }
         public string CommandPrefix { get; set; }
-        public string WelcomeMessage { get; set; }
-        public ulong WelcomeChannel { get; set; }
         public List<GuildEvent> Events { get; set; } = new List<GuildEvent>();
     }
 }
