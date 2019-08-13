@@ -22,7 +22,8 @@ namespace Tadmor.Modules
         [Summary("gets topmost replied-to posts on a board")]
         [Command("hot")]
         [Ratelimit(1, 1, Measure.Minutes, RatelimitFlags.ApplyPerGuild)]
-        [RequireNoGoodBoyMode]
+        [RequireNoGoodBoyMode(Group = "admin")]
+        [RequireServiceUser(Group = "admin")]
         public async Task HotPosts(string boardName)
         {
             var hotPosts = await _chan.GetHotPosts(boardName, 10);

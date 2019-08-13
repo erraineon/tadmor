@@ -110,7 +110,8 @@ namespace Tadmor.Modules
 
         [Summary("post a random video from world star hiphop")]
         [Command("wsh")]
-        [RequireNoGoodBoyMode]
+        [RequireNoGoodBoyMode(Group = "admin")]
+        [RequireServiceUser(Group = "admin")]
         public async Task RandomVideo()
         {
             var videos = (await _worldStar.GetVideoInfosFromSite())

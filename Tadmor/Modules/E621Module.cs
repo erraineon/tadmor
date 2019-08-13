@@ -18,7 +18,8 @@ namespace Tadmor.Modules
 
         [Summary("search on e621")]
         [Command("e621")]
-        [RequireNoGoodBoyMode]
+        [RequireNoGoodBoyMode(Group = "admin")]
+        [RequireServiceUser(Group = "admin")]
         public async Task SearchRandom([Remainder] string tags)
         {
             var post = await _e621.SearchRandom(tags);
