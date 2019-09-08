@@ -52,6 +52,8 @@ namespace Tadmor.Utils
         public IReadOnlyCollection<ulong> MentionedRoleIds => throw new NotImplementedException();
 
         public IReadOnlyCollection<ulong> MentionedUserIds => throw new NotImplementedException();
+        public MessageActivity Activity => throw new NotImplementedException();
+        public MessageApplication Application => throw new NotImplementedException();
 
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)
         {

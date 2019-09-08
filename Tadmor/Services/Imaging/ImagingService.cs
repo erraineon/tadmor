@@ -256,7 +256,7 @@ namespace Tadmor.Services.Imaging
             return image;
         }
 
-        public MemoryStream Quadrant((Random rng, byte[])[] rngAndAvatarDatas, string opt1, string opt2, string opt3,
+        public MemoryStream Quadrant(List<(Random rng, byte[])> rngAndAvatarDatas, string opt1, string opt2, string opt3,
             string opt4)
         {
             //constants
@@ -315,7 +315,7 @@ namespace Tadmor.Services.Imaging
             return output;
         }
 
-        public MemoryStream Poly((Random rng, byte[])[] rngAndAvatars, string[] options)
+        public MemoryStream Poly(List<(Random rng, byte[])> rngAndAvatars, string[] options)
         {
             //constants
             const int s = 1280; //picture size

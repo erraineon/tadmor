@@ -9,6 +9,7 @@ using Humanizer.Localisation;
 using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
 using Tadmor.Services.Hangfire;
+using Tadmor.Services.Telegram;
 using Tadmor.Utils;
 
 namespace Tadmor.Modules
@@ -33,7 +34,8 @@ namespace Tadmor.Modules
             {
                 ChannelId = Context.Channel.Id,
                 Command = $"say {Context.User.Mention}: {reminder}",
-                OwnerId = ownerId
+                OwnerId = ownerId,
+                ContextType = GetCommandContextType()
             });
             await ReplyAsync($"will remind in {delay.Humanize(maxUnit: TimeUnit.Year)}");
         }
@@ -46,7 +48,8 @@ namespace Tadmor.Modules
             {
                 ChannelId = Context.Channel.Id,
                 Command = command,
-                OwnerId = Context.User.Id
+                OwnerId = Context.User.Id,
+                ContextType = GetCommandContextType()
             });
             await ReplyAsync($"will execute in {delay.Humanize(maxUnit: TimeUnit.Year)}");
         }
@@ -63,14 +66,19 @@ namespace Tadmor.Modules
             {
                 ChannelId = Context.Channel.Id,
                 Command = command,
-                OwnerId = Context.User.Id
+                OwnerId = Context.User.Id,
+                ContextType = GetCommandContextType()
             });
         }
+
+        private CommandJobContextType GetCommandContextType() => Context.Client is TelegramWrapper
+            ? CommandJobContextType.Telegram
+            : CommandJobContextType.Discord;
 
         [RequireOwner(Group = "admin")]
         [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Group("sched")]
-        public class RecurringModule : ModuleBase<SocketCommandContext>
+        public class RecurringModule : ModuleBase<ICommandContext>
         {
             private readonly HangfireService _hangfire;
 
@@ -97,7 +105,7 @@ namespace Tadmor.Modules
             [Command("ls")]
             public async Task ViewJobs()
             {
-                var jobStrings = _hangfire.GetJobInfos(Context.Guild);
+                var jobStrings = await _hangfire.GetJobInfos(Context.Guild);
                 var jobInfo = jobStrings.Any()
                     ? string.Join(Environment.NewLine, jobStrings)
                     : throw new Exception("no jobs on this guild");

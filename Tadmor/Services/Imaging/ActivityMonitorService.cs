@@ -8,6 +8,7 @@ using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Hosting;
 using MoreLinq;
+using Tadmor.Services.Telegram;
 
 namespace Tadmor.Services.Imaging
 {
@@ -19,10 +20,12 @@ namespace Tadmor.Services.Imaging
             new ConcurrentDictionary<(ulong guildId, ulong userId), IMessage>();
 
         private readonly DiscordSocketClient _discord;
+        private readonly TelegramService _telegram;
 
-        public ActivityMonitorService(DiscordSocketClient discord)
+        public ActivityMonitorService(DiscordSocketClient discord, TelegramService telegram)
         {
             _discord = discord;
+            _telegram = telegram;
         }
 
         public async Task PopulateActivity()
@@ -46,11 +49,7 @@ namespace Tadmor.Services.Imaging
 
         public Task UpdateUserActivity(SocketMessage socketMessage)
         {
-            if (socketMessage.Channel is IGuildChannel channel &&
-                socketMessage is SocketUserMessage message &&
-                !message.Author.IsWebhook)
-                _activeUsers[(channel.Guild.Id, message.Author.Id)] = socketMessage;
-            return Task.CompletedTask;
+            return UpdateUserActivity((IMessage) socketMessage);
         }
 
         public async Task<IEnumerable<IGuildUser>> GetActiveUsers(IGuild guild)
@@ -81,7 +80,16 @@ namespace Tadmor.Services.Imaging
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _discord.MessageReceived += UpdateUserActivity;
+            _telegram.MessageReceived += UpdateUserActivity;
             return Task.CompletedTask;
+        }
+
+        private async Task UpdateUserActivity(IMessage message)
+        {
+            if (message.Channel is IGuildChannel channel &&
+                message is IUserMessage userMessage &&
+                !userMessage.Author.IsWebhook)
+                _activeUsers[(channel.Guild.Id, userMessage.Author.Id)] = message;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

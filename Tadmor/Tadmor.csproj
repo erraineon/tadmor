@@ -49,7 +49,7 @@
   <ItemGroup>
     <PackageReference Include="CodeHollow.FeedReader" Version="1.1.5" />
     <PackageReference Include="CronExpressionDescriptor" Version="2.8.0" />
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-01001" />
+    <PackageReference Include="Discord.Net" Version="2.1.1" />
     <PackageReference Include="DlibDotNet" Version="19.15.0.20181008" />
     <PackageReference Include="E621Client" Version="0.0.1" />
     <PackageReference Include="FChan.Library" Version="2.0.0" />
@@ -62,6 +62,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.4" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.1.1" />
@@ -75,6 +76,8 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0004" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0004" />
     <PackageReference Include="SixLabors.Shapes" Version="1.0.0-beta0006" />
+    <PackageReference Include="System.Runtime.Caching" Version="4.5.0" />
+    <PackageReference Include="Telegram.Bot" Version="15.0.0" />
     <PackageReference Include="YandexTranslateCoreSdk" Version="1.0.0" />
   </ItemGroup>
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -10,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Tadmor.Extensions;
+using Tadmor.Services.Commands;
 
 namespace Tadmor.Services.Discord
 {
@@ -22,8 +21,8 @@ namespace Tadmor.Services.Discord
             LogLevel.Information, LogLevel.Trace, LogLevel.Debug
         };
 
-        private readonly CommandService _commands;
         private readonly DiscordSocketClient _discord;
+        private readonly ChatCommandsService _commands;
         private readonly DiscordOptions _discordOptions;
         private readonly ILogger _logger;
         private readonly IServiceProvider _services;
@@ -32,8 +31,8 @@ namespace Tadmor.Services.Discord
             IServiceProvider services,
             ILogger<DiscordService> logger,
             DiscordSocketClient discord,
-            CommandService commands,
-            IOptions<DiscordOptions> discordOptions)
+            IOptions<DiscordOptions> discordOptions,
+            ChatCommandsService commands)
         {
             _services = services;
             _logger = logger;
@@ -50,16 +49,6 @@ namespace Tadmor.Services.Discord
             return Task.CompletedTask;
         }
 
-        private async Task LogCommandError(LogMessage logMessage)
-        {
-            if (logMessage.Exception is CommandException commandException)
-            {
-                var e = commandException.InnerException;
-                var message = e.GetType() == typeof(Exception) ? e.Message : e.ToShortString();
-                await commandException.Context.Channel.SendMessageAsync(message);
-            }
-        }
-
         private async Task TryExecuteCommand(SocketMessage socketMessage)
         {
             if (socketMessage.Channel is IGuildChannel channel &&
@@ -69,33 +58,10 @@ namespace Tadmor.Services.Discord
                 message.Content.StartsWith(commandPrefix))
             {
                 var context = new SocketCommandContext(_discord, message);
-                await ExecuteCommand(context, commandPrefix);
+                await _commands.ExecuteCommand(context, commandPrefix);
             }
         }
 
-        public async Task ExecuteCommand(ICommandContext context, string prefix)
-        {
-            var scope = _services.CreateScope();
-            var result = await _commands.ExecuteAsync(context, prefix.Length, scope.ServiceProvider);
-
-            // as of DependencyInjection v2.1 scope disposal is immediate whereas precondition check is asynchronous
-            // therefore scope disposal must be made asynchronous too
-            _commands.CommandExecuted += DisposeScope;
-
-            Task DisposeScope(CommandInfo _, ICommandContext completedContext, IResult __)
-            {
-                if (completedContext == context)
-                {
-                    scope.Dispose();
-                    _commands.CommandExecuted -= DisposeScope;
-                }
-
-                return Task.CompletedTask;
-            }
-
-            if (result.Error == CommandError.UnmetPrecondition) await context.Channel.SendMessageAsync("no");
-        }
-    
         public string GetCommandsPrefix(IGuild guild)
         {
             using (var scope = _services.CreateScope())
@@ -120,9 +86,7 @@ namespace Tadmor.Services.Discord
 
             _discord.Ready += OnReady;
             _discord.Log += Log;
-            _commands.Log += LogCommandError;
             _discord.MessageReceived += TryExecuteCommand;
-            await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), _services);
             await _discord.LoginAsync(TokenType.Bot, _discordOptions.Token);
             await _discord.StartAsync();
             await discordReady.Task;

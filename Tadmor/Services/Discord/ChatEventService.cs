@@ -10,46 +10,57 @@ using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Tadmor.Services.Commands;
+using Tadmor.Services.Telegram;
 using Tadmor.Utils;
 
 namespace Tadmor.Services.Discord
 {
-    public class DiscordEventService : IHostedService
+    public class ChatEventService : IHostedService
     {
         private readonly DiscordSocketClient _discordClient;
-        private readonly DiscordService _discordService;
+        private readonly ChatCommandsService _commands;
+        private readonly TelegramService _telegramService;
         private readonly IServiceProvider _services;
 
-        public DiscordEventService(DiscordSocketClient discordClient, DiscordService discordService, IServiceProvider services)
+        public ChatEventService(DiscordSocketClient discordClient, ChatCommandsService commands, TelegramService telegramService, IServiceProvider services)
         {
             _discordClient = discordClient;
-            _discordService = discordService;
+            _commands = commands;
+            _telegramService = telegramService;
             _services = services;
         }
 
         private async Task ProcessJoin(SocketGuildUser arg)
         {
-            await ProcessEvent(null, null, arg.Guild.Id, arg.Id, default, GuildEventTriggerType.GuildJoin);
+            await ProcessEvent(null, null, arg.Guild.Id, arg, default, GuildEventTriggerType.GuildJoin, _discordClient);
         }
 
-        private async Task ProcessMessage(SocketMessage msg)
+        private Task ProcessMessage(SocketMessage msg)
         {
-            if (msg.Channel is SocketGuildChannel guildChannel)
-                await ProcessEvent(msg.Id, guildChannel.Id, guildChannel.Guild.Id, msg.Author.Id, msg.Content, GuildEventTriggerType.RegexMatch);
+            return ProcessMessage((IMessage) msg);
         }
 
-        private async Task ProcessEvent(ulong? messageId, ulong? inputChannelId, ulong guildId, ulong authorId,
-            string input,
-            GuildEventTriggerType triggerType)
+        private async Task ProcessMessage(IMessage msg)
         {
-            if (authorId != _discordClient.CurrentUser.Id)
+            if (msg.Channel is IGuildChannel guildChannel)
+            {
+                var client = msg.Channel is TelegramGuild ? (IDiscordClient)_telegramService.Wrapper : _discordClient;
+                await ProcessEvent(msg.Id, guildChannel.Id, guildChannel.Guild.Id, (IGuildUser) msg.Author, msg.Content, GuildEventTriggerType.RegexMatch, client);
+            }
+        }
+
+        private async Task ProcessEvent(ulong? messageId, ulong? inputChannelId, ulong guildId, IGuildUser author,
+            string input, GuildEventTriggerType triggerType, IDiscordClient client)
+        {
+            if (author.Id != client.CurrentUser.Id)
             {
                 var guildOptions = GetGuildOptions(guildId);
                 if (guildOptions != null)
                 {
                     var events = GetEvents(inputChannelId, triggerType, input, guildOptions);
                     foreach (var guildEvent in events)
-                        await ProcessEvent(messageId, inputChannelId, authorId, input, guildEvent);
+                        await ProcessEvent(messageId, inputChannelId, author, input, guildEvent, client);
                 }
             }
         }
@@ -89,11 +100,10 @@ namespace Tadmor.Services.Discord
             return events;
         }
 
-        private async Task ProcessEvent(ulong? messageId, ulong? inputChannelId, ulong authorId, string input,
-            GuildEvent guildEvent)
+        private async Task ProcessEvent(ulong? messageId, ulong? inputChannelId, IGuildUser author, string input,
+            GuildEvent guildEvent, IDiscordClient client)
         {
-            var responseChannel = (SocketTextChannel) _discordClient.GetChannel(inputChannelId ?? guildEvent.ChannelId);
-            var author = responseChannel.Guild.GetUser(authorId);
+            var responseChannel = await author.Guild.GetTextChannelAsync(inputChannelId ?? guildEvent.ChannelId);
             var variablesByName = new Dictionary<string, string>
             {
                 ["{{user}}"] = author.Mention,
@@ -113,8 +123,8 @@ namespace Tadmor.Services.Discord
                 .Aggregate(guildEvent.Reaction,
                     (output, variable) => output.Replace(variable.Key, variable.Value));
             var message = new ServiceUserMessage(responseChannel, author, reaction);
-            var context = new CommandContext(_discordClient, message);
-            await _discordService.ExecuteCommand(context, string.Empty);
+            var context = new CommandContext(client, message);
+            await _commands.ExecuteCommand(context, string.Empty);
             if (guildEvent.DeleteTrigger && messageId.HasValue && !author.GuildPermissions.Administrator)
             {
                 await responseChannel.DeleteMessageAsync((ulong) messageId);
@@ -125,6 +135,7 @@ namespace Tadmor.Services.Discord
         {
             _discordClient.UserJoined += ProcessJoin;
             _discordClient.MessageReceived += ProcessMessage;
+            _telegramService.MessageReceived += ProcessMessage;
             return Task.CompletedTask;
         }
 
@@ -132,13 +143,14 @@ namespace Tadmor.Services.Discord
         {
             _discordClient.UserJoined -= ProcessJoin;
             _discordClient.MessageReceived -= ProcessMessage;
+            _telegramService.MessageReceived -= ProcessMessage;
             return Task.CompletedTask;
         }
 
-        public List<string> GetEventInfos(SocketGuild guild)
+        public List<string> GetEventInfos(IGuild guild)
         {
             var guildOptions = GetGuildOptions(guild.Id);
-            return guildOptions != null ? guildOptions.Events.Select(e => e.ToString(guild)).ToList() : new List<string>();
+            return guildOptions != null ? guildOptions.Events.Select(e => e.ToString()).ToList() : new List<string>();
         }
     }
 }

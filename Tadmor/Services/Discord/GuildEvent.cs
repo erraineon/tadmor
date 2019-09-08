@@ -13,13 +13,12 @@ namespace Tadmor.Services.Discord
         public ulong ChannelId { get; set; }
         public string Id { get; set; }
 
-        public string ToString(SocketGuild guild)
+        public override string ToString()
         {
             switch (TriggerType)
             {
                 case GuildEventTriggerType.GuildJoin:
-                    var channelMention = (guild.GetChannel(ChannelId) as SocketTextChannel)?.Mention ?? "missing channel";
-                    return $"{Id}: when users join this guild, execute '{Reaction}' in {channelMention}";
+                    return $"{Id}: when users join this guild, execute '{Reaction}'";
                 case GuildEventTriggerType.RegexMatch:
                     var function = DeleteTrigger ? "delete and execute" : "execute";
                     return $"{Id}: when users say `{Trigger}`, {function} '{Reaction}'";

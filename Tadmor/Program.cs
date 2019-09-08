@@ -33,6 +33,7 @@ namespace Tadmor
                 .ConfigureServices((hostContext, services) => services
                     .AddOptions(hostContext.Configuration)
                     .AddLogging()
+                    .AddMemoryCache()
                     .AddDbContext<AppDbContext>(builder => builder
                         .UseSqlite(hostContext.Configuration.GetConnectionString("Main")))
                     .AddSingleton(new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async}))

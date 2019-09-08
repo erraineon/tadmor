@@ -45,12 +45,12 @@ namespace Tadmor.Modules
         [RequireOwner(Group = "admin")]
         [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Group("on")]
-        public class EventsModule : ModuleBase<SocketCommandContext>
+        public class EventsModule : ModuleBase<ICommandContext>
         {
-            private readonly DiscordEventService _events;
+            private readonly ChatEventService _events;
             private readonly DiscordOptions _discordOptions;
 
-            public EventsModule(IOptionsSnapshot<DiscordOptions> discordOptions, DiscordEventService events)
+            public EventsModule(IOptionsSnapshot<DiscordOptions> discordOptions, ChatEventService events)
             {
                 _events = events;
                 _discordOptions = discordOptions.Value;

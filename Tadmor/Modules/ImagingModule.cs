@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
@@ -15,12 +16,14 @@ namespace Tadmor.Modules
     {
         private static readonly HttpClient Client = new HttpClient();
         private readonly ActivityMonitorService _activityMonitor;
+        private readonly AvatarDownloaderService _avatarDownloader;
         private readonly ImagingService _imaging;
 
-        public ImagingModule(ImagingService imaging, ActivityMonitorService activityMonitor)
+        public ImagingModule(ImagingService imaging, ActivityMonitorService activityMonitor, AvatarDownloaderService avatarDownloader)
         {
             _imaging = imaging;
             _activityMonitor = activityMonitor;
+            _avatarDownloader = avatarDownloader;
         }
 
         [Summary("make a polygonal chart")]
@@ -87,7 +90,7 @@ namespace Tadmor.Modules
                 var lastMessage = await _activityMonitor.GetLastMessage(user);
                 text = (lastMessage as IUserMessage)?.Resolve() ?? throw new Exception($"{user.Mention} hasn't talked");
             }
-            var avatar = await Client.GetByteArrayAsync(user.GetAvatarUrl());
+            var avatar = (await _avatarDownloader.DownloadAvatar(user)).data;
             var result =  _imaging.Ok(text, avatar);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
@@ -123,24 +126,21 @@ namespace Tadmor.Modules
             return text;
         }
 
-        private async Task UpDownGif(string text, IUser user, string direction)
+        private async Task UpDownGif(string text, IGuildUser user, string direction)
         {
-            var avatar = user == default ? null : await Client.GetByteArrayAsync(user.GetAvatarUrl());
+            var avatar = user == default ? null : (await _avatarDownloader.DownloadAvatar(user)).data;
             var result = _imaging.UpDownGif(text.ToUpper(), avatar, $"{direction}.gif");
             await Context.Channel.SendFileAsync(result, "result.gif");
         }
 
-        private async Task<(Random rng, byte[])[]> GetRngAndAvatars()
+        private async Task<List<(Random rng, byte[])>> GetRngAndAvatars()
         {
             var users = await _activityMonitor.GetActiveUsers(Context.Guild);
-            var rngAndAvatars = await Task.WhenAll((from user in users
-                    let avatarUrl = user.GetAvatarUrl()
-                    where avatarUrl != null
-                    let avatarTask = Client.GetByteArrayAsync(avatarUrl)
-                    select (rng: user.AvatarId.ToRandom(), avatarTask))
-                .Select(async tuple => (tuple.rng, await tuple.avatarTask))
+            var rngAndAvatars = (await Task.WhenAll(users
+                    .Select(_avatarDownloader.DownloadAvatar)))
+                .Select(tuple => (tuple.avatarId.ToRandom(), tuple.data))
                 .Reverse()
-                .ToList());
+                .ToList();
             return rngAndAvatars;
         }
     }
