@@ -1,5 +1,5 @@
 # tadmor
-install .net core 2.1, build `Tadmor.csproj` with `dotnet build`, in the output folder rename `appsettings.sample.json` to `appsettings.json` and add your bot token to it and your other tokens, then run with `dotnet run`
+install .net core 2.1, build `Tadmor.csproj` and rename `appsettings.sample.json` in the output folder to `appsettings.json` and add your bot token to it and your other settings
 
 `.help` for a list of commands
 
