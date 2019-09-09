@@ -24,7 +24,7 @@ namespace Tadmor.Services.Twitter
         {
             var posts = await GetImagePosts(context, username);
             var post = posts.RandomSubset(1).SingleOrDefault() ?? throw new Exception("there are no media statuses");
-            return $"https://twitter.com/statuses/{post.TweetId}";
+            return $"https://twitter.com/{username}/status/{post.TweetId}";
         }
 
         private async Task<List<TwitterMedia>> GetImagePosts(AppDbContext context, string displayName)

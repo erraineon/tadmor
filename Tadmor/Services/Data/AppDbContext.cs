@@ -18,7 +18,7 @@ namespace Tadmor.Services.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TwitterMedia>()
-                .HasKey(media => new {media.TweetId, media.MediaId});
+                .HasKey(media => new {media.TweetId, media.MediaId, media.Username});
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
