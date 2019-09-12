@@ -432,7 +432,7 @@ namespace Tadmor.Services.Telegram
             throw new NotImplementedException();
         }
 
-        public bool IsNsfw => true;
+        public bool IsNsfw => false;
         public string Topic { get; }
         public int SlowModeInterval { get; }
 
