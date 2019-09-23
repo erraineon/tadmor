@@ -241,7 +241,7 @@ namespace Tadmor.Services.Imaging
 
         private Image<Rgba32> CropCircle(byte[] imageData)
         {
-            var image = Image.Load(imageData);
+            var image = imageData != null ? Image.Load(imageData) : new Image<Rgba32>(Configuration.Default, 128, 128, Rgba32.Red);
             var circle = new EllipsePolygon(new PointF(image.Size() / 2), image.Size());
             var rectangle = new RectangularPolygon(circle.Bounds);
             var exceptCircle = rectangle.Clip(circle);
