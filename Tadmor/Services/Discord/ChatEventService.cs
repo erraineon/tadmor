@@ -113,7 +113,7 @@ namespace Tadmor.Services.Discord
             };
             if (guildEvent.TriggerType == GuildEventTriggerType.RegexMatch)
             {
-                var match = Regex.Match(input, guildEvent.Trigger);
+                var match = Regex.Match(input, guildEvent.Trigger, RegexOptions.IgnoreCase);
                 for (var i = 1; i < match.Groups.Count; i++)
                 {
                     variablesByName[$"${i}"] = match.Groups[i].Value;
