@@ -32,13 +32,16 @@ namespace Tadmor.Services.Imaging
             else if (user is TelegramGuildUser)
             {
                 var photos = await _telegram.Client.GetUserProfilePhotosAsync((int) user.Id, 0, 1);
-                var photo = photos.Photos[0].FirstOrDefault();
-                if (photo != null)
+                if (photos.Photos.Length > 0)
                 {
-                    var memoryStream = new MemoryStream();
-                    var file = await _telegram.Client.GetFileAsync(photo.FileId);
-                    await _telegram.Client.DownloadFileAsync(file.FilePath, memoryStream);
-                    return (memoryStream.ToArray(), photo.FileId);
+                    var photo = photos.Photos[0].FirstOrDefault();
+                    if (photo != null)
+                    {
+                        var memoryStream = new MemoryStream();
+                        var file = await _telegram.Client.GetFileAsync(photo.FileId);
+                        await _telegram.Client.DownloadFileAsync(file.FilePath, memoryStream);
+                        return (memoryStream.ToArray(), photo.FileId);
+                    }
                 }
             }
 
