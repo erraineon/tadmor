@@ -64,13 +64,11 @@ namespace Tadmor.Services.Discord
 
         public string GetCommandsPrefix(IGuild guild)
         {
-            using (var scope = _services.CreateScope())
-            {
-                var discordOptions = scope.ServiceProvider.GetService<IOptionsSnapshot<DiscordOptions>>().Value;
-                var guildOptions = discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guild.Id);
-                var commandPrefix = guildOptions?.CommandPrefix is string p && !string.IsNullOrEmpty(p) ? p : ".";
-                return commandPrefix;
-            }
+            using var scope = _services.CreateScope();
+            var discordOptions = scope.ServiceProvider.GetService<IOptionsSnapshot<DiscordOptions>>().Value;
+            var guildOptions = discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guild.Id);
+            var commandPrefix = guildOptions?.CommandPrefix is var p && !string.IsNullOrEmpty(p) ? p : ".";
+            return commandPrefix;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)

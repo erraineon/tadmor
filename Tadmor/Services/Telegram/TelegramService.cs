@@ -101,7 +101,7 @@ namespace Tadmor.Services.Telegram
                         .Select(a => (ulong) a.User.Id)
                         .Concat(new[] {(ulong) Client.BotId})));
             }
-
+            string? x = "hello";
             return guild;
         }
 

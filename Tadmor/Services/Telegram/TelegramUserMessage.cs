@@ -1,4 +1,5 @@
-﻿using System;
+﻿extern alias reactive; 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
@@ -74,7 +75,7 @@ namespace Tadmor.Services.Telegram
             throw new NotImplementedException();
         }
 
-        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit,
+        public reactive::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit,
             RequestOptions options = null)
         {
             throw new NotImplementedException();

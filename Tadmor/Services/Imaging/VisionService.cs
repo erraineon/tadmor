@@ -247,9 +247,9 @@ namespace Tadmor.Services.Imaging
                 var triangulation = subdivision.GetTriangleList();
                 foreach (var cell in triangulation)
                 {
-                    var p1 = new Point2f(cell.Item0, cell.Item1);
-                    var p2 = new Point2f(cell.Item2, cell.Item3);
-                    var p3 = new Point2f(cell.Item4, cell.Item5);
+                    var p1 = new Point(cell.Item0, cell.Item1);
+                    var p2 = new Point(cell.Item2, cell.Item3);
+                    var p3 = new Point(cell.Item4, cell.Item5);
                     if (rect.Contains(p1) && rect.Contains(p2) && rect.Contains(p3))
                     {
                         var indexA = points.IndexOf(p1);

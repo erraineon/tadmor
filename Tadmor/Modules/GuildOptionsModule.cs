@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.Options;
 using Tadmor.Services.Discord;
+using Tadmor.Utils;
 
 namespace Tadmor.Modules
 {
@@ -13,21 +13,22 @@ namespace Tadmor.Modules
     [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
     public class GuildOptionsModule : ModuleBase<ICommandContext>
     {
-        private readonly DiscordOptions _discordOptions;
+        private readonly IWritableOptionsSnapshot<DiscordOptions> _discordOptions;
 
-        public GuildOptionsModule(IOptionsSnapshot<DiscordOptions> discordOptions)
+        public GuildOptionsModule(IWritableOptionsSnapshot<DiscordOptions> discordOptions)
         {
-            _discordOptions = discordOptions.Value;
+            _discordOptions = discordOptions;
         }
 
         [Summary("change the prefix for commands on this guild")]
         [Command("prefix")]
         public async Task ChangePrefix(string newPrefix)
         {
-            var guildId = Context.Guild.Id;
-            var guildOptions = GetOrAddOptions(_discordOptions, guildId);
-            guildOptions.CommandPrefix = newPrefix;
-            await Program.UpdateOptions(_discordOptions);
+            await _discordOptions.UpdateAsync(options =>
+            {
+                var guildOptions = options.GetOrAddGuildOptions(Context.Guild.Id);
+                guildOptions.CommandPrefix = newPrefix;
+            });
             await ReplyAsync("ok");
         }
 
@@ -35,11 +36,13 @@ namespace Tadmor.Modules
         [Command("goodboymode")]
         public async Task GoodBoyMode()
         {
-            var guildId = Context.Guild.Id;
-            var guildOptions = GetOrAddOptions(_discordOptions, guildId);
-            guildOptions.GoodBoyMode = !guildOptions.GoodBoyMode;
-            await Program.UpdateOptions(_discordOptions);
-            await ReplyAsync($"good boy mode is {(guildOptions.GoodBoyMode ? "on" : "off")}");
+            var goodBoyMode = false;
+            await _discordOptions.UpdateAsync(options =>
+            {
+                var guildOptions = options.GetOrAddGuildOptions(Context.Guild.Id);
+                guildOptions.GoodBoyMode = goodBoyMode = !guildOptions.GoodBoyMode;
+            });
+            await ReplyAsync($"good boy mode is {(goodBoyMode ? "on" : "off")}");
         }
 
         [RequireOwner(Group = "admin")]
@@ -48,19 +51,17 @@ namespace Tadmor.Modules
         public class EventsModule : ModuleBase<ICommandContext>
         {
             private readonly ChatEventService _events;
-            private readonly DiscordOptions _discordOptions;
 
-            public EventsModule(IOptionsSnapshot<DiscordOptions> discordOptions, ChatEventService events)
+            public EventsModule(ChatEventService events)
             {
                 _events = events;
-                _discordOptions = discordOptions.Value;
             }
 
             [Summary("add a welcome response command for this guild")]
             [Command("join")]
             public async Task OnJoin([Remainder] string reaction)
             {
-                await AddGuildEvent(default, reaction, default, GuildEventTriggerType.GuildJoin);
+                await _events.AddJoinEvent(Context.Guild.Id, Context.Channel.Id, reaction);
                 await ReplyAsync("ok");
             }
 
@@ -68,7 +69,7 @@ namespace Tadmor.Modules
             [Command("filter")]
             public async Task OnInputDelete(string input, [Remainder] string reaction)
             {
-                await AddRegexMatchGuildEvent(input, reaction, true);
+                await _events.AddInputEvent(Context.Guild.Id, Context.Channel.Id, reaction, input, true);
                 await ReplyAsync("ok");
             }
 
@@ -87,59 +88,18 @@ namespace Tadmor.Modules
             [Command("rm")]
             public async Task RemoveEvent(string eventId)
             {
-                var guildId = Context.Guild.Id;
-                var guildOptions = GetOrAddOptions(_discordOptions, guildId);
-                if (guildOptions.Events.SingleOrDefault(e => e.Id == eventId) is GuildEvent guildEvent)
-                {
-                    guildOptions.Events.Remove(guildEvent);
-                    await Program.UpdateOptions(_discordOptions);
-                    await ReplyAsync("ok");
-                }
+                if (await _events.TryRemoveEvent(Context.Guild.Id, eventId)) await ReplyAsync("ok");
                 else throw new Exception("event not found");
             }
 
             [Summary("add an event in response to a message")]
-            [Command, Priority(-1)]
+            [Command]
+            [Priority(-1)]
             public async Task OnInput(string input, [Remainder] string reaction)
             {
-                await AddRegexMatchGuildEvent(input, reaction, false);
+                await _events.AddInputEvent(Context.Guild.Id, Context.Channel.Id, reaction, input, false);
                 await ReplyAsync("ok");
             }
-
-            private async Task AddRegexMatchGuildEvent(string input, string reaction, bool deleteTrigger)
-            {
-                await AddGuildEvent(input, reaction, deleteTrigger, GuildEventTriggerType.RegexMatch);
-            }
-
-            private async Task AddGuildEvent(string input, string reaction, bool deleteTrigger, GuildEventTriggerType triggerType)
-            {
-                var guildId = Context.Guild.Id;
-                var guildOptions = GetOrAddOptions(_discordOptions, guildId);
-                guildOptions.Events.Add(new GuildEvent
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    ChannelId = Context.Channel.Id,
-                    Scope = GuildEventScope.Guild,
-                    Reaction = reaction,
-                    Trigger = input,
-                    TriggerType = triggerType,
-                    DeleteTrigger = deleteTrigger
-                });
-                await Program.UpdateOptions(_discordOptions);
-            }
-        }
-
-
-        private static GuildOptions GetOrAddOptions(DiscordOptions discordOptions, ulong guildId)
-        {
-            var guildOptions = discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guildId);
-            if (guildOptions == null)
-            {
-                guildOptions = new GuildOptions {Id = guildId};
-                discordOptions.GuildOptions.Add(guildOptions);
-            }
-
-            return guildOptions;
         }
     }
 }

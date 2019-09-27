@@ -6,15 +6,13 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using E621;
-using Humanizer;
-using Tadmor.Services.WorldStar;
 
 namespace Tadmor.Extensions
 {
     public static class DiscordExtensions
     {
-        public static async Task<IList<string>> GetAllImageUrls(this ICommandContext context, ICollection<string> linkedUrls)
+        public static async Task<IList<string>> GetAllImageUrls(this ICommandContext context,
+            ICollection<string> linkedUrls)
         {
             var urlAttachments = context.Message.Attachments.Where(a => a.Width != null).Select(a => a.Url);
             var linkedProxyUrls = await Task.WhenAll(linkedUrls
@@ -34,7 +32,7 @@ namespace Tadmor.Extensions
         public static async Task<string> GetProxyImageUrl(this ICommandContext context, string linkedUrl)
         {
             if (TryGetProxyUrl(context.Message, out var proxyUrl)) return proxyUrl;
-            var client = (DiscordSocketClient)context.Client;
+            var client = (DiscordSocketClient) context.Client;
             var tcs = new TaskCompletionSource<string>();
             var cts = new CancellationTokenSource();
 

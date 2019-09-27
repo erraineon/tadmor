@@ -1,5 +1,7 @@
-﻿using System;
+﻿extern alias reactive; 
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,10 +9,12 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Audio;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Tadmor.Utils;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
+using AsyncEnumerable = reactive::System.Linq.AsyncEnumerable;
 
 namespace Tadmor.Services.Telegram
 {
@@ -391,7 +395,7 @@ namespace Tadmor.Services.Telegram
             throw new NotImplementedException();
         }
 
-        IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode,
+        reactive::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode,
             RequestOptions options)
         {
             throw new NotImplementedException();
@@ -407,7 +411,7 @@ namespace Tadmor.Services.Telegram
         public ulong GuildId => Id;
         public IReadOnlyCollection<Overwrite> PermissionOverwrites { get; }
 
-        IAsyncEnumerable<IReadOnlyCollection<IUser>> IChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
+        reactive::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IUser>> IChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
         {
             return ToAsyncEnumerableReadOnlyCollection(UsersCache.Cast<IUser>());
         }
@@ -477,7 +481,7 @@ namespace Tadmor.Services.Telegram
             throw new NotImplementedException();
         }
 
-        public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100,
+        public reactive::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100,
             CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
         {
             return ToAsyncEnumerableReadOnlyCollection(MessageCache
@@ -485,7 +489,7 @@ namespace Tadmor.Services.Telegram
                 .Take(limit));
         }
 
-        public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir,
+        public reactive::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir,
             int limit = 100, CacheMode mode = CacheMode.AllowDownload,
             RequestOptions options = null)
         {
@@ -495,7 +499,7 @@ namespace Tadmor.Services.Telegram
                 .Take(limit));
         }
 
-        public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir,
+        public reactive::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir,
             int limit = 100, CacheMode mode = CacheMode.AllowDownload,
             RequestOptions options = null)
         {
@@ -529,12 +533,9 @@ namespace Tadmor.Services.Telegram
 
         public string Mention => _chat.Title;
 
-        private IAsyncEnumerable<IReadOnlyCollection<T>> ToAsyncEnumerableReadOnlyCollection<T>(IEnumerable<T> values)
+        private reactive::System.Collections.Generic.IAsyncEnumerable<IReadOnlyCollection<T>> ToAsyncEnumerableReadOnlyCollection<T>(IEnumerable<T> values)
         {
-            return values
-                .GroupBy(m => true)
-                .Select(g => g.ToList())
-                .ToAsyncEnumerable();
+            return AsyncEnumerable.Return(new ReadOnlyCollection<T>(values.ToList()));
         }
 
         private string ToString(Embed embed)

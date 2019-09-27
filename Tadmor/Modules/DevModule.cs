@@ -1,4 +1,5 @@
-﻿using System;
+﻿extern alias reactive;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Humanizer;
+using Tadmor.Extensions;
 using Tadmor.Preconditions;
 
 namespace Tadmor.Modules
@@ -99,7 +101,7 @@ namespace Tadmor.Modules
             while (messages.Count < count)
             {
                 var remainingMessages = count - messages.Count;
-                var nextMessages = await channel.GetMessagesAsync(lastMessage.Id, Direction.Before).Flatten().ToList();
+                var nextMessages = (await channel.GetMessagesAsync(lastMessage.Id, Direction.Before).FlattenAsync()).ToList();
                 // only messages more recent than two weeks ago can be deleted
                 DateTimeOffset twoWeeksAgo = DateTimeOffset.Now - new TimeSpan(14, 0, 0, 0);
                 var newMessages = nextMessages.Where(m => m.Timestamp > twoWeeksAgo).ToList();
@@ -134,7 +136,7 @@ namespace Tadmor.Modules
             List<IMessage> messages = new List<IMessage>();
             while (true)
             {
-                var nextMessages = await channel.GetMessagesAsync(lastMessage.Id, Direction.Before).Flatten().ToList();
+                var nextMessages = (await channel.GetMessagesAsync(lastMessage.Id, Direction.Before).FlattenAsync()).ToList();
                 // only messages more recent than the delete start
                 var newMessages = nextMessages.Where(m => m.Timestamp > deleteStart).ToList();
                 // if there are no more messages, stop looking now
@@ -142,6 +144,7 @@ namespace Tadmor.Modules
                 {
                     break;
                 }
+
                 lastMessage = newMessages.Last();
                 var newTargetMessages = newMessages.Where(m => m.Author.Id == user.Id).ToList();
                 messages.AddRange(newTargetMessages);

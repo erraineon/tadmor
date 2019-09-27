@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Tadmor.Services.Twitter;
 
 namespace Tadmor.Services.Data
@@ -26,8 +27,9 @@ namespace Tadmor.Services.Data
             public AppDbContext CreateDbContext(string[] args)
             {
                 //ef cli tools will create the db in the project dir without this
-                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
                 var services = Program.ConfigureHost().Services;
+                var hostEnvironment = services.GetService<IHostEnvironment>();
+                Directory.SetCurrentDirectory(hostEnvironment.ContentRootPath);
                 return services.GetService<AppDbContext>();
             }
         }

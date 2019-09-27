@@ -152,5 +152,49 @@ namespace Tadmor.Services.Discord
             var guildOptions = GetGuildOptions(guild.Id);
             return guildOptions != null ? guildOptions.Events.Select(e => e.ToString()).ToList() : new List<string>();
         }
+
+        public async Task AddInputEvent(ulong guildId, ulong channelId, string reaction, string trigger, bool deleteTrigger)
+        {
+            await AddEvent(guildId, channelId, reaction, trigger, deleteTrigger, GuildEventTriggerType.RegexMatch);
+        }
+
+        public async Task AddJoinEvent(ulong guildId, ulong channelId, string reaction)
+        {
+            await AddEvent(guildId, channelId, reaction, default, false, GuildEventTriggerType.GuildJoin);
+        }
+
+        private async Task AddEvent(ulong guildId, ulong channelId, string reaction, string? trigger,
+            bool deleteTrigger, GuildEventTriggerType triggerType)
+        {
+            using var scope = _services.CreateScope();
+            var discordOptions = scope.ServiceProvider.GetService<IWritableOptionsSnapshot<DiscordOptions>>();
+            await discordOptions.UpdateAsync(options =>
+            {
+                var guildOptions = options.GetOrAddGuildOptions(guildId);
+                guildOptions.Events.Add(new GuildEvent
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    ChannelId = channelId,
+                    Scope = GuildEventScope.Guild,
+                    Reaction = reaction,
+                    Trigger = trigger,
+                    TriggerType = triggerType,
+                    DeleteTrigger = deleteTrigger
+                });
+            });
+        }
+
+        public async Task<bool> TryRemoveEvent(ulong guildId, string eventId)
+        {
+            using var scope = _services.CreateScope();
+            var discordOptions = scope.ServiceProvider.GetService<IWritableOptionsSnapshot<DiscordOptions>>();
+            var eventExists = false;
+            await discordOptions.UpdateAsync(options =>
+            {
+                var guildOptions = options.GetOrAddGuildOptions(guildId);
+                eventExists = guildOptions.Events.RemoveAll(e => e.Id == eventId) > 0;
+            });
+            return eventExists;
+        }
     }
 }

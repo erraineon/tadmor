@@ -28,25 +28,6 @@ namespace Tadmor.Services.Imaging
             _telegram = telegram;
         }
 
-        public async Task PopulateActivity()
-        {
-            var tasks = _discord.Guilds
-                .SelectMany(guild => guild.TextChannels
-                    .Where(channel => channel.GetUser(_discord.CurrentUser.Id) != null)
-                    .Select(channel => channel.GetMessagesAsync()
-                        .Flatten()
-                        .Where(message => !message.Author.IsWebhook && guild.GetUser(message.Author.Id) != null)
-                        .Select(message => (guildId: guild.Id, message))
-                        .ToList()));
-            var userActivityTuples = (await Task.WhenAll(tasks))
-                .SelectMany(tuples => tuples)
-                .OrderByDescending(t => t.message.Timestamp.DateTime)
-                .DistinctBy(u => (u.guildId, u.message.Author.Id))
-                .ToList();
-            foreach (var (guildId, message) in userActivityTuples)
-                _activeUsers[(guildId, message.Author.Id)] = message;
-        }
-
         public Task UpdateUserActivity(SocketMessage socketMessage)
         {
             return UpdateUserActivity((IMessage) socketMessage);
