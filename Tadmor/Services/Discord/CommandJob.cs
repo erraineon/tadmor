@@ -27,25 +27,14 @@ namespace Tadmor.Services.Discord
         [CancelRecurrenceUponFailure]
         public async Task Do(CommandJobOptions options)
         {
-            IDiscordClient client;
-            IMessageChannel channel;
-            switch (options.ContextType)
+            var client = options.ContextType switch
             {
-                case CommandJobContextType.Discord:
-                    channel = _discordClient.GetChannel(options.ChannelId) as IMessageChannel ??
-                                  throw new Exception("channel gone, delete schedule");
-                    client = _discordClient;
-                    break;
-                case CommandJobContextType.Telegram:
-                    var chatId = new ChatId((long)options.ChannelId);
-                    var telegramGuild = await _telegram.GetTelegramGuild(chatId) ??
-                                         throw new Exception("chat gone, delete schedule");
-                    channel = telegramGuild;
-                    client = _telegram.Wrapper;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                CommandJobContextType.Discord => (IDiscordClient) _discordClient,
+                CommandJobContextType.Telegram => _telegram.Wrapper,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            var channel = await client.GetChannelAsync(options.ChannelId) as IMessageChannel ??
+                                      throw new Exception("channel gone, delete schedule");
             var author = await channel.GetUserAsync(options.OwnerId);
             var message = new ServiceUserMessage(channel, author, options.Command);
             var context = new CommandContext(client, message);

@@ -18,8 +18,6 @@ namespace Tadmor.Services.Telegram
 {
     public class TelegramService : IHostedService
     {
-        private static readonly Dictionary<long, TelegramGuild> TelegramGuildsByChatId =
-            new Dictionary<long, TelegramGuild>();
 
         private readonly ChatCommandsService _commands;
         private readonly TelegramOptions _options;
@@ -60,7 +58,7 @@ namespace Tadmor.Services.Telegram
             var msg = e.Message;
             if (msg.Chat.Type != ChatType.Private)
             {
-                var guild = await GetTelegramGuild(msg.Chat);
+                var guild = await Wrapper.GetTelegramGuild(msg.Chat);
                 var message = guild.ProcessInboundMessage(msg);
                 await MessageReceived(message);
                 const string commandPrefix = ".";
@@ -73,25 +71,5 @@ namespace Tadmor.Services.Telegram
         }
 
         public event Func<IMessage, Task> MessageReceived = _ => Task.CompletedTask;
-
-        public async Task<TelegramGuild> GetTelegramGuild(ChatId chatId)
-        {
-            var chat = await Client.GetChatAsync(chatId);
-            return await GetTelegramGuild(chat);
-        }
-
-        private async Task<TelegramGuild> GetTelegramGuild(Chat chat)
-        {
-            var chatId = chat.Id;
-            if (!TelegramGuildsByChatId.TryGetValue(chatId, out var guild))
-            {
-                var administrators = await Client.GetChatAdministratorsAsync(new ChatId(chatId));
-                TelegramGuildsByChatId[chatId] = guild = new TelegramGuild(Wrapper, chat, Enumerable.ToHashSet(
-                    administrators
-                        .Select(a => (ulong) a.User.Id)
-                        .Concat(new[] {(ulong) Client.BotId})));
-            }
-            return guild;
-        }
     }
 }
