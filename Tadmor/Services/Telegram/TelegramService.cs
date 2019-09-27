@@ -8,6 +8,7 @@ using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Tadmor.Services.Commands;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -20,15 +21,11 @@ namespace Tadmor.Services.Telegram
         private static readonly Dictionary<long, TelegramGuild> TelegramGuildsByChatId =
             new Dictionary<long, TelegramGuild>();
 
-        private readonly CommandService _commands;
+        private readonly ChatCommandsService _commands;
         private readonly TelegramOptions _options;
-        private readonly IServiceProvider _services;
 
-        public TelegramService(IServiceProvider services,
-            CommandService commands,
-            IOptionsSnapshot<TelegramOptions> options)
+        public TelegramService(ChatCommandsService commands, IOptionsSnapshot<TelegramOptions> options)
         {
-            _services = services;
             _commands = commands;
             _options = options.Value;
         }
@@ -60,25 +57,18 @@ namespace Tadmor.Services.Telegram
 
         private async void TryExecuteCommand(object sender, MessageEventArgs e)
         {
-            try
+            var msg = e.Message;
+            if (msg.Chat.Type != ChatType.Private)
             {
-                var msg = e.Message;
-                if (msg.Chat.Type != ChatType.Private)
+                var guild = await GetTelegramGuild(msg.Chat);
+                var message = guild.ProcessInboundMessage(msg);
+                await MessageReceived(message);
+                const string commandPrefix = ".";
+                if (!message.Author.IsBot && message.Content.StartsWith(commandPrefix))
                 {
-                    var guild = await GetTelegramGuild(msg.Chat);
-                    var message = guild.ProcessInboundMessage(msg);
-                    await MessageReceived(message);
-                    const string commandPrefix = ".";
-                    if (!message.Author.IsBot && message.Content.StartsWith(commandPrefix))
-                    {
-                        var context = new CommandContext(Wrapper, message);
-                        await ExecuteCommand(context, commandPrefix);
-                    }
+                    var context = new CommandContext(Wrapper, message);
+                    await _commands.ExecuteCommand(context, commandPrefix);
                 }
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine(exception);
             }
         }
 
@@ -101,31 +91,7 @@ namespace Tadmor.Services.Telegram
                         .Select(a => (ulong) a.User.Id)
                         .Concat(new[] {(ulong) Client.BotId})));
             }
-            string? x = "hello";
             return guild;
-        }
-
-        private async Task ExecuteCommand(ICommandContext context, string prefix)
-        {
-            var scope = _services.CreateScope();
-            var result = await _commands.ExecuteAsync(context, prefix.Length, scope.ServiceProvider);
-
-            // as of DependencyInjection v2.1 scope disposal is immediate whereas precondition check is asynchronous
-            // therefore scope disposal must be made asynchronous too
-            _commands.CommandExecuted += DisposeScope;
-
-            Task DisposeScope(Optional<CommandInfo> _, ICommandContext completedContext, IResult __)
-            {
-                if (completedContext == context)
-                {
-                    scope.Dispose();
-                    _commands.CommandExecuted -= DisposeScope;
-                }
-
-                return Task.CompletedTask;
-            }
-
-            if (result.Error == CommandError.UnmetPrecondition) await context.Channel.SendMessageAsync("no");
         }
     }
 }

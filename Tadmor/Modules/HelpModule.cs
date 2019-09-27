@@ -5,17 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Tadmor.Services.Commands;
 using Tadmor.Services.Discord;
 
 namespace Tadmor.Modules
 {
     public class HelpModule : ModuleBase<ICommandContext>
     {
-        private readonly CommandService _commands;
+        private readonly ChatCommandsService _commands;
         private readonly DiscordService _discord;
         private readonly IServiceProvider _services;
 
-        public HelpModule(CommandService commands, DiscordService discord, IServiceProvider services)
+        public HelpModule(ChatCommandsService commands, DiscordService discord, IServiceProvider services)
         {
             _commands = commands;
             _discord = discord;
@@ -26,15 +27,12 @@ namespace Tadmor.Modules
         [Command("help")]
         public async Task Help()
         {
-            ModuleInfo Root(ModuleInfo module) => module.Parent == null ? module : Root(module.Parent);
 
             var prefix = _discord.GetCommandsPrefix(Context.Guild);
             var embedBuilder = new EmbedBuilder()
                 .WithTitle("source code")
                 .WithUrl("https://github.com/erraineon/tadmor");
-            var commandsByRoot = _commands.Commands
-                .Where(c => c.Attributes.OfType<BrowsableAttribute>().All(a => a.Browsable))
-                .GroupBy(command => Root(command.Module));
+            var commandsByRoot = _commands.GetCommandsByRoot();
             var sb = new StringBuilder();
             foreach (var commands in commandsByRoot)
             {

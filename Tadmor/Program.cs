@@ -37,7 +37,6 @@ namespace Tadmor
                     .AddMemoryCache()
                     .AddDbContext<AppDbContext>(builder => builder
                         .UseSqlite(hostContext.Configuration.GetConnectionString("Main")))
-                    .AddSingleton(new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async}))
                     .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig {MessageCacheSize = 100}))
                     .Scan(scan => scan
                         .FromEntryAssembly()

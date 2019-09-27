@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,12 +19,10 @@ namespace Tadmor.Services.Commands
         private readonly CommandService _commands;
         private readonly IServiceProvider _services;
 
-        public ChatCommandsService(
-            IServiceProvider services,
-            CommandService commands)
+        public ChatCommandsService(IServiceProvider services)
         {
             _services = services;
-            _commands = commands;
+            _commands = new CommandService(new CommandServiceConfig { DefaultRunMode = RunMode.Async });
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -66,6 +68,14 @@ namespace Tadmor.Services.Commands
             }
 
             if (result.Error == CommandError.UnmetPrecondition) await context.Channel.SendMessageAsync("no");
+        }
+
+        public IEnumerable<IGrouping<ModuleInfo, CommandInfo>> GetCommandsByRoot()
+        {
+            ModuleInfo Root(ModuleInfo module) => module.Parent == null ? module : Root(module.Parent);
+            return _commands.Commands
+                .Where(c => c.Attributes.OfType<BrowsableAttribute>().All(a => a.Browsable))
+                .GroupBy(command => Root(command.Module));
         }
     }
 }
