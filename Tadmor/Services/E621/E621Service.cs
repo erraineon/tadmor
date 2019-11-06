@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace Tadmor.Services.E621
 {
+    [SingletonService]
     public class E621Service
     {
         private readonly E621Client _client;

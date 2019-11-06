@@ -9,6 +9,7 @@ using MoreLinq;
 
 namespace Tadmor.Services.Tumblr
 {
+    [SingletonService]
     public class TumblrService
     {
         private static readonly Random Random = new Random();

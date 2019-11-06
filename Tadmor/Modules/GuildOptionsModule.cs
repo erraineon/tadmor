@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Tadmor.Services.Discord;
-using Tadmor.Utils;
+using Tadmor.Services.Options;
 
 namespace Tadmor.Modules
 {
@@ -13,22 +13,20 @@ namespace Tadmor.Modules
     [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
     public class GuildOptionsModule : ModuleBase<ICommandContext>
     {
-        private readonly IWritableOptionsSnapshot<DiscordOptions> _discordOptions;
+        private readonly ChatOptionsService _chatOptions;
 
-        public GuildOptionsModule(IWritableOptionsSnapshot<DiscordOptions> discordOptions)
+        public GuildOptionsModule(ChatOptionsService chatOptions)
         {
-            _discordOptions = discordOptions;
+            _chatOptions = chatOptions;
         }
 
         [Summary("change the prefix for commands on this guild")]
         [Command("prefix")]
         public async Task ChangePrefix(string newPrefix)
         {
-            await _discordOptions.UpdateAsync(options =>
-            {
-                var guildOptions = options.GetOrAddGuildOptions(Context.Guild.Id);
-                guildOptions.CommandPrefix = newPrefix;
-            });
+            using var writableOptions = _chatOptions.GetOptions();
+            var options = _chatOptions.GetGuildOptions(Context.Guild.Id, writableOptions.Value);
+            options.CommandPrefix = newPrefix;
             await ReplyAsync("ok");
         }
 
@@ -36,13 +34,10 @@ namespace Tadmor.Modules
         [Command("goodboymode")]
         public async Task GoodBoyMode()
         {
-            var goodBoyMode = false;
-            await _discordOptions.UpdateAsync(options =>
-            {
-                var guildOptions = options.GetOrAddGuildOptions(Context.Guild.Id);
-                guildOptions.GoodBoyMode = goodBoyMode = !guildOptions.GoodBoyMode;
-            });
-            await ReplyAsync($"good boy mode is {(goodBoyMode ? "on" : "off")}");
+            using var writableOptions = _chatOptions.GetOptions();
+            var options = _chatOptions.GetGuildOptions(Context.Guild.Id, writableOptions.Value);
+            options.GoodBoyMode = !options.GoodBoyMode;
+            await ReplyAsync($"good boy mode is {(options.GoodBoyMode ? "on" : "off")}");
         }
 
         [RequireOwner(Group = "admin")]
@@ -61,7 +56,7 @@ namespace Tadmor.Modules
             [Command("join")]
             public async Task OnJoin([Remainder] string reaction)
             {
-                await _events.AddJoinEvent(Context.Guild.Id, Context.Channel.Id, reaction);
+                _events.AddJoinEvent(Context, reaction);
                 await ReplyAsync("ok");
             }
 
@@ -69,7 +64,7 @@ namespace Tadmor.Modules
             [Command("filter")]
             public async Task OnInputDelete(string input, [Remainder] string reaction)
             {
-                await _events.AddInputEvent(Context.Guild.Id, Context.Channel.Id, reaction, input, true);
+                _events.AddInputEvent(Context, reaction, input, true);
                 await ReplyAsync("ok");
             }
 
@@ -88,7 +83,7 @@ namespace Tadmor.Modules
             [Command("rm")]
             public async Task RemoveEvent(string eventId)
             {
-                if (await _events.TryRemoveEvent(Context.Guild.Id, eventId)) await ReplyAsync("ok");
+                if (_events.TryRemoveEvent(Context.Guild.Id, eventId)) await ReplyAsync("ok");
                 else throw new Exception("event not found");
             }
 
@@ -97,7 +92,7 @@ namespace Tadmor.Modules
             [Priority(-1)]
             public async Task OnInput(string input, [Remainder] string reaction)
             {
-                await _events.AddInputEvent(Context.Guild.Id, Context.Channel.Id, reaction, input, false);
+                _events.AddInputEvent(Context, reaction, input, false);
                 await ReplyAsync("ok");
             }
         }

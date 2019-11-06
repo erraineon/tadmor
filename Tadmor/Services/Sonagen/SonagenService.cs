@@ -8,6 +8,7 @@ using Tadmor.Extensions;
 
 namespace Tadmor.Services.Sonagen
 {
+    [SingletonService]
     public class SonagenService
     {
         private readonly SonagenOptions _options;

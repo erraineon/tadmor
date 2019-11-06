@@ -1,5 +1,4 @@
 ﻿using System;
-using Discord.WebSocket;
 
 namespace Tadmor.Services.Discord
 {

@@ -1,24 +1,20 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Discord.Commands;
+﻿using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
+using Tadmor.Adapters.Telegram;
 using Tadmor.Extensions;
+using Tadmor.Services;
 using Tadmor.Services.Data;
 
 namespace Tadmor
 {
-    public class Program
+    public static class Program
     {
-        private static async Task Main(string[] args)
+        private static async Task Main()
         {
             var host = ConfigureHost();
             await host.RunAsync();
@@ -38,12 +34,19 @@ namespace Tadmor
                     .AddDbContext<AppDbContext>(builder => builder
                         .UseSqlite(hostContext.Configuration.GetConnectionString("Main")))
                     .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig {MessageCacheSize = 100}))
+                    .AddSingleton(new TelegramClient(new TelegramClientConfig {MessageCacheSize = 100}))
                     .Scan(scan => scan
                         .FromEntryAssembly()
-                        .AddClasses(classes => classes
-                            .Where(type => new[] {"Service", "Job"}.Any(type.Name.EndsWith)))
+                        .AddClasses(classes => classes.WithAttribute<TransientServiceAttribute>())
                         .AsSelfWithInterfaces()
-                        .WithSingletonLifetime()))
+                        .WithTransientLifetime()
+                        .AddClasses(classes => classes.WithAttribute<ScopedServiceAttribute>())
+                        .AsSelfWithInterfaces()
+                        .WithScopedLifetime()
+                        .AddClasses(classes => classes.WithAttribute<SingletonServiceAttribute>())
+                        .AsSelfWithInterfaces()
+                        .WithSingletonLifetime())
+                )
                 .ConfigureLogging(configLogging => configLogging.AddConsole())
                 .UseConsoleLifetime()
                 .Build();

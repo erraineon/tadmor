@@ -3,13 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Hangfire;
 using Humanizer;
 using Humanizer.Localisation;
+using Tadmor.Services.Abstractions;
 using Tadmor.Services.Discord;
 using Tadmor.Services.E621;
 using Tadmor.Services.Hangfire;
-using Tadmor.Services.Telegram;
 using Tadmor.Utils;
 
 namespace Tadmor.Modules
@@ -18,10 +17,12 @@ namespace Tadmor.Modules
     public class CronModule : ModuleBase<ICommandContext>
     {
         private readonly HangfireService _hangfire;
+        private readonly ChatService _chatService;
 
-        public CronModule(HangfireService hangfire)
+        public CronModule(HangfireService hangfire, ChatService chatService)
         {
             _hangfire = hangfire;
+            _chatService = chatService;
         }
 
         [Summary("reminds you the message after the specified amount of time")]
@@ -35,7 +36,7 @@ namespace Tadmor.Modules
                 ChannelId = Context.Channel.Id,
                 Command = $"say {Context.User.Mention}: {reminder}",
                 OwnerId = ownerId,
-                ContextType = GetCommandContextType()
+                ContextType = _chatService.GetClientType(Context.Client)
             });
             await ReplyAsync($"will remind in {delay.Humanize(maxUnit: TimeUnit.Year)}");
         }
@@ -49,7 +50,7 @@ namespace Tadmor.Modules
                 ChannelId = Context.Channel.Id,
                 Command = command,
                 OwnerId = Context.User.Id,
-                ContextType = GetCommandContextType()
+                ContextType = _chatService.GetClientType(Context.Client)
             });
             await ReplyAsync($"will execute in {delay.Humanize(maxUnit: TimeUnit.Year)}");
         }
@@ -60,20 +61,16 @@ namespace Tadmor.Modules
         [Command("every")]
         public async Task Every(string cron, [Remainder] string command)
         {
-            var description = StringUtils.ToCronDescription(cron);
-            await ReplyAsync($"will execute '{command}' {description}");
             _hangfire.Every<CommandJob, CommandJobOptions>(cron, new CommandJobOptions
             {
                 ChannelId = Context.Channel.Id,
                 Command = command,
                 OwnerId = Context.User.Id,
-                ContextType = GetCommandContextType()
+                ContextType = _chatService.GetClientType(Context.Client)
             });
+            var description = StringUtils.ToCronDescription(cron);
+            await ReplyAsync($"will execute '{command}' {description}");
         }
-
-        private CommandJobContextType GetCommandContextType() => Context.Client is TelegramWrapper
-            ? CommandJobContextType.Telegram
-            : CommandJobContextType.Discord;
 
         [RequireOwner(Group = "admin")]
         [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
@@ -91,13 +88,13 @@ namespace Tadmor.Modules
             [Command("e621")]
             public async Task RecurringE621Search([Remainder] string tags)
             {
-                var cron = Cron.HourInterval(6);
-                var description = StringUtils.ToCronDescription(cron);
+                const string cron = "0 */6 * * *";
                 _hangfire.Every<E621SearchJob, E621SearchJobOptions>(cron, new E621SearchJobOptions
                 {
                     ChannelId = Context.Channel.Id,
                     Tags = tags
                 });
+                var description = StringUtils.ToCronDescription(cron);
                 await ReplyAsync($"will search '{tags}' {description}");
             }
 

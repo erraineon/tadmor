@@ -16,7 +16,7 @@ namespace Tadmor.Extensions
         ///     automatically map all subsections to types with the same name
         /// </summary>
         public static IServiceCollection AddWritableOptions(this IServiceCollection services,
-            IConfiguration configuration, string settingsFilename)
+            IConfiguration configuration, string optionsPath)
         {
             // get generic method to configure writable options for a given section
             const BindingFlags methodFlags = BindingFlags.NonPublic | BindingFlags.Static;
@@ -30,21 +30,21 @@ namespace Tadmor.Extensions
                     type => type.Name,
                     (section, type) => openMethod
                         .MakeGenericMethod(type)
-                        .Invoke(null, new object[] {services, section, settingsFilename}))
+                        .Invoke(null, new object[] {services, section, optionsPath}))
                 .Consume();
             return services;
         }
 
         private static void ConfigureWritable<T>(IServiceCollection services, IConfigurationSection section,
-            string settingsFilename) where T : class, new()
+            string optionsPath) where T : class, new()
         {
             services
                 .Configure<T>(section)
                 .AddTransient<IWritableOptionsSnapshot<T>>(provider =>
                 {
                     var environment = provider.GetService<IHostEnvironment>();
-                    var options = provider.GetService<IOptionsMonitor<T>>();
-                    return new WritableOptionsSnapshot<T>(environment, options, section.Key, settingsFilename);
+                    var options = provider.GetService<IOptionsSnapshot<T>>();
+                    return new WritableOptionsSnapshot<T>(environment, options, section.Key, optionsPath);
                 });
         }
     }

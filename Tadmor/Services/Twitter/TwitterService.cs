@@ -10,6 +10,7 @@ using Tadmor.Services.Data;
 
 namespace Tadmor.Services.Twitter
 {
+    [SingletonService]
     public class TwitterService
     {
         private readonly TwitterOptions _options;
@@ -29,8 +30,7 @@ namespace Tadmor.Services.Twitter
 
         private async Task<List<TwitterMedia>> GetImagePosts(AppDbContext context, string displayName)
         {
-            var mediaQuery = context.TwitterMedia
-                .Where(m => string.Equals(m.Username, displayName, StringComparison.OrdinalIgnoreCase));
+            var mediaQuery = Queryable.Where(context.TwitterMedia, m => string.Equals(m.Username, displayName, StringComparison.OrdinalIgnoreCase));
             var lastCachedTweet = mediaQuery
                 .Select(m => m.TweetId)
                 .DefaultIfEmpty(0UL)

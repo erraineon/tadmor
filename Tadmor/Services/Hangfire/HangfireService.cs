@@ -14,9 +14,10 @@ using Tadmor.Utils;
 
 namespace Tadmor.Services.Hangfire
 {
+    [SingletonService]
     public class HangfireService : IHostedService
     {
-        private BackgroundJobServer _server;
+        private BackgroundJobServer? _server;
 
         public HangfireService(IServiceProvider services, IConfiguration configuration)
             : this(new InjectedJobActivator(services), configuration.GetConnectionString("Hangfire"))
@@ -40,7 +41,7 @@ namespace Tadmor.Services.Hangfire
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _server.Dispose();
+            _server?.Dispose();
             return Task.CompletedTask;
         }
 
@@ -78,7 +79,7 @@ namespace Tadmor.Services.Hangfire
         public void RemoveRecurringJob(string jobId)
         {
             var recurringJobs = JobStorage.Current.GetConnection().GetRecurringJobs();
-            if (recurringJobs.SingleOrDefault(job => job.Id == jobId) is RecurringJobDto jobToRemove)
+            if (recurringJobs.SingleOrDefault(job => job.Id == jobId) is { } jobToRemove)
                 RecurringJob.RemoveIfExists(jobToRemove.Id);
             else if (!BackgroundJob.Delete(jobId))
                 throw new Exception("job not found");
