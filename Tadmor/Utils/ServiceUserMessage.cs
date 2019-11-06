@@ -18,7 +18,7 @@ namespace Tadmor.Utils
 
         public DateTimeOffset CreatedAt => throw new NotImplementedException();
 
-        public Task DeleteAsync(RequestOptions options = null)
+        public Task DeleteAsync(RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
@@ -56,52 +56,52 @@ namespace Tadmor.Utils
         public MessageActivity Activity => throw new NotImplementedException();
         public MessageApplication Application => throw new NotImplementedException();
 
-        public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)
+        public Task ModifyAsync(Action<MessageProperties> func, RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
+        public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task PinAsync(RequestOptions options = null)
+        public Task PinAsync(RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task UnpinAsync(RequestOptions options = null)
+        public Task UnpinAsync(RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
+        public Task AddReactionAsync(IEmote emote, RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
+        public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
+        public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task RemoveAllReactionsAsync(RequestOptions options = null)
+        public Task RemoveAllReactionsAsync(RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
+        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }
 
-        public Task<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit = 100, ulong? afterUserId = null, RequestOptions options = null)
+        public Task<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit = 100, ulong? afterUserId = null, RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }

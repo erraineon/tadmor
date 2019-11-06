@@ -87,7 +87,7 @@ namespace Tadmor.Services.Discord
             }
 
             var reaction = variablesByName
-                .Aggregate(guildEvent.Reaction,
+                .Aggregate(guildEvent.Reaction ?? throw new Exception("the event's reaction must be not null"),
                     (output, variable) => output.Replace(variable.Key, variable.Value));
             var message = new ServiceUserMessage(responseChannel, author, reaction);
             var context = new CommandContext(client, message);

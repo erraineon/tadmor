@@ -8,9 +8,9 @@ namespace Tadmor.Services.Discord
         public GuildEventTriggerType TriggerType { get; set; }
         public string? Trigger { get; set; }
         public bool DeleteTrigger { get; set; }
-        public string Reaction { get; set; }
+        public string? Reaction { get; set; }
         public ulong ChannelId { get; set; }
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
         public override string ToString()
         {

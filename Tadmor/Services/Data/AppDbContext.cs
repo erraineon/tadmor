@@ -10,7 +10,7 @@ namespace Tadmor.Services.Data
 {
     public class AppDbContext : DbContext
     {
-        public DbSet<TwitterMedia> TwitterMedia { get; set; }
+        public DbSet<TwitterMedia> TwitterMedia { get; set; } = null!;
 
         public AppDbContext(DbContextOptions options) : base(options)
         {

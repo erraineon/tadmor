@@ -26,7 +26,8 @@ namespace Tadmor.Services.E621
             var client = _chatService.GetClient(options.ContextType);
             var channel = await client.GetChannelAsync(options.ChannelId) as IMessageChannel ??
                           throw new Exception("channel gone, delete schedule");
-            var (newPosts, newAfterId) = await _e621.SearchAfter(options.Tags, options.AfterId);
+            var optionsTags = options.Tags ?? throw new Exception("the tags to search for must be not null");
+            var (newPosts, newAfterId) = await _e621.SearchAfter(optionsTags, options.AfterId);
             if (newPosts.Any())
             {
                 options.AfterId = newAfterId;

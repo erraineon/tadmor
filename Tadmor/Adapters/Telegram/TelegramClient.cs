@@ -156,7 +156,7 @@ namespace Tadmor.Adapters.Telegram
 
         public event Func<IUserMessage, Task> MessageReceived = _ => Task.CompletedTask;
 
-        public Task LoginAsync(string token, int botOwnerId)
+        public Task LoginAsync(string? token, int botOwnerId)
         {
             if (!string.IsNullOrEmpty(token) && token != "your bot token")
             {

@@ -21,7 +21,7 @@ namespace Tadmor.Services.Sonagen
         public Sona GenerateSona(Random random)
         {
             var gender = _options.Genders.Random(g => g.Weight, random);
-            var pronouns = gender.Pronouns.ToLower().Split('/');
+            var pronouns = gender.Pronouns?.ToLower().Split('/') ?? throw new Exception("pronouns must be not null");
             var species = _options.Species.Random(s => s.Weight, random);
             var attributesAndGroups = _options.AttributeGroups
                 .SelectMany(group => Enumerable.Repeat(group, random.Next(group.Max) + 1))
@@ -33,7 +33,7 @@ namespace Tadmor.Services.Sonagen
             //ok to put it outside of format because it only occurs one time
             var speciesPool = _options.Species.Cast<SonaWeightedObject>().ToList();
 
-            string Format(string s)
+            string Format(string? s)
             {
                 var formatted = Regex.Replace(s, @"{([\w\s]+)}", match =>
                 {
@@ -65,7 +65,9 @@ namespace Tadmor.Services.Sonagen
                 Gender = Format(gender.Value),
                 Species = Format(species.Value),
                 AttributesByGroup = attributesAndGroups
-                    .ToLookup(t => t.g.Value.ToLower(), t => (Format(t.a.Value), t.a.Type))
+                    .ToLookup(
+                        t => t.g.Value?.ToLower() ?? throw new Exception("attribute value must be not null"), 
+                        t => (Format(t.a.Value), t.a.Type))
             };
             var attributesByType = sona.AttributesByGroup.SelectMany(g => g).ToLookup(a => a.type, a => a.value);
             var adjectives = attributesByType[AttributeType.Adjective].Prepend(sona.Gender);

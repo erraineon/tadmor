@@ -31,7 +31,7 @@ namespace Tadmor.Adapters.Telegram
             throw new NotImplementedException();
         }
 
-        public Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions options = null)
+        public Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions? options = null)
         {
             throw new NotImplementedException();
         }

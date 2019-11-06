@@ -21,7 +21,7 @@ namespace Tadmor.Modules
             _sonagen = sonagen;
         }
 
-        private Task GenerateSona(Random random, IUser user = default, string seed = default)
+        private Task GenerateSona(Random random, IUser? user = default, string? seed = default)
         {
             var sona = _sonagen.GenerateSona(random);
             var builder = new EmbedBuilder();

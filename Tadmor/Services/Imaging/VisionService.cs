@@ -154,6 +154,7 @@ namespace Tadmor.Services.Imaging
             using (var array = InputArray.Create(eyeCornersDest))
             using (var transform = Cv2.EstimateAffinePartial2D(inputArray, array))
             {
+                if (transform == null) throw new Exception("affine partial 2d transform failed");
                 var transformedImage = Mat.Zeros(outputWidth, outputHeight, MatType.CV_32FC3).ToMat();
                 Cv2.WarpAffine(img, transformedImage, transform, transformedImage.Size());
                 using (var src = InputArray.Create(face))

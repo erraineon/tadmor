@@ -2,7 +2,7 @@
 {
     public class TwitterOptions
     {
-        public string ConsumerKey { get; set; }
-        public string ConsumerSecret { get; set; }
+        public string? ConsumerKey { get; set; }
+        public string? ConsumerSecret { get; set; }
     }
 }

@@ -2,6 +2,6 @@
 {
     public class SonaGender : SonaWeightedObject
     {
-        public string Pronouns { get; set; }
+        public string? Pronouns { get; set; }
     }
 }

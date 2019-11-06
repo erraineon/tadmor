@@ -5,7 +5,7 @@ namespace Tadmor.Services.Discord
 {
     public class CommandJobOptions : HangfireJobOptions
     {
-        public string Command { get; set; }
+        public string? Command { get; set; }
 
         public override string ToString(string jobId, string scheduleDescription, ITextChannel channel)
         {

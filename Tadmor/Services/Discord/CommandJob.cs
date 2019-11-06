@@ -28,7 +28,8 @@ namespace Tadmor.Services.Discord
             var channel = await client.GetChannelAsync(options.ChannelId) as IMessageChannel ??
                           throw new Exception("channel gone, delete schedule");
             var author = await channel.GetUserAsync(options.OwnerId);
-            var message = new ServiceUserMessage(channel, author, options.Command);
+            var command = options.Command ?? throw new Exception("the command to execute must be not null");
+            var message = new ServiceUserMessage(channel, author, command);
             var context = new CommandContext(client, message);
             await _commands.ExecuteCommand(context, string.Empty);
         }

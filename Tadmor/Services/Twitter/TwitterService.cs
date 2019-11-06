@@ -13,13 +13,31 @@ namespace Tadmor.Services.Twitter
     [SingletonService]
     public class TwitterService
     {
-        private readonly TwitterOptions _options;
-        private TwitterContext _context;
+        private readonly Lazy<Task<TwitterContext>> _lazyContext;
+        private readonly TwitterOptions _twitterOptions;
 
         public TwitterService(IOptions<TwitterOptions> options)
         {
-            _options = options.Value;
+            _twitterOptions = options.Value;
+            _lazyContext = new Lazy<Task<TwitterContext>>(GetContextAsync);
         }
+
+        private async Task<TwitterContext> GetContextAsync()
+        {
+            var authorizer = new ApplicationOnlyAuthorizer
+            {
+                CredentialStore = new InMemoryCredentialStore
+                {
+                    ConsumerKey = _twitterOptions.ConsumerKey,
+                    ConsumerSecret = _twitterOptions.ConsumerSecret
+                }
+            };
+
+            await authorizer.AuthorizeAsync();
+            var context = new TwitterContext(authorizer);
+            return context;
+        }
+
 
         public async Task<string> GetRandomMediaStatusUrl(AppDbContext context, string username)
         {
@@ -30,11 +48,13 @@ namespace Tadmor.Services.Twitter
 
         private async Task<List<TwitterMedia>> GetImagePosts(AppDbContext context, string displayName)
         {
-            var mediaQuery = Queryable.Where(context.TwitterMedia, m => string.Equals(m.Username, displayName, StringComparison.OrdinalIgnoreCase));
-            var lastCachedTweet = mediaQuery
+            var mediaQuery = context.TwitterMedia
+                .AsQueryable()
+                .Where(m => EF.Functions.Like(displayName, m.Username));
+            var lastCachedTweet = (ulong) mediaQuery
                 .Select(m => m.TweetId)
-                .DefaultIfEmpty(0UL)
-                .Max();
+                .DefaultIfEmpty()
+                .Max(ti => (long) ti);
             var tweets = await GetTweets(displayName, lastCachedTweet);
             var newMedia = tweets
                 .SelectMany(tweet => tweet.ExtendedEntities.MediaEntities
@@ -47,7 +67,7 @@ namespace Tadmor.Services.Twitter
                             .Aggregate(tweet.Text, (t, e) => t.Replace(e.Url, string.Empty)),
                         TweetId = tweet.StatusID,
                         MediaId = entity.ID,
-                        Username = tweet.ScreenName,
+                        Username = tweet.ScreenName
                     }))
                 .ToList();
             if (newMedia.Any())
@@ -55,24 +75,24 @@ namespace Tadmor.Services.Twitter
                 await context.TwitterMedia.AddRangeAsync(newMedia);
                 await context.SaveChangesAsync();
             }
-
             return await EntityFrameworkQueryableExtensions.ToListAsync(mediaQuery);
         }
 
         private async Task<List<Status>> GetTweets(string displayName, ulong minId)
         {
-            var twitterContext = await GetContext();
             ulong maxId = default;
             var combinedSearchResults = new List<Status>();
             List<Status> tweets;
+            var context = await _lazyContext.Value;
             do
             {
-                var query = twitterContext.Status.Where(tweet =>
+                var query = context.Status.Where(tweet =>
                     tweet.Type == StatusType.User &&
                     tweet.ScreenName == displayName &&
                     tweet.Count == 200 &&
                     tweet.TweetMode == TweetMode.Compat &&
                     tweet.IncludeRetweets == false);
+                // ReSharper disable once AccessToModifiedClosure
                 if (maxId != default) query = query.Where(tweet => tweet.MaxID == maxId);
                 if (minId != default) query = query.Where(tweet => tweet.SinceID == minId);
                 tweets = await query.ToListAsync();
@@ -81,26 +101,6 @@ namespace Tadmor.Services.Twitter
             } while (tweets.Any());
 
             return combinedSearchResults;
-        }
-
-        private async Task<TwitterContext> GetContext()
-        {
-            if (_context == null)
-            {
-                var authorizer = new ApplicationOnlyAuthorizer
-                {
-                    CredentialStore = new InMemoryCredentialStore
-                    {
-                        ConsumerKey = _options.ConsumerKey,
-                        ConsumerSecret = _options.ConsumerSecret
-                    }
-                };
-
-                await authorizer.AuthorizeAsync();
-                _context = new TwitterContext(authorizer);
-            }
-
-            return _context;
         }
     }
 }
