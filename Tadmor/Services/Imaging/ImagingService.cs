@@ -380,6 +380,67 @@ namespace Tadmor.Services.Imaging
             return output;
         }
 
+        public MemoryStream Rank(IList<(Random rng, byte[] avatar)> rngAndAvatars, string[] tiers)
+        {
+            if (!tiers.Any()) throw new Exception("need at least one tier");
+            const int w = 1280;
+            const int rowH = 128;
+            const int rowHExtent = rowH / 2;
+            const float headerW = w * 0.2f;
+            const float valueW = w - headerW;
+
+            var color = Rgba32.Black;
+            var output = new MemoryStream();
+            var rows = tiers.Length;
+            var h = rowH * rows;
+            var smallArial = Arial.CreateFont(28);
+            var textOptions = new TextGraphicsOptions(true)
+            {
+                WrapTextWidth = headerW, 
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+            using var canvas = new Image<Rgba32>(w, h);
+
+            var avatarsByCell = rngAndAvatars
+                .Select(tuple => (rng: (tiers, tuple.rng.Next()).ToRandom(), tuple.avatar))
+                .ToLookup(tuple => tuple.rng.Next(rows), tuple => CropCircle(tuple.avatar));
+            canvas.Mutate(c =>
+            {
+                c.Fill(Rgba32.White);
+                var pen = new Pen<Rgba32>(color, 5);
+                c.DrawLines(pen, new PointF(headerW, 0), new PointF(headerW, h));
+                for (var rowIndex = 0; rowIndex < rows; rowIndex++)
+                {
+                    var tier = tiers[rowIndex];
+                    var rowY = rowH * rowIndex;
+                    var rowCenter = rowY + rowHExtent;
+                    c.DrawText(textOptions, tier, smallArial, color, new PointF(0, rowCenter));
+                    if (rowY > 0) c.DrawLines(pen, new PointF(0, rowY), new PointF(w, rowY));
+
+                    var avatarsForRow = avatarsByCell[rowIndex].ToList();
+                    if (avatarsForRow.Any())
+                    {
+                        //draw all the avatars on one image, then resize if necessary
+                        var avatarWidth = avatarsForRow.First().Width;
+                        var avatars = new Image<Rgba32>(avatarWidth * avatarsForRow.Count, avatarWidth);
+                        avatars.Mutate(ac =>
+                        {
+                            for (var i = 0; i < avatarsForRow.Count; i++)
+                                ac.DrawImage(avatarsForRow[i], 1, new Point(i * avatarWidth, 0));
+                            if (avatars.Width > valueW)
+                                ac.Resize((Size)(avatars.Size() * (valueW / avatars.Width)));
+                        });
+                        var position = new Point((int) headerW, rowY);
+                        c.DrawImage(avatars, 1, position);
+                    }
+                }
+            });
+            canvas.SaveAsPng(output);
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
+        }
+
         private static PointF RandomPointInTriangle(Random rng, PointF a, PointF b, PointF c)
         {
             var r1 = (float) rng.NextDouble();

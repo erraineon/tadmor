@@ -41,6 +41,15 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
+        [Summary("make a tier list")]
+        [Command("tier")]
+        public async Task Quad(params string[] tiers)
+        {
+            var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
+            var result = _imaging.Rank(rngAndAvatars, tiers);
+            await Context.Channel.SendFileAsync(result, "result.png");
+        }
+
         [Summary("make an alignment chart")]
         [Command("align")]
         public async Task AlignmentChart(params string[] options)
@@ -138,6 +147,7 @@ namespace Tadmor.Modules
         {
             var rngAndAvatars = _activityMonitor.GetActiveUsers(Context.Guild)
                 .SelectAwait(ImageRetrievalExtensions.GetAvatarAsync)
+                .Where(image => image != null)
                 .SelectAwait(async image => (image.Id.ToRandom(), await image.GetDataAsync()))
                 .Reverse();
             await foreach (var rngAndAvatar in rngAndAvatars) yield return rngAndAvatar;
