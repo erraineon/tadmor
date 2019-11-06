@@ -1,49 +1,60 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Humanizer;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MoreLinq;
 using YandexTranslateCSharpSdk;
 
 namespace Tadmor.Services.Yandex
 {
-    public class YandexService
+    [SingletonService]
+    public class YandexService : IHostedService
     {
+        private readonly bool _enabled;
         private readonly YandexTranslateSdk _yandex = new YandexTranslateSdk();
-        private List<string> _languages;
+        private List<string>? _languages;
 
-        public YandexService(IOptions<YandexOptions> options)
+        public YandexService(IOptionsSnapshot<YandexOptions> options)
         {
-            _yandex.ApiKey = options.Value.ApiKey;
+            if (options.Value.ApiKey is {} apiKey)
+            {
+                _yandex.ApiKey = apiKey;
+                _enabled = true;
+            }
+            else
+            {
+                _enabled = false;
+            }
+        }
+
+        public async Task StartAsync(CancellationToken cancellationToken)
+        {
+            if (_enabled) _languages = await _yandex.GetLanguages();
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
 
         public async Task<string> BadTranslate(string input)
         {
-            await EnsureLanguagesLoaded();
-            var languagesChain = new[] {"en"}
-                .Concat(new[] {"zh", "ja"}.Concat(_languages.RandomSubset(8)).Distinct())
-                .Concat(new[] {"en"}).ToList();
-            for (var index = 1; index < languagesChain.Count; index++)
-            {
-                var currentLanguage = languagesChain[index - 1];
-                var nextLanguage = languagesChain[index];
-                input = await _yandex.TranslateText(input, $"{currentLanguage}-{nextLanguage}");
-            }
+            if (!_enabled) throw new Exception("yandex service is disabled. provide a yandex api key in the settings");
+            var translation = await new[] {"en"}
+                .Concat(new[] {"zh", "ja"})
+                .Concat(_languages.RandomSubset(8))
+                .Distinct()
+                .Concat(new[] {"en"})
+                .Pairwise((currentLanguage, nextLanguage) => $"{currentLanguage}-{nextLanguage}")
+                .ToAsyncEnumerable()
+                .AggregateAwaitAsync(
+                    input,
+                    (value, direction) => new ValueTask<string>(_yandex.TranslateText(value, direction)));
 
-            return input;
+            return translation;
         }
-
-        private async Task EnsureLanguagesLoaded()
-        {
-            if (_languages == null) _languages = await _yandex.GetLanguages();
-        }
-    }
-
-    public class YandexOptions
-    {
-        public string ApiKey { get; set; }
     }
 }

@@ -2,60 +2,47 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
+using Tadmor.Services.Abstractions;
 using Tadmor.Services.Commands;
-using Tadmor.Services.Telegram;
+using Tadmor.Services.Options;
 using Tadmor.Utils;
 
 namespace Tadmor.Services.Discord
 {
-    public class ChatEventService : IHostedService
+    [ScopedService]
+    public class ChatEventService : IMessageListener, IJoinListener
     {
-        private readonly DiscordSocketClient _discordClient;
-        private readonly ChatCommandsService _commands;
-        private readonly TelegramService _telegramService;
-        private readonly IServiceProvider _services;
+        private readonly ChatOptionsService _chatOptions;
+        private readonly CommandsService _commands;
 
-        public ChatEventService(DiscordSocketClient discordClient, ChatCommandsService commands, TelegramService telegramService, IServiceProvider services)
+        public ChatEventService(CommandsService commands, ChatOptionsService chatOptions)
         {
-            _discordClient = discordClient;
             _commands = commands;
-            _telegramService = telegramService;
-            _services = services;
+            _chatOptions = chatOptions;
         }
 
-        private async Task ProcessJoin(SocketGuildUser arg)
+        public async Task OnUserJoinedAsync(IDiscordClient client, IGuildUser user)
         {
-            await ProcessEvent(null, null, arg.Guild.Id, arg, default, GuildEventTriggerType.GuildJoin, _discordClient);
+            await ProcessEvent(null, null, user.Guild.Id, user, default, GuildEventTriggerType.GuildJoin, client);
         }
 
-        private Task ProcessMessage(SocketMessage msg)
+        public async Task OnMessageReceivedAsync(IDiscordClient client, IMessage message)
         {
-            return ProcessMessage((IMessage) msg);
-        }
-
-        private async Task ProcessMessage(IMessage msg)
-        {
-            if (msg.Channel is IGuildChannel guildChannel)
-            {
-                var client = msg.Channel is TelegramGuild ? (IDiscordClient)_telegramService.Wrapper : _discordClient;
-                await ProcessEvent(msg.Id, guildChannel.Id, guildChannel.Guild.Id, (IGuildUser) msg.Author, msg.Content, GuildEventTriggerType.RegexMatch, client);
-            }
+            if (message.Channel is IGuildChannel guildChannel)
+                await ProcessEvent(message.Id, guildChannel.Id, guildChannel.Guild.Id, (IGuildUser) message.Author,
+                    message.Content, GuildEventTriggerType.RegexMatch, client);
         }
 
         private async Task ProcessEvent(ulong? messageId, ulong? inputChannelId, ulong guildId, IGuildUser author,
-            string input, GuildEventTriggerType triggerType, IDiscordClient client)
+            string? input, GuildEventTriggerType triggerType, IDiscordClient client)
         {
             if (author.Id != client.CurrentUser.Id)
             {
-                var guildOptions = GetGuildOptions(guildId);
+                using var writableOptions = _chatOptions.GetOptions();
+                var guildOptions = _chatOptions.GetGuildOptions(guildId, writableOptions.Value);
                 if (guildOptions != null)
                 {
                     var events = GetEvents(inputChannelId, triggerType, input, guildOptions);
@@ -65,46 +52,28 @@ namespace Tadmor.Services.Discord
             }
         }
 
-        private GuildOptions GetGuildOptions(ulong guildId)
-        {
-            GuildOptions guildOptions;
-            using (var scope = _services.CreateScope())
-            {
-                var discordOptions = scope.ServiceProvider.GetService<IOptionsSnapshot<DiscordOptions>>().Value;
-                guildOptions = discordOptions.GuildOptions.SingleOrDefault(options => options.Id == guildId);
-            }
-
-            return guildOptions;
-        }
-
         private static IEnumerable<GuildEvent> GetEvents(ulong? channelId, GuildEventTriggerType triggerType,
-            string input, GuildOptions guildOptions)
+            string? input, GuildOptions guildOptions)
         {
-            IEnumerable<GuildEvent> events;
-            switch (triggerType)
+            var events = triggerType switch
             {
-                case GuildEventTriggerType.GuildJoin:
-                    events = guildOptions.Events
-                        .Where(e => e.TriggerType == GuildEventTriggerType.GuildJoin);
-                    break;
-                case GuildEventTriggerType.RegexMatch:
-                    events = guildOptions.Events
-                        .Where(e => e.TriggerType == GuildEventTriggerType.RegexMatch &&
-                                    (e.Scope == GuildEventScope.Guild || e.ChannelId == channelId) &&
-                                    Regex.IsMatch(input, e.Trigger, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100)));
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(triggerType), triggerType, null);
-            }
+                GuildEventTriggerType.GuildJoin => guildOptions.Events.Where(e =>
+                    e.TriggerType == GuildEventTriggerType.GuildJoin),
+                GuildEventTriggerType.RegexMatch => guildOptions.Events.Where(e =>
+                    e.TriggerType == GuildEventTriggerType.RegexMatch &&
+                    (e.Scope == GuildEventScope.Guild || e.ChannelId == channelId) && Regex.IsMatch(input, e.Trigger,
+                        RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100))),
+                _ => throw new ArgumentOutOfRangeException(nameof(triggerType), triggerType, null)
+            };
 
             return events;
         }
 
-        private async Task ProcessEvent(ulong? messageId, ulong? inputChannelId, IGuildUser author, string input,
+        private async Task ProcessEvent(ulong? messageId, ulong? inputChannelId, IGuildUser author, string? input,
             GuildEvent guildEvent, IDiscordClient client)
         {
             var responseChannel = await author.Guild.GetTextChannelAsync(inputChannelId ?? guildEvent.ChannelId);
-            var variablesByName = new Dictionary<string, string>
+            var variablesByName = new Dictionary<string, string?>
             {
                 ["{{user}}"] = author.Mention,
                 ["{{time}}"] = DateTime.Now.ToString("g"),
@@ -114,11 +83,9 @@ namespace Tadmor.Services.Discord
             if (guildEvent.TriggerType == GuildEventTriggerType.RegexMatch)
             {
                 var match = Regex.Match(input, guildEvent.Trigger, RegexOptions.IgnoreCase);
-                for (var i = 1; i < match.Groups.Count; i++)
-                {
-                    variablesByName[$"${i}"] = match.Groups[i].Value;
-                }
+                for (var i = 1; i < match.Groups.Count; i++) variablesByName[$"${i}"] = match.Groups[i].Value;
             }
+
             var reaction = variablesByName
                 .Aggregate(guildEvent.Reaction,
                     (output, variable) => output.Replace(variable.Key, variable.Value));
@@ -126,31 +93,50 @@ namespace Tadmor.Services.Discord
             var context = new CommandContext(client, message);
             await _commands.ExecuteCommand(context, string.Empty);
             if (guildEvent.DeleteTrigger && messageId.HasValue && !author.GuildPermissions.Administrator)
-            {
                 await responseChannel.DeleteMessageAsync((ulong) messageId);
-            }
-        }
-
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            _discordClient.UserJoined += ProcessJoin;
-            _discordClient.MessageReceived += ProcessMessage;
-            _telegramService.MessageReceived += ProcessMessage;
-            return Task.CompletedTask;
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _discordClient.UserJoined -= ProcessJoin;
-            _discordClient.MessageReceived -= ProcessMessage;
-            _telegramService.MessageReceived -= ProcessMessage;
-            return Task.CompletedTask;
         }
 
         public List<string> GetEventInfos(IGuild guild)
         {
-            var guildOptions = GetGuildOptions(guild.Id);
+            using var writableOptions = _chatOptions.GetOptions();
+            var guildOptions = _chatOptions.GetGuildOptions(guild.Id, writableOptions.Value);
             return guildOptions != null ? guildOptions.Events.Select(e => e.ToString()).ToList() : new List<string>();
+        }
+
+        public void AddInputEvent(ICommandContext context, string reaction, string trigger,
+            bool deleteTrigger)
+        {
+            AddEvent(context, reaction, trigger, deleteTrigger, GuildEventTriggerType.RegexMatch);
+        }
+
+        public void AddJoinEvent(ICommandContext context, string reaction)
+        {
+            AddEvent(context, reaction, default, false, GuildEventTriggerType.GuildJoin);
+        }
+
+        private void AddEvent(ICommandContext context, string reaction, string? trigger,
+            bool deleteTrigger, GuildEventTriggerType triggerType)
+        {
+            using var writableOptions = _chatOptions.GetOptions();
+            var guildOptions = _chatOptions.GetGuildOptions(context.Guild.Id, writableOptions.Value);
+            guildOptions.Events.Add(new GuildEvent
+            {
+                Id = Guid.NewGuid().ToString(),
+                ChannelId = context.Channel.Id,
+                Scope = GuildEventScope.Guild,
+                Reaction = reaction,
+                Trigger = trigger,
+                TriggerType = triggerType,
+                DeleteTrigger = deleteTrigger
+            });
+        }
+
+        public bool TryRemoveEvent(ulong guildId, string eventId)
+        {
+            using var writableOptions = _chatOptions.GetOptions();
+            var guildOptions = _chatOptions.GetGuildOptions(guildId, writableOptions.Value);
+            var eventExists = guildOptions.Events.RemoveAll(e => e.Id == eventId) > 0;
+            return eventExists;
         }
     }
 }

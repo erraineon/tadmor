@@ -1,5 +1,4 @@
 ﻿using System;
-using Discord.WebSocket;
 
 namespace Tadmor.Services.Discord
 {
@@ -7,7 +6,7 @@ namespace Tadmor.Services.Discord
     {
         public GuildEventScope Scope { get; set; }
         public GuildEventTriggerType TriggerType { get; set; }
-        public string Trigger { get; set; }
+        public string? Trigger { get; set; }
         public bool DeleteTrigger { get; set; }
         public string Reaction { get; set; }
         public ulong ChannelId { get; set; }

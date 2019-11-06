@@ -1,37 +1,35 @@
-﻿using DlibDotNet;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
+using DlibDotNet;
 using OpenCvSharp;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Drawing;
 using SixLabors.ImageSharp.Processing.Transforms;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Point = OpenCvSharp.Point;
 using Size = SixLabors.Primitives.Size;
 
 namespace Tadmor.Services.Imaging
 {
+    [SingletonService]
     public class VisionService
     {
         private Array2D<RgbPixel> ToArray(Mat mat)
         {
             var array = new Array2D<RgbPixel>(mat.Rows, mat.Cols);
-            using (var mat3 = new MatOfByte3(mat))
+            var indexer = mat.GetGenericIndexer<Vec3b>();
+            for (var i = 0; i < array.Rows; i++)
             {
-                var indexer = mat3.GetIndexer();
-                for (var i = 0; i < array.Rows; i++)
+                var destRow = array[i];
+                for (var j = 0; j < array.Columns; j++)
                 {
-                    var destRow = array[i];
-                    for (var j = 0; j < array.Columns; j++)
-                    {
-                        var color = indexer[i, j];
-                        destRow[j] = new RgbPixel(color.Item2, color.Item1, color.Item0);
-                    }
+                    var color = indexer[i, j];
+                    destRow[j] = new RgbPixel(color.Item2, color.Item1, color.Item0);
                 }
             }
 
@@ -63,7 +61,7 @@ namespace Tadmor.Services.Imaging
             using (var origSrcImg = Mat.FromImageData(source))
             using (var origDstImg = Mat.FromImageData(dest))
             {
-                var facesLookup = await DetectFaces(new[]{ origSrcImg, origDstImg });
+                var facesLookup = await DetectFaces(new[] {origSrcImg, origDstImg});
                 var faces = facesLookup.Select(g => g.FirstOrDefault()).ToList();
                 if (faces.Count < 2) throw new Exception("not enough faces");
                 var (origSourceFace, origDstFace) = (faces[0], faces[1]);
@@ -154,7 +152,7 @@ namespace Tadmor.Services.Imaging
 
             using (var inputArray = InputArray.Create(eyeCornersSource))
             using (var array = InputArray.Create(eyeCornersDest))
-            using (var transform = Cv2.EstimateRigidTransform(inputArray, array, false))
+            using (var transform = Cv2.EstimateAffinePartial2D(inputArray, array))
             {
                 var transformedImage = Mat.Zeros(outputWidth, outputHeight, MatType.CV_32FC3).ToMat();
                 Cv2.WarpAffine(img, transformedImage, transform, transformedImage.Size());
@@ -250,7 +248,7 @@ namespace Tadmor.Services.Imaging
                     var p1 = new Point2f(cell.Item0, cell.Item1);
                     var p2 = new Point2f(cell.Item2, cell.Item3);
                     var p3 = new Point2f(cell.Item4, cell.Item5);
-                    if (rect.Contains(p1) && rect.Contains(p2) && rect.Contains(p3))
+                    if (rect.Contains((Point) p1) && rect.Contains((Point) p2) && rect.Contains((Point) p3))
                     {
                         var indexA = points.IndexOf(p1);
                         var indexB = points.IndexOf(p2);
@@ -265,8 +263,8 @@ namespace Tadmor.Services.Imaging
         public async Task<MemoryStream> Swap(IList<byte[]> images)
         {
             var imgs = images.Select(image => Mat.FromImageData(image)).ToList();
-            var facesLookup = (await DetectFaces(imgs));
-                if (facesLookup.Count < 2) throw new Exception("not enough faces");
+            var facesLookup = await DetectFaces(imgs);
+            if (facesLookup.Count < 2) throw new Exception("not enough faces");
 
             var img1 = facesLookup.First();
             var img2 = facesLookup.Last();
@@ -295,7 +293,6 @@ namespace Tadmor.Services.Imaging
             output1.SaveAsJpeg(output);
             output.Seek(0, SeekOrigin.Begin);
             return output;
-
         }
 
         private Image<Rgba32> Swap(Mat img1, IList<Point2f> points1, Mat img2, IList<Point2f> points2)

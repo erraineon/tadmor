@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Tadmor.Services.Data
 {
+    [SingletonService]
     public class DataService : IHostedService
     {
         private readonly AppDbContext _context;

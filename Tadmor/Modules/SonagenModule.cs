@@ -60,15 +60,17 @@ namespace Tadmor.Modules
         {
             return GenerateSona(seed.ToRandom(), seed: seed);
         }
+
         [Summary("get a sona for the specified user")]
         [Command]
         [Priority(-1)]
         [RequireNoGoodBoyMode(Group = "admin")]
         [RequireServiceUser(Group = "admin")]
-        public Task GenerateRandomSona(IGuildUser user)
+        public async Task GenerateRandomSona(IGuildUser user)
         {
-            var random = (user.Nickname, user.AvatarId).ToRandom();
-            return GenerateSona(random, user);
+            var avatar = await user.GetAvatarAsync();
+            var random = (user.Nickname, avatar.Id).ToRandom();
+            await GenerateSona(random, user);
         }
     }
 }

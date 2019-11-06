@@ -30,6 +30,7 @@ namespace Tadmor.Utils
         public bool IsTTS => throw new NotImplementedException();
 
         public bool IsPinned => throw new NotImplementedException();
+        public bool IsSuppressed { get; }
 
         public string Content { get; }
 
@@ -60,6 +61,11 @@ namespace Tadmor.Utils
             throw new NotImplementedException();
         }
 
+        public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task PinAsync(RequestOptions options = null)
         {
             throw new NotImplementedException();
@@ -76,6 +82,11 @@ namespace Tadmor.Utils
         }
 
         public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
         {
             throw new NotImplementedException();
         }

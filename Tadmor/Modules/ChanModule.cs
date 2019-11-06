@@ -4,7 +4,7 @@ using Humanizer;
 using System.Linq;
 using System.Threading.Tasks;
 using Tadmor.Preconditions;
-using Tadmor.Services.Chan;
+using Tadmor.Services.FourChan;
 using Tadmor.Utils;
 
 namespace Tadmor.Modules
@@ -21,17 +21,16 @@ namespace Tadmor.Modules
 
         [Summary("gets topmost replied-to posts on a board")]
         [Command("hot")]
-        [Ratelimit(1, 1, Measure.Minutes, RatelimitFlags.ApplyPerGuild)]
         [RequireNoGoodBoyMode(Group = "admin")]
         [RequireServiceUser(Group = "admin")]
         public async Task HotPosts(string boardName)
         {
-            var hotPosts = await _chan.GetHotPosts(boardName, 10);
+            var hotPosts = await _chan.GetHotPosts(boardName, 5);
             var embed = new EmbedBuilder();
             foreach (var post in hotPosts.OrderByDescending(post => post.Replies))
             {
-                var title = $"{post.ThreadUrlSlug} - {post.Replies} replies";
-                if (post.Name != null) title = $"{title} - {StringUtils.StripHtml(post.Name)}";
+                var title = $"{post.Url} - {post.Replies} replies";
+                if (post.Name != null) title += $" - {StringUtils.StripHtml(post.Name)}";
                 var description = StringUtils.StripHtml(post.Comment ?? $"{post.OriginalFileName}{post.FileExtension}")
                     .Truncate(EmbedFieldBuilder.MaxFieldValueLength);
                 embed.AddField(builder => builder.WithName(title).WithValue(description));

@@ -21,6 +21,7 @@ using Tadmor.Resources;
 
 namespace Tadmor.Services.Imaging
 {
+    [SingletonService]
     public class ImagingService
     {
         private static readonly FontFamily Arial = SystemFonts.Find("Arial");
@@ -121,7 +122,7 @@ namespace Tadmor.Services.Imaging
             return output;
         }
 
-        public MemoryStream UpDownGif(string text, byte[] avatarData, string baseFilename)
+        public MemoryStream UpDownGif(string text, byte[]? avatarData, string baseFilename)
         {
             //credits to https://twitter.com/reedjeyy for base images, font and constants
             //constants
