@@ -246,8 +246,8 @@ namespace Tadmor.Services.Imaging
             var image = imageData != null ? Image.Load(imageData) : new Image<Rgba32>(Configuration.Default, avatarSize, avatarSize, Rgba32.Red);
             image.Mutate(i =>
             {
-                ApplyRoundedCorners(i, avatarSize / 2);
                 i.Resize(avatarSize, avatarSize);
+                ApplyRoundedCorners(i, avatarSize / 2);
             });
             return image;
         }
@@ -467,10 +467,10 @@ namespace Tadmor.Services.Imaging
 
         public MemoryStream Imitate(byte[] avatarData, string username, string text)
         {
-            const int w = 720;
             const int avatarS = 128;
+            const int imagePadding = 10;
+            const int w = 720 + imagePadding * 2;
             const int bubbleXMargin = 10;
-            const int bubbleYMargin = 10;
             const int bubblePadding = 20;
             const int bubbleW = w - avatarS - bubbleXMargin * 2;
             const int marginUnderName = 15;
@@ -487,8 +487,8 @@ namespace Tadmor.Services.Imaging
                 VerticalAlignment = VerticalAlignment.Top
             };
             var textMeasure = TextMeasurer.Measure(text, new RendererOptions(font) { WrappingWidth = textW });
-            var bubbleH = textMeasure.Height + bubblePadding * 2 + nameFont.Size + marginUnderName;
-            var h = Math.Max((int) bubbleH, avatarS) + bubbleYMargin * 2;
+            var bubbleH = Math.Max(textMeasure.Height + bubblePadding * 2 + nameFont.Size + marginUnderName, avatarS);
+            var h = (int)bubbleH + imagePadding * 2;
             using var canvas = new Image<Rgba32>(w, h);
             canvas.Mutate(c =>
             {
@@ -498,10 +498,12 @@ namespace Tadmor.Services.Imaging
                     sc.Fill(Rgba32.White);
                     ApplyRoundedCorners(sc, 10);
                 });
-                c.DrawImage(CropCircle(avatarData), 1, new Point(0, 0));
-                var speechBubblePos = new Point(avatarS + bubbleXMargin, (h - speechBubble.Height) / 2);
+                var avatarPos = new Point(imagePadding, imagePadding);
+                var avatar = CropCircle(avatarData);
+                c.DrawImage(avatar, 1, avatarPos);
+                var speechBubblePos = avatarPos + new Size(bubbleXMargin + avatar.Width, 0);
                 c.DrawImage(speechBubble, 1, speechBubblePos);
-                var namePos = speechBubblePos + new Size(bubblePadding);
+                var namePos = speechBubblePos + new Size(bubblePadding, bubblePadding);
                 c.DrawText(username, nameFont, nameColor, namePos);
                 c.DrawText(textOptions, text, font, textColor, namePos + new Size(0, (int) (nameFont.Size + marginUnderName)));
             });
