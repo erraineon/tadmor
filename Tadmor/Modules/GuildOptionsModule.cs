@@ -43,11 +43,11 @@ namespace Tadmor.Modules
         [RequireOwner(Group = "admin")]
         [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Group("on")]
-        public class EventsModule : ModuleBase<ICommandContext>
+        public class ChatEventsModule : ModuleBase<ICommandContext>
         {
             private readonly ChatEventService _events;
 
-            public EventsModule(ChatEventService events)
+            public ChatEventsModule(ChatEventService events)
             {
                 _events = events;
             }
@@ -64,7 +64,7 @@ namespace Tadmor.Modules
             [Command("filter")]
             public async Task OnInputDelete(string input, [Remainder] string reaction)
             {
-                _events.AddInputEvent(Context, reaction, input, true);
+                _events.AddInputEvent(Context, default, reaction, input, true);
                 await ReplyAsync("ok");
             }
 
@@ -92,7 +92,16 @@ namespace Tadmor.Modules
             [Priority(-1)]
             public async Task OnInput(string input, [Remainder] string reaction)
             {
-                _events.AddInputEvent(Context, reaction, input, false);
+                _events.AddInputEvent(Context, default, reaction, input, false);
+                await ReplyAsync("ok");
+            }
+
+            [Summary("add an event in response to a specific user's message")]
+            [Command]
+            [Priority(-1)]
+            public async Task OnInput(IGuildUser sender, string input, [Remainder] string reaction)
+            {
+                _events.AddInputEvent(Context, sender, reaction, input, false);
                 await ReplyAsync("ok");
             }
         }

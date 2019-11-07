@@ -45,7 +45,7 @@ namespace Tadmor.Services.Discord
                 var guildOptions = _chatOptions.GetGuildOptions(guildId, writableOptions.Value);
                 if (guildOptions != null)
                 {
-                    var events = GetEvents(inputChannelId, triggerType, input, guildOptions);
+                    var events = GetEvents(inputChannelId, triggerType, author, input, guildOptions);
                     foreach (var guildEvent in events)
                         await ProcessEvent(messageId, inputChannelId, author, input, guildEvent, client);
                 }
@@ -53,7 +53,7 @@ namespace Tadmor.Services.Discord
         }
 
         private static IEnumerable<GuildEvent> GetEvents(ulong? channelId, GuildEventTriggerType triggerType,
-            string? input, GuildOptions guildOptions)
+            IGuildUser author, string input, GuildOptions guildOptions)
         {
             var events = triggerType switch
             {
@@ -61,6 +61,7 @@ namespace Tadmor.Services.Discord
                     e.TriggerType == GuildEventTriggerType.GuildJoin),
                 GuildEventTriggerType.RegexMatch => guildOptions.Events.Where(e =>
                     e.TriggerType == GuildEventTriggerType.RegexMatch &&
+                    (e.SenderIdFilter == null || e.SenderIdFilter == author.Id) &&
                     (e.Scope == GuildEventScope.Guild || e.ChannelId == channelId) && Regex.IsMatch(input, e.Trigger,
                         RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100))),
                 _ => throw new ArgumentOutOfRangeException(nameof(triggerType), triggerType, null)
@@ -103,18 +104,18 @@ namespace Tadmor.Services.Discord
             return guildOptions != null ? guildOptions.Events.Select(e => e.ToString()).ToList() : new List<string>();
         }
 
-        public void AddInputEvent(ICommandContext context, string reaction, string trigger,
+        public void AddInputEvent(ICommandContext context, IGuildUser? sender, string reaction, string trigger,
             bool deleteTrigger)
         {
-            AddEvent(context, reaction, trigger, deleteTrigger, GuildEventTriggerType.RegexMatch);
+            AddEvent(context, sender, reaction, trigger, deleteTrigger, GuildEventTriggerType.RegexMatch);
         }
 
         public void AddJoinEvent(ICommandContext context, string reaction)
         {
-            AddEvent(context, reaction, default, false, GuildEventTriggerType.GuildJoin);
+            AddEvent(context, default, reaction, default, false, GuildEventTriggerType.GuildJoin);
         }
 
-        private void AddEvent(ICommandContext context, string reaction, string? trigger,
+        private void AddEvent(ICommandContext context, IGuildUser? sender, string reaction, string? trigger,
             bool deleteTrigger, GuildEventTriggerType triggerType)
         {
             using var writableOptions = _chatOptions.GetOptions();
@@ -127,7 +128,8 @@ namespace Tadmor.Services.Discord
                 Reaction = reaction,
                 Trigger = trigger,
                 TriggerType = triggerType,
-                DeleteTrigger = deleteTrigger
+                DeleteTrigger = deleteTrigger,
+                SenderIdFilter = sender.Id,
             });
         }
 

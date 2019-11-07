@@ -11,16 +11,18 @@ namespace Tadmor.Services.Discord
         public string? Reaction { get; set; }
         public ulong ChannelId { get; set; }
         public string? Id { get; set; }
+        public ulong? SenderIdFilter { get; set; }
 
         public override string ToString()
         {
+            var user = SenderIdFilter.HasValue ? $"user {SenderIdFilter}" : "users";
             switch (TriggerType)
             {
                 case GuildEventTriggerType.GuildJoin:
-                    return $"{Id}: when users join this guild, execute '{Reaction}'";
+                    return $"{Id}: when {user} join this guild, execute '{Reaction}'";
                 case GuildEventTriggerType.RegexMatch:
                     var function = DeleteTrigger ? "delete and execute" : "execute";
-                    return $"{Id}: when users say `{Trigger}`, {function} '{Reaction}'";
+                    return $"{Id}: when {user} say `{Trigger}`, {function} '{Reaction}'";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
