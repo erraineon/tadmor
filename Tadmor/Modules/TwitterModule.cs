@@ -38,7 +38,8 @@ namespace Tadmor.Modules
         [Command("tweet")]
         public async Task Tweet([Remainder]string? input = null)
         {
-            await Tweet((IGuildUser)Context.User, input);
+            var image = await Context.Message.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
+            await Tweet(Context.Message, input, image);
         }
 
         [Summary("tweets the user's last message")]
@@ -48,26 +49,18 @@ namespace Tadmor.Modules
             var lastMessage = await _activityMonitor.GetLastMessageAsync(user) ??
                 throw new Exception($"{user.Mention} hasn't talked");
             var text = lastMessage.Resolve();
-            await Tweet(user, text);
+            var image = await lastMessage.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
+            await Tweet(lastMessage, text, image);
         }
 
-        private async Task Tweet(IGuildUser user, string? text)
+        private async Task Tweet(IMessage message, string? text, Services.Abstractions.Image? image)
         {
-            byte[] toUpload;
-            if (text == null)
-            {
-                var image = await Context.GetAllImagesAsync(new List<string>(), true).FirstOrDefaultAsync() ?? 
-                              throw new Exception("you must say something or post an image");
-                toUpload = await image.GetDataAsync();
-            }
-            else
-            {
-                var avatar = await user.GetAvatarAsync() ??
-                        throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
-                var avatarData = await avatar.GetDataAsync();
-                toUpload = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text).ToArray();
-            }
-
+            var imageData = image != null ? await image.GetDataAsync() : null;
+            var user = (IGuildUser) message.Author;
+            var avatar = await user.GetAvatarAsync() ??
+                         throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
+            var avatarData = await avatar.GetDataAsync();
+            var toUpload = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text, imageData).ToArray();
             var tweetUrl = await _twitter.Tweet(toUpload);
             await ReplyAsync(tweetUrl);
         }

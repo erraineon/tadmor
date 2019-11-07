@@ -114,25 +114,20 @@ namespace Tadmor.Modules
 
         [Summary("mimics someone else's message")]
         [Command("mimic")]
-        public async Task Mimic([ShowAsOptional] IGuildUser user, [Remainder] string text)
+        [Priority(-1)]
+        public async Task Mimic(IGuildUser user, [Remainder] string? text = default)
         {
-            if (text == null) text = await GetLastMessage(user);
+            var image = await Context.Message.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
+            if (text == null && image == null) text = await GetLastMessage(user);
             var avatarData = await user.GetAvatarAsync() is { } avatar ? await avatar.GetDataAsync() : null;
             if (avatarData == null) throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
-            var result = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text);
+            var imageData = image != null ? await image.GetDataAsync() : null;
+            var result = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text, imageData);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
-        [Browsable(false)]
-        [Command("mimic")]
-        public async Task Mimic([Remainder] string text)
-        {
-            await Mimic((IGuildUser) Context.User, text);
-        }
-
         [Summary("mimics someone else's message after running a replacement on the text")]
-        [Command("mimicr")]
-        [Priority(-1)]
+        [Command("replace")]
         public async Task MimicReplace([ShowAsOptional] IGuildUser user, string pattern, [Remainder] string replacement)
         {
             var input = await GetLastMessage(user);

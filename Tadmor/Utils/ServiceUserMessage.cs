@@ -42,9 +42,9 @@ namespace Tadmor.Utils
 
         public IUser Author { get; }
 
-        public IReadOnlyCollection<IAttachment> Attachments => throw new NotImplementedException();
+        public IReadOnlyCollection<IAttachment> Attachments => new IAttachment[0];
 
-        public IReadOnlyCollection<IEmbed> Embeds => throw new NotImplementedException();
+        public IReadOnlyCollection<IEmbed> Embeds => new IEmbed[0];
 
         public IReadOnlyCollection<ITag> Tags => throw new NotImplementedException();
 

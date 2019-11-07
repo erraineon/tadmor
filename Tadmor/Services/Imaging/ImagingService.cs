@@ -453,7 +453,7 @@ namespace Tadmor.Services.Imaging
                             for (var i = 0; i < avatarsForRow.Count; i++)
                                 ac.DrawImage(avatarsForRow[i], 1, new Point(i * avatarWidth, 0));
                             if (avatars.Width > valueW)
-                                ac.Resize((Size)(avatars.Size() * (valueW / avatars.Width)));
+                                ac.Resize((Size) (avatars.Size() * (valueW / avatars.Width)));
                         });
                         var position = new Point((int) headerW, rowY);
                         c.DrawImage(avatars, 1, position);
@@ -465,7 +465,7 @@ namespace Tadmor.Services.Imaging
             return output;
         }
 
-        public MemoryStream Imitate(byte[] avatarData, string username, string text)
+        public MemoryStream Imitate(byte[] avatarData, string username, string? text, byte[]? imageData)
         {
             const int avatarS = 128;
             const int imagePadding = 10;
@@ -480,14 +480,25 @@ namespace Tadmor.Services.Imaging
             var output = new MemoryStream();
             var font = HelveticaNeue.CreateFont(28);
             var nameFont = HelveticaNeueMedium.CreateFont(28);
-            var textW = bubbleW - bubblePadding * 2;
+            var bubbleContentW = bubbleW - bubblePadding * 2;
             var textOptions = new TextGraphicsOptions(true)
             {
-                WrapTextWidth = textW, 
+                WrapTextWidth = bubbleContentW, 
                 VerticalAlignment = VerticalAlignment.Top
             };
-            var textMeasure = TextMeasurer.Measure(text, new RendererOptions(font) { WrappingWidth = textW });
-            var bubbleH = Math.Max(textMeasure.Height + bubblePadding * 2 + nameFont.Size + marginUnderName, avatarS);
+
+            var textHeight = text != null
+                ? TextMeasurer.Measure(text, new RendererOptions(font) {WrappingWidth = bubbleContentW}).Height
+                : 0;
+            using var image = imageData != null ? Image.Load<Rgba32>(imageData) : null;
+            if (image?.Width > bubbleContentW)
+                image.Mutate(i => i.Resize((Size) (image.Size() * ((float)bubbleContentW / image.Width))));
+            var imageHeight = image?.Height ?? 0;
+            var marginUnderImage = image != null ? marginUnderName : 0;
+            var nameHeight = nameFont.Size;
+            var bubbleContentH = bubblePadding * 2 + nameHeight + marginUnderName + 
+                                 imageHeight + marginUnderImage + textHeight;
+            var bubbleH = Math.Max(bubbleContentH, avatarS);
             var h = (int)bubbleH + imagePadding * 2;
             using var canvas = new Image<Rgba32>(w, h);
             canvas.Mutate(c =>
@@ -505,7 +516,10 @@ namespace Tadmor.Services.Imaging
                 c.DrawImage(speechBubble, 1, speechBubblePos);
                 var namePos = speechBubblePos + new Size(bubblePadding, bubblePadding);
                 c.DrawText(username, nameFont, nameColor, namePos);
-                c.DrawText(textOptions, text, font, textColor, namePos + new Size(0, (int) (nameFont.Size + marginUnderName)));
+                var imagePosition = namePos + new Size(0, (int)(nameHeight + marginUnderName));
+                if (image != null) c.DrawImage(image, 1, imagePosition);
+                var textPosition = imagePosition + new Size(0, imageHeight + marginUnderImage);
+                if (text != null) c.DrawText(textOptions, text, font, textColor, textPosition);
             });
             canvas.SaveAsPng(output);
             output.Seek(0, SeekOrigin.Begin);

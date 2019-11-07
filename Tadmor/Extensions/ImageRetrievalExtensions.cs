@@ -35,7 +35,7 @@ namespace Tadmor.Extensions
 
 
         // obtain the url of the image after discord uploads it to its proxy to avoid leaking bot ip info
-        static async ValueTask<string?> GetProxyImageUrl(ICommandContext context, string linkedUrl)
+        static async ValueTask<string?> GetProxyImageUrl(IUserMessage userMessage, DiscordSocketClient client, string linkedUrl)
         {
             bool TryGetProxyUrl(IMessage message, out string? url)
             {
@@ -43,9 +43,8 @@ namespace Tadmor.Extensions
                 return url != null;
             }
 
-            if (!TryGetProxyUrl(context.Message, out var proxyUrl))
+            if (!TryGetProxyUrl(userMessage, out var proxyUrl))
             {
-                var client = (DiscordSocketClient)context.Client;
                 var proxyImageLoadTask = new TaskCompletionSource<string>();
 
                 Task OnMessageUpdated(
@@ -53,7 +52,7 @@ namespace Tadmor.Extensions
                     SocketMessage updatedMessage,
                     ISocketMessageChannel __)
                 {
-                    if (updatedMessage.Id == context.Message.Id && TryGetProxyUrl(updatedMessage, out var newUrl))
+                    if (updatedMessage.Id == userMessage.Id && TryGetProxyUrl(updatedMessage, out var newUrl))
                         proxyImageLoadTask.TrySetResult(newUrl!);
 
                     return Task.CompletedTask;
@@ -83,47 +82,53 @@ namespace Tadmor.Extensions
 
         public static async IAsyncEnumerable<Image> GetAllImagesAsync(this ICommandContext context, ICollection<string> linkedUrls, bool scanOnlyOwnMessages)
         {
-
-            IAsyncEnumerable<Image> GetAllDiscordImagesAsync()
+            // HACK: telegram messages with multiple photos are split in messages in which only the first one contains the command caption
+            // the line below allows the following messages to be cached before the list of messages is retrieved
+            await Task.Delay(10);
+            var images = context.Channel
+                .GetMessagesAsync()
+                .Flatten()
+                .Where(m => scanOnlyOwnMessages || m.Author.Id == context.User.Id)
+                .OfType<IUserMessage>()
+                .SelectMany(m => GetAllImagesAsync(m, context.Client, linkedUrls));
+            await foreach (var image in images)
             {
-                var linkedProxyUrls = linkedUrls
-                    .Where(linkedUrl => Uri.TryCreate(linkedUrl, UriKind.Absolute, out _))
+                yield return image;
+            }
+        }
+
+        public static async IAsyncEnumerable<Image> GetAllImagesAsync(this IUserMessage userMessage, IDiscordClient client, ICollection<string> linkedUrls)
+        {
+
+            IAsyncEnumerable<Image> GetAllDiscordImages(DiscordSocketClient discord)
+            {
+                var attachmentsAndEmbeds = userMessage.Embeds
+                    .Select(e => e.Thumbnail?.ProxyUrl)
+                    .Concat(userMessage.Attachments.Select(a => a.Url))
                     .ToAsyncEnumerable()
-                    .SelectAwait(u => GetProxyImageUrl(context, u));
-                var attachmentsAndEmbeds = context.Channel
-                    .GetMessagesAsync()
-                    .Flatten()
-                    .Where(m => scanOnlyOwnMessages || m.Author.Id == context.User.Id)
-                    .SelectMany(m => m.Embeds
-                        .Select(e => e.Thumbnail?.ProxyUrl)
-                        .Concat(m.Attachments.Select(a => a.Url))
-                        .ToAsyncEnumerable());
-                return linkedProxyUrls
-                    .Concat(attachmentsAndEmbeds)
+                    .Concat(linkedUrls
+                        .Where(linkedUrl => userMessage.Content.Contains(linkedUrl) &&
+                                            Uri.TryCreate(linkedUrl, UriKind.Absolute, out _))
+                        .ToAsyncEnumerable()
+                        .SelectAwait(u => GetProxyImageUrl(userMessage, discord, u)))
                     .Where(url => url != null)
                     .Select(url => new DiscordImage(url!));
+                return attachmentsAndEmbeds;
             }
 
-            async Task<IAsyncEnumerable<Image>> GetAllTelegramImagesAsync(TelegramClient telegram)
+            IAsyncEnumerable <Image> GetAllTelegramImages(TelegramClient telegram)
             {
-                // HACK: messages with multiple photos are split in messages in which only the first one contains the command caption
-                // the line below allows the following messages to be cached before the list of messages is retrieved
-                await Task.Delay(10);
-                var allMessages = context.Channel
-                    .GetMessagesAsync()
-                    .Flatten()
-                    .Where(m => scanOnlyOwnMessages || m.Author.Id == context.User.Id)
-                    .SelectMany(m => m.Attachments
+                var attachments = userMessage.Attachments
                         .Select(a => new TelegramImage(telegram, a.Filename))
-                        .ToAsyncEnumerable());
-                return allMessages;
+                        .ToAsyncEnumerable();
+                return attachments;
             }
 
-            var images = context.Client switch
+            var images = client switch
             {
-                TelegramClient telegram => await GetAllTelegramImagesAsync(telegram),
-                DiscordSocketClient _ => GetAllDiscordImagesAsync(),
-                _ => throw new NotSupportedException($"{context.Client.GetType()} image retrieval is not supported")
+                TelegramClient telegram => GetAllTelegramImages(telegram),
+                DiscordSocketClient discord => GetAllDiscordImages(discord),
+                _ => throw new NotSupportedException($"{client.GetType()} image retrieval is not supported")
             };
             await foreach (var image in images)
             {
