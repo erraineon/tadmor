@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Tadmor.Services.Commands;
 using Tadmor.Services.Discord;
 using Tadmor.Services.Options;
 
@@ -38,6 +39,37 @@ namespace Tadmor.Modules
             var options = _chatOptions.GetGuildOptions(Context.Guild.Id, writableOptions.Value);
             options.GoodBoyMode = !options.GoodBoyMode;
             await ReplyAsync($"good boy mode is {(options.GoodBoyMode ? "on" : "off")}");
+        }
+
+        [RequireOwner]
+        [Group("perms")]
+        public class PermissionsModule : ModuleBase<ICommandContext>
+        {
+            private readonly ChatOptionsService _chatOptions;
+
+            public PermissionsModule(ChatOptionsService chatOptions)
+            {
+                _chatOptions = chatOptions;
+            }
+
+            [Command("ls")]
+            public async Task ListPermissions()
+            {
+                var permissions = _chatOptions.GetOptions().Value.CommandUsagePermissions
+                    .Where(p => p.ScopeType == CommandUsagePermissionScopeType.Guild && p.ScopeId == Context.Guild.Id)
+                    .ToList();
+                var permissionInfos = permissions.Any()
+                    ? string.Join(Environment.NewLine, permissions)
+                    : throw new Exception("no permissions set for this guild");
+                await ReplyAsync(string.Join(Environment.NewLine, permissionInfos));
+            }
+
+            [Command]
+            public async Task SetPermission(string commandName, PermissionType permissionType)
+            {
+                _chatOptions.AddOrUpdatePermissions(commandName, Context.Guild, permissionType);
+                await ReplyAsync("ok");
+            }
         }
 
         [RequireOwner(Group = "admin")]

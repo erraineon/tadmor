@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Tadmor.Extensions;
+using Tadmor.Preconditions;
 using Tadmor.Services.Imaging;
 using Tadmor.Services.Twitter;
 
@@ -34,6 +35,7 @@ namespace Tadmor.Modules
             await ReplyAsync(tweetUrl);
         }
 
+        [RequireWhitelist]
         [Summary("tweets a message or an image")]
         [Command("tweet")]
         public async Task Tweet([Remainder]string? input = null)
@@ -42,6 +44,7 @@ namespace Tadmor.Modules
             await Tweet(Context.Message, input, image);
         }
 
+        [RequireWhitelist]
         [Summary("tweets the user's last message")]
         [Command("tweet")]
         public async Task Tweet(IGuildUser user)
