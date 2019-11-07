@@ -137,7 +137,7 @@ namespace Tadmor.Modules
         {
             var input = await GetLastMessage(user);
             var text = Regex.Replace(input, pattern, replacement, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
-            await Mimic((IGuildUser)Context.User, text);
+            await Mimic(user, text);
         }
 
         [Summary("fake sms with the specified text")]
