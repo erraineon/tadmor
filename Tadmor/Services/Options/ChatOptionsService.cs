@@ -63,8 +63,8 @@ namespace Tadmor.Services.Options
             var scopeType = entity switch
             {
                 IUser _ => CommandUsagePermissionScopeType.User,
-                IChannel _ => CommandUsagePermissionScopeType.Channel,
                 IGuild _ => CommandUsagePermissionScopeType.Guild,
+                IChannel _ => CommandUsagePermissionScopeType.Channel,
                 _ => throw new NotSupportedException($"only users, channels and guilds are supported")
             };
             var permission = GetPermissions(commandName, options.Value)
