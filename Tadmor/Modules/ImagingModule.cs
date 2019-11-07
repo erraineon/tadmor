@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -129,6 +130,16 @@ namespace Tadmor.Modules
             await Mimic((IGuildUser) Context.User, text);
         }
 
+        [Summary("mimics someone else's message after running a replacement on the text")]
+        [Command("mimicr")]
+        [Priority(-1)]
+        public async Task MimicReplace([ShowAsOptional] IGuildUser user, string pattern, [Remainder] string replacement)
+        {
+            var input = await GetLastMessage(user);
+            var text = Regex.Replace(input, pattern, replacement, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
+            await Mimic((IGuildUser)Context.User, text);
+        }
+
         [Summary("fake sms with the specified text")]
         [Command("sms")]
         public async Task Sms([ShowAsOptional] IGuildUser user, [Remainder] string? text = null)
@@ -148,7 +159,7 @@ namespace Tadmor.Modules
         private async Task<string> GetLastMessage(IGuildUser user)
         {
             var lastMessage = await _activityMonitor.GetLastMessageAsync(user);
-            var text = (lastMessage as IUserMessage)?.Resolve() ?? throw new Exception($"{user.Mention} hasn't talked");
+            var text = lastMessage?.Resolve() ?? throw new Exception($"{user.Mention} hasn't talked");
             return text;
         }
 
