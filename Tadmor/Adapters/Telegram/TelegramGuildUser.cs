@@ -86,24 +86,6 @@ namespace Tadmor.Adapters.Telegram
 
         public bool IsStreaming => throw new NotImplementedException();
 
-        private bool Equals(TelegramGuildUser other)
-        {
-            return Equals(_user.Id, other._user.Id);
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is null) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals((TelegramGuildUser) obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return _user != null ? _user.Id.GetHashCode() : 0;
-        }
-
         public async Task<Image?> GetAvatarAsync()
         {
             return await _telegram.GetAvatarAsync(Id);

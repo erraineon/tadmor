@@ -23,7 +23,7 @@ namespace Tadmor.Adapters.Telegram
         private readonly Chat _chat;
         private readonly FixedSizedQueue<IMessage> _messageCache;
         private readonly TelegramClient _telegram;
-        private readonly HashSet<TelegramGuildUser> _usersCache = new HashSet<TelegramGuildUser>();
+        private readonly IDictionary<ulong, TelegramGuildUser> _usersCache = new Dictionary<ulong, TelegramGuildUser>();
 
         public TelegramGuild(TelegramClient telegram, TelegramBotClient api, Chat chat, HashSet<ulong> administratorIds)
         {
@@ -448,7 +448,7 @@ namespace Tadmor.Adapters.Telegram
 
         IAsyncEnumerable<IReadOnlyCollection<IUser>> IChannel.GetUsersAsync(CacheMode mode, RequestOptions? options)
         {
-            return ToAsyncEnumerableReadOnlyCollection(_usersCache.Cast<IUser>());
+            return ToAsyncEnumerableReadOnlyCollection(_usersCache.Values.Cast<IUser>());
         }
 
         public Task DeleteMessagesAsync(IEnumerable<IMessage> messages, RequestOptions? options = null)
@@ -601,7 +601,7 @@ namespace Tadmor.Adapters.Telegram
             var user = new TelegramGuildUser(_telegram, this, msg.From);
             var message = new TelegramUserMessage(this, user, msg);
             _messageCache.Enqueue(message);
-            _usersCache.Add(user);
+            _usersCache[user.Id] = user;
             return message;
         }
 
