@@ -15,14 +15,24 @@ namespace Tadmor.Services.Imaging
 
         private readonly ConcurrentDictionary<(ulong guildId, ulong userId), IUserMessage> _cachedUserIds =
             new ConcurrentDictionary<(ulong guildId, ulong userId), IUserMessage>();
+        private readonly IDictionary<ulong, int> _messageCountsByChannelId = new Dictionary<ulong, int>();
 
         public Task OnMessageReceivedAsync(IDiscordClient client, IMessage message)
         {
             if (message.Channel is IGuildChannel channel &&
                 message is IUserMessage userMessage &&
                 !userMessage.Author.IsWebhook)
+            {
+                _messageCountsByChannelId[channel.Id] =
+                    _messageCountsByChannelId.TryGetValue(channel.Id, out var count) ? count + 1 : 1;
                 _cachedUserIds[(channel.Guild.Id, userMessage.Author.Id)] = userMessage;
+            }
             return Task.CompletedTask;
+        }
+
+        public int GetMessagesCount(ulong channelId)
+        {
+            return _messageCountsByChannelId.TryGetValue(channelId, out var messagesCount) ? messagesCount : 0;
         }
 
         public async IAsyncEnumerable<IGuildUser> GetActiveUsers(IGuild guild)

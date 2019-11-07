@@ -12,6 +12,7 @@ namespace Tadmor.Services.Discord
         public ulong ChannelId { get; set; }
         public string? Id { get; set; }
         public ulong? SenderIdFilter { get; set; }
+        public int? MessagesCount { get; set; }
 
         public override string ToString()
         {
@@ -23,6 +24,8 @@ namespace Tadmor.Services.Discord
                 case GuildEventTriggerType.RegexMatch:
                     var function = DeleteTrigger ? "delete and execute" : "execute";
                     return $"{Id}: when {user} say `{Trigger}`, {function} '{Reaction}'";
+                case GuildEventTriggerType.EverySoOften:
+                    return $"{Id}: every {MessagesCount} messages, execute '{Reaction}'";
                 default:
                     throw new ArgumentOutOfRangeException();
             }

@@ -68,6 +68,14 @@ namespace Tadmor.Modules
                 await ReplyAsync("ok");
             }
 
+            [Summary("add an event that will run after the specified amount of messages")]
+            [Command("every")]
+            public async Task OnInputDelete(int messageCount, [Remainder] string reaction)
+            {
+                _events.AddEveryEvent(Context, reaction, messageCount);
+                await ReplyAsync("ok");
+            }
+
             [Summary("lists events")]
             [Command("ls")]
             public async Task ViewEvents()

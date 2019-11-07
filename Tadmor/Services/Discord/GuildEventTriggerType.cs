@@ -4,6 +4,7 @@
     {
         None, 
         GuildJoin,
-        RegexMatch
+        RegexMatch,
+        EverySoOften
     }
 }
