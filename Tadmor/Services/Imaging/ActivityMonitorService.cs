@@ -13,15 +13,15 @@ namespace Tadmor.Services.Imaging
     {
         private static readonly TimeSpan CutoffTime = TimeSpan.FromDays(3);
 
-        private readonly ConcurrentDictionary<(ulong guildId, ulong userId), IMessage> _cachedUserIds =
-            new ConcurrentDictionary<(ulong guildId, ulong userId), IMessage>();
+        private readonly ConcurrentDictionary<(ulong guildId, ulong userId), IUserMessage> _cachedUserIds =
+            new ConcurrentDictionary<(ulong guildId, ulong userId), IUserMessage>();
 
         public Task OnMessageReceivedAsync(IDiscordClient client, IMessage message)
         {
             if (message.Channel is IGuildChannel channel &&
                 message is IUserMessage userMessage &&
                 !userMessage.Author.IsWebhook)
-                _cachedUserIds[(channel.Guild.Id, userMessage.Author.Id)] = message;
+                _cachedUserIds[(channel.Guild.Id, userMessage.Author.Id)] = userMessage;
             return Task.CompletedTask;
         }
 
@@ -45,7 +45,7 @@ namespace Tadmor.Services.Imaging
             }
         }
 
-        public Task<IMessage?> GetLastMessageAsync(IGuildUser user)
+        public Task<IUserMessage?> GetLastMessageAsync(IGuildUser user)
         {
             _cachedUserIds.TryGetValue((user.GuildId, user.Id), out var message);
             return Task.FromResult(message);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using LinqToTwitter;
@@ -24,18 +25,44 @@ namespace Tadmor.Services.Twitter
 
         private async Task<TwitterContext> GetContextAsync()
         {
-            var authorizer = new ApplicationOnlyAuthorizer
+            var authorizer = new SingleUserAuthorizer
             {
                 CredentialStore = new InMemoryCredentialStore
                 {
                     ConsumerKey = _twitterOptions.ConsumerKey,
-                    ConsumerSecret = _twitterOptions.ConsumerSecret
+                    ConsumerSecret = _twitterOptions.ConsumerSecret,
+                    OAuthToken = _twitterOptions.OAuthToken,
+                    OAuthTokenSecret = _twitterOptions.OAuthTokenSecret,
                 }
             };
 
             await authorizer.AuthorizeAsync();
             var context = new TwitterContext(authorizer);
+            var verifyResponse = await context.Account
+                .Where(acct => acct.Type == AccountType.VerifyCredentials)
+                .SingleOrDefaultAsync();
+            if (verifyResponse?.User is { } user)
+            {
+                context.Authorizer.CredentialStore.ScreenName = user.ScreenNameResponse;
+            }
             return context;
+        }
+
+        public async Task<string> Tweet(string value)
+        {
+            var context = await _lazyContext.Value;
+            var myName = context.Authorizer.CredentialStore.ScreenName;
+            var tweet = await context.TweetAsync(value);
+            return $"https://twitter.com/{myName}/status/{tweet.StatusID}";
+        }
+
+        public async Task<string> Tweet(MemoryStream value)
+        {
+            var context = await _lazyContext.Value;
+            var myName = context.Authorizer.CredentialStore.ScreenName;
+            var media = await context.UploadMediaAsync(value.ToArray(), "image/png", "tweet_image");
+            var tweet = await context.TweetAsync(string.Empty, new[] {media.MediaID});
+            return $"https://twitter.com/{myName}/status/{tweet.StatusID}";
         }
 
 
