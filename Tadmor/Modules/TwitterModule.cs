@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -32,9 +34,9 @@ namespace Tadmor.Modules
             await ReplyAsync(tweetUrl);
         }
 
-        [Summary("tweets a message")]
+        [Summary("tweets a message or an image")]
         [Command("tweet")]
-        public async Task Tweet([Remainder]string input)
+        public async Task Tweet([Remainder]string? input = null)
         {
             await Tweet((IGuildUser)Context.User, input);
         }
@@ -49,12 +51,24 @@ namespace Tadmor.Modules
             await Tweet(user, text);
         }
 
-        private async Task Tweet(IGuildUser user, string text)
+        private async Task Tweet(IGuildUser user, string? text)
         {
-            var avatarData = await user.GetAvatarAsync() is { } avatar ? await avatar.GetDataAsync() : null;
-            if (avatarData == null) throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
-            var result = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text);
-            var tweetUrl = await _twitter.Tweet(result);
+            byte[] toUpload;
+            if (text == null)
+            {
+                var image = await Context.GetAllImagesAsync(new List<string>(), true).FirstOrDefaultAsync() ?? 
+                              throw new Exception("you must say something or post an image");
+                toUpload = await image.GetDataAsync();
+            }
+            else
+            {
+                var avatar = await user.GetAvatarAsync() ??
+                        throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
+                var avatarData = await avatar.GetDataAsync();
+                toUpload = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text).ToArray();
+            }
+
+            var tweetUrl = await _twitter.Tweet(toUpload);
             await ReplyAsync(tweetUrl);
         }
     }

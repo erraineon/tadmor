@@ -21,7 +21,7 @@ namespace Tadmor.Modules
         [Command("tf")]
         public async Task Morph(params string[] urls)
         {
-            var allImages = await ImageRetrievalExtensions.GetAllImagesAsync(Context, urls).Take(2).ToListAsync();
+            var allImages = await Context.GetAllImagesAsync(urls, false).Take(2).ToListAsync();
             if (allImages.Count < 2) throw new Exception("need at least two images");
             var sourceImage = await allImages[0].GetDataAsync();
             var destImage = await allImages[1].GetDataAsync();
@@ -33,7 +33,7 @@ namespace Tadmor.Modules
         [Command("swap")]
         public async Task Swap(params string[] urls)
         {
-            var allImages = await ImageRetrievalExtensions.GetAllImagesAsync(Context, urls).Take(2).ToListAsync();
+            var allImages = await Context.GetAllImagesAsync(urls, false).Take(2).ToListAsync();
             if (!allImages.Any()) throw new Exception("need at least an image");
             var images = await Task.WhenAll(allImages.Select(image => image.GetDataAsync()));
             var result = await _vision.Swap(images);

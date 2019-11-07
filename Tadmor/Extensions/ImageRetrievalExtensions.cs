@@ -33,64 +33,67 @@ namespace Tadmor.Extensions
             return avatar;
         }
 
-        public static async IAsyncEnumerable<Image> GetAllImagesAsync(ICommandContext context, ICollection<string> linkedUrls)
+
+        // obtain the url of the image after discord uploads it to its proxy to avoid leaking bot ip info
+        static async ValueTask<string?> GetProxyImageUrl(ICommandContext context, string linkedUrl)
         {
-            // obtain the url of the image after discord uploads it to its proxy to avoid leaking bot ip info
-            async ValueTask<string?> GetProxyImageUrl(string linkedUrl)
+            bool TryGetProxyUrl(IMessage message, out string? url)
             {
-                bool TryGetProxyUrl(IMessage message, out string? url)
-                {
-                    url = message.Embeds.FirstOrDefault(e => e.Thumbnail?.Url == linkedUrl)?.Thumbnail?.ProxyUrl;
-                    return url != null;
-                }
-
-                if (!TryGetProxyUrl(context.Message, out var proxyUrl))
-                {
-                    var client = (DiscordSocketClient)context.Client;
-                    var proxyImageLoadTask = new TaskCompletionSource<string>();
-
-                    Task OnMessageUpdated(
-                        Cacheable<IMessage, ulong> _,
-                        SocketMessage updatedMessage,
-                        ISocketMessageChannel __)
-                    {
-                        if (updatedMessage.Id == context.Message.Id && TryGetProxyUrl(updatedMessage, out var newUrl))
-                            proxyImageLoadTask.TrySetResult(newUrl!);
-
-                        return Task.CompletedTask;
-                    }
-
-                    var cts = new CancellationTokenSource();
-                    cts.Token.Register(() => proxyImageLoadTask.TrySetCanceled(cts.Token));
-                    client.MessageUpdated += OnMessageUpdated;
-                    // give discord a maximum of 5 seconds to load the image
-                    cts.CancelAfter(TimeSpan.FromSeconds(5));
-                    try
-                    {
-                        proxyUrl = await proxyImageLoadTask.Task;
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        proxyUrl = default;
-                    }
-                    finally
-                    {
-                        client.MessageUpdated -= OnMessageUpdated;
-                    }
-                }
-
-                return proxyUrl;
+                url = message.Embeds.FirstOrDefault(e => e.Thumbnail?.Url == linkedUrl)?.Thumbnail?.ProxyUrl;
+                return url != null;
             }
+
+            if (!TryGetProxyUrl(context.Message, out var proxyUrl))
+            {
+                var client = (DiscordSocketClient)context.Client;
+                var proxyImageLoadTask = new TaskCompletionSource<string>();
+
+                Task OnMessageUpdated(
+                    Cacheable<IMessage, ulong> _,
+                    SocketMessage updatedMessage,
+                    ISocketMessageChannel __)
+                {
+                    if (updatedMessage.Id == context.Message.Id && TryGetProxyUrl(updatedMessage, out var newUrl))
+                        proxyImageLoadTask.TrySetResult(newUrl!);
+
+                    return Task.CompletedTask;
+                }
+
+                var cts = new CancellationTokenSource();
+                cts.Token.Register(() => proxyImageLoadTask.TrySetCanceled(cts.Token));
+                client.MessageUpdated += OnMessageUpdated;
+                // give discord a maximum of 5 seconds to load the image
+                cts.CancelAfter(TimeSpan.FromSeconds(5));
+                try
+                {
+                    proxyUrl = await proxyImageLoadTask.Task;
+                }
+                catch (TaskCanceledException)
+                {
+                    proxyUrl = default;
+                }
+                finally
+                {
+                    client.MessageUpdated -= OnMessageUpdated;
+                }
+            }
+
+            return proxyUrl;
+        }
+
+        public static async IAsyncEnumerable<Image> GetAllImagesAsync(this ICommandContext context, ICollection<string> linkedUrls, bool scanOnlyOwnMessages)
+        {
 
             IAsyncEnumerable<Image> GetAllDiscordImagesAsync()
             {
                 var linkedProxyUrls = linkedUrls
                     .Where(linkedUrl => Uri.TryCreate(linkedUrl, UriKind.Absolute, out _))
                     .ToAsyncEnumerable()
-                    .SelectAwait(GetProxyImageUrl);
+                    .SelectAwait(u => GetProxyImageUrl(context, u));
                 var attachmentsAndEmbeds = context.Channel
                     .GetMessagesAsync()
                     .Flatten()
+                    .Where(m => scanOnlyOwnMessages || m.Author.Id == context.User.Id)
                     .SelectMany(m => m.Embeds
                         .Select(e => e.Thumbnail?.ProxyUrl)
                         .Concat(m.Attachments.Select(a => a.Url))
@@ -109,6 +112,7 @@ namespace Tadmor.Extensions
                 var allMessages = context.Channel
                     .GetMessagesAsync()
                     .Flatten()
+                    .Where(m => scanOnlyOwnMessages || m.Author.Id == context.User.Id)
                     .SelectMany(m => m.Attachments
                         .Select(a => new TelegramImage(telegram, a.Filename))
                         .ToAsyncEnumerable());

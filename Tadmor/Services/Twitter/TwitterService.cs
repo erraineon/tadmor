@@ -56,11 +56,11 @@ namespace Tadmor.Services.Twitter
             return $"https://twitter.com/{myName}/status/{tweet.StatusID}";
         }
 
-        public async Task<string> Tweet(MemoryStream value)
+        public async Task<string> Tweet(byte[] value)
         {
             var context = await _lazyContext.Value;
             var myName = context.Authorizer.CredentialStore.ScreenName;
-            var media = await context.UploadMediaAsync(value.ToArray(), "image/png", "tweet_image");
+            var media = await context.UploadMediaAsync(value, "image/png", "tweet_image");
             var tweet = await context.TweetAsync(string.Empty, new[] {media.MediaID});
             return $"https://twitter.com/{myName}/status/{tweet.StatusID}";
         }
