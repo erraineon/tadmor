@@ -8,6 +8,7 @@ using Tadmor.Services.Twitter;
 
 namespace Tadmor.Modules
 {
+    [Summary("twitter")]
     public class TwitterModule : ModuleBase<ICommandContext>
     {
         private readonly TwitterService _twitter;
@@ -23,8 +24,8 @@ namespace Tadmor.Modules
 
         [RequireOwner]
         [Summary("tweets a message")]
-        [Command("tweet")]
-        public async Task Tweet([Remainder]string input)
+        [Command("tweettext")]
+        public async Task TweetText([Remainder]string input)
         {
             if (input.Length > 240) throw new Exception("no more than 240 characters");
             var tweetUrl = await _twitter.Tweet(input);
@@ -33,11 +34,23 @@ namespace Tadmor.Modules
 
         [Summary("tweets a message")]
         [Command("tweet")]
+        public async Task Tweet([Remainder]string input)
+        {
+            await Tweet((IGuildUser)Context.User, input);
+        }
+
+        [Summary("tweets the user's last message")]
+        [Command("tweet")]
         public async Task Tweet(IGuildUser user)
         {
             var lastMessage = await _activityMonitor.GetLastMessageAsync(user) ??
                 throw new Exception($"{user.Mention} hasn't talked");
             var text = lastMessage.Resolve();
+            await Tweet(user, text);
+        }
+
+        private async Task Tweet(IGuildUser user, string text)
+        {
             var avatarData = await user.GetAvatarAsync() is { } avatar ? await avatar.GetDataAsync() : null;
             if (avatarData == null) throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
             var result = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text);

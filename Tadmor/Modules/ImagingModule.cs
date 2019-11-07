@@ -111,6 +111,7 @@ namespace Tadmor.Modules
             await Ok((IGuildUser) Context.User, text);
         }
 
+        [Summary("mimics someone else's message")]
         [Command("mimic")]
         public async Task Mimic([ShowAsOptional] IGuildUser user, [Remainder] string text)
         {
