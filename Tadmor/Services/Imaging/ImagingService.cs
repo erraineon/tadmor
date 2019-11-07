@@ -242,19 +242,43 @@ namespace Tadmor.Services.Imaging
 
         private Image<Rgba32> CropCircle(byte[] imageData)
         {
-            var image = imageData != null ? Image.Load(imageData) : new Image<Rgba32>(Configuration.Default, 128, 128, Rgba32.Red);
-            var circle = new EllipsePolygon(new PointF(image.Size() / 2), image.Size());
-            var rectangle = new RectangularPolygon(circle.Bounds);
-            var exceptCircle = rectangle.Clip(circle);
+            const int avatarSize = 128;
+            var image = imageData != null ? Image.Load(imageData) : new Image<Rgba32>(Configuration.Default, avatarSize, avatarSize, Rgba32.Red);
             image.Mutate(i =>
             {
-                i.Fill(
-                    new GraphicsOptions(true) {BlenderMode = PixelBlenderMode.Src}, //use overlay colors
-                    Rgba32.Transparent, //overlay with transparency
-                    exceptCircle); //outside of the circle's bounds
-                i.Resize(128, 128);
+                ApplyRoundedCorners(i, avatarSize / 2);
+                i.Resize(avatarSize, avatarSize);
             });
             return image;
+        }
+
+        private static IImageProcessingContext<Rgba32> ApplyRoundedCorners(IImageProcessingContext<Rgba32> ctx, float cornerRadius)
+        {
+            Size size = ctx.GetCurrentSize();
+            // first create a square
+            var rect = new RectangularPolygon(-0.5f, -0.5f, cornerRadius, cornerRadius);
+
+            // then cut out of the square a circle so we are left with a corner
+            IPath cornerTopLeft = rect.Clip(new EllipsePolygon(cornerRadius - 0.5f, cornerRadius - 0.5f, cornerRadius));
+
+            // corner is now a corner shape positions top left
+            //lets make 3 more positioned correctly, we can do that by translating the original around the center of the image
+
+            float rightPos = size.Width - cornerTopLeft.Bounds.Width + 1;
+            float bottomPos = size.Height - cornerTopLeft.Bounds.Height + 1;
+
+            // move it across the width of the image - the width of the shape
+            IPath cornerTopRight = cornerTopLeft.RotateDegree(90).Translate(rightPos, 0);
+            IPath cornerBottomLeft = cornerTopLeft.RotateDegree(-90).Translate(0, bottomPos);
+            IPath cornerBottomRight = cornerTopLeft.RotateDegree(180).Translate(rightPos, bottomPos);
+            IPathCollection corners = new PathCollection(cornerTopLeft, cornerBottomLeft, cornerTopRight, cornerBottomRight);
+
+            // mutating in here as we already have a cloned original
+            // use any color (not Transparent), so the corners will be clipped
+            return ctx.Fill(
+                new GraphicsOptions(true) { BlenderMode = PixelBlenderMode.Src }, //use overlay colors
+                Rgba32.Transparent, 
+                corners);
         }
 
         public MemoryStream Quadrant(List<(Random rng, byte[])> rngAndAvatarDatas, string opt1, string opt2, string opt3,
@@ -435,6 +459,51 @@ namespace Tadmor.Services.Imaging
                         c.DrawImage(avatars, 1, position);
                     }
                 }
+            });
+            canvas.SaveAsPng(output);
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
+        }
+
+        public MemoryStream Imitate(byte[] avatarData, string username, string text)
+        {
+            const int w = 720;
+            const int avatarS = 128;
+            const int bubbleXMargin = 10;
+            const int bubbleYMargin = 10;
+            const int bubblePadding = 20;
+            const int bubbleW = w - avatarS - bubbleXMargin * 2;
+            const int marginUnderName = 15;
+
+            var nameColor = Rgba32.DarkRed;
+            var textColor = Rgba32.Black;
+            var output = new MemoryStream();
+            var font = HelveticaNeue.CreateFont(28);
+            var nameFont = HelveticaNeueMedium.CreateFont(28);
+            var textW = bubbleW - bubblePadding * 2;
+            var textOptions = new TextGraphicsOptions(true)
+            {
+                WrapTextWidth = textW, 
+                VerticalAlignment = VerticalAlignment.Top
+            };
+            var textMeasure = TextMeasurer.Measure(text, new RendererOptions(font) { WrappingWidth = textW });
+            var bubbleH = textMeasure.Height + bubblePadding * 2 + nameFont.Size + marginUnderName;
+            var h = Math.Max((int) bubbleH, avatarS) + bubbleYMargin * 2;
+            using var canvas = new Image<Rgba32>(w, h);
+            canvas.Mutate(c =>
+            {
+                using var speechBubble = new Image<Rgba32>(bubbleW, (int) bubbleH);
+                speechBubble.Mutate(sc =>
+                {
+                    sc.Fill(Rgba32.White);
+                    ApplyRoundedCorners(sc, 10);
+                });
+                c.DrawImage(CropCircle(avatarData), 1, new Point(0, 0));
+                var speechBubblePos = new Point(avatarS + bubbleXMargin, (h - speechBubble.Height) / 2);
+                c.DrawImage(speechBubble, 1, speechBubblePos);
+                var namePos = speechBubblePos + new Size(bubblePadding);
+                c.DrawText(username, nameFont, nameColor, namePos);
+                c.DrawText(textOptions, text, font, textColor, namePos + new Size(0, (int) (nameFont.Size + marginUnderName)));
             });
             canvas.SaveAsPng(output);
             output.Seek(0, SeekOrigin.Begin);

@@ -111,6 +111,23 @@ namespace Tadmor.Modules
             await Ok((IGuildUser) Context.User, text);
         }
 
+        [Command("mimic")]
+        public async Task Mimic([ShowAsOptional] IGuildUser user, [Remainder] string text)
+        {
+            if (text == null) text = await GetLastMessage(user);
+            var avatarData = await user.GetAvatarAsync() is { } avatar ? await avatar.GetDataAsync() : null;
+            if (avatarData == null) throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
+            var result = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text);
+            await Context.Channel.SendFileAsync(result, "result.png");
+        }
+
+        [Browsable(false)]
+        [Command("mimic")]
+        public async Task Mimic([Remainder] string text)
+        {
+            await Mimic((IGuildUser) Context.User, text);
+        }
+
         [Summary("fake sms with the specified text")]
         [Command("sms")]
         public async Task Sms([ShowAsOptional] IGuildUser user, [Remainder] string? text = null)
