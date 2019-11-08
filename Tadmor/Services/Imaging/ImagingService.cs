@@ -455,8 +455,8 @@ namespace Tadmor.Services.Imaging
                             if (avatars.Width > valueW)
                                 ac.Resize((Size) (avatars.Size() * (valueW / avatars.Width)));
                         });
-                        var position = new Point((int) headerW, rowY);
-                        c.DrawImage(avatars, 1, position);
+                        var avatarsPosition = new Point((int) headerW, rowY + (rowH-avatars.Height)/2);
+                        c.DrawImage(avatars, 1, avatarsPosition);
                     }
                 }
             });
