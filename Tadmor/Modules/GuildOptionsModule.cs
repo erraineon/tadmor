@@ -100,6 +100,15 @@ namespace Tadmor.Modules
                 await ReplyAsync("ok");
             }
 
+            [Summary("add a word filter and a response command to a message by the specified user")]
+            [Command("filter")]
+            [Priority(-1)]
+            public async Task OnInputDelete(IGuildUser sender, string input, [Remainder] string reaction)
+            {
+                _events.AddInputEvent(Context, sender, reaction, input, true);
+                await ReplyAsync("ok");
+            }
+
             [Summary("add an event that will run after the specified amount of messages")]
             [Command("every")]
             public async Task OnInputDelete(int messageCount, [Remainder] string reaction)
