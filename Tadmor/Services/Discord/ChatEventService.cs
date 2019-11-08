@@ -69,7 +69,8 @@ namespace Tadmor.Services.Discord
             bool MatchesEverySoOften(GuildEvent e)
             {
                 return channelId.HasValue &&
-                       _activityMonitor.GetMessagesCount(channelId.Value) % e.MessagesCount == 0;
+                       _activityMonitor.MessageCountsByChannelId.TryGetValue(channelId.Value, out var messageCount) &&
+                       messageCount % e.MessagesCount == 0;
             }
 
             var events = guildOptions.Events

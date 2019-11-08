@@ -5,6 +5,7 @@ using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Tadmor.Adapters.Telegram;
 
 namespace Tadmor.Services.Abstractions
@@ -14,11 +15,13 @@ namespace Tadmor.Services.Abstractions
     {
         private readonly DiscordSocketClient _discordClient;
         private readonly IServiceProvider _services;
+        private readonly ILogger<ChatService> _logger;
         private readonly TelegramClient _telegramClient;
 
-        public ChatService(DiscordSocketClient discordClient, TelegramClient telegramClient, IServiceProvider services)
+        public ChatService(DiscordSocketClient discordClient, TelegramClient telegramClient, IServiceProvider services, ILogger<ChatService> logger)
         {
             _services = services;
+            _logger = logger;
             _discordClient = discordClient;
             _telegramClient = telegramClient;
             MessageReceived += OnMessageReceived;
@@ -69,14 +72,34 @@ namespace Tadmor.Services.Abstractions
         {
             using var scope = _services.CreateScope();
             var listeners = scope.ServiceProvider.GetServices<IMessageListener>();
-            foreach (var listener in listeners) await listener.OnMessageReceivedAsync(client, message);
+            foreach (var listener in listeners)
+            {
+                try
+                {
+                    await listener.OnMessageReceivedAsync(client, message);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, e.Message);
+                }
+            }
         }
 
         private async Task OnUserJoined(IDiscordClient client, IGuildUser user)
         {
             using var scope = _services.CreateScope();
             var listeners = scope.ServiceProvider.GetServices<IJoinListener>();
-            foreach (var listener in listeners) await listener.OnUserJoinedAsync(client, user);
+            foreach (var listener in listeners)
+            {
+                try
+                {
+                    await listener.OnUserJoinedAsync(client, user);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, e.Message);
+                }
+            }
         }
 
         private Task OnDiscordUserJoined(SocketGuildUser arg) => UserJoined(_discordClient, arg);

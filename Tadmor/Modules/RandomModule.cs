@@ -88,7 +88,9 @@ namespace Tadmor.Modules
         [Command("pick")]
         public async Task Pick(params string[] options)
         {
-            var option = options.RandomSubset(1).Single();
+            var distinctOptions = options.Distinct().ToList();
+            if (distinctOptions.Count < 2) throw new Exception("need at least two options");
+            var option = distinctOptions.RandomSubset(1).Single();
             await ReplyAsync(option);
         }
     }
