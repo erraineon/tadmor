@@ -4,6 +4,7 @@ using Tadmor.Services.Discord;
 
 namespace Tadmor.Services.Options
 {
+    [Options]
     public class GuildOptions
     {
         [DatabaseGenerated(DatabaseGeneratedOption.None)]

@@ -1,5 +1,6 @@
 ﻿namespace Tadmor.Services.Twitter
 {
+    [Options]
     public class TwitterOptions
     {
         public string? ConsumerKey { get; set; }

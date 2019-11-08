@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MoreLinq;
+using Tadmor.Services;
 using Tadmor.Utils;
 
 namespace Tadmor.Extensions
@@ -23,15 +24,14 @@ namespace Tadmor.Extensions
             var openMethod = typeof(ServiceExtensions).GetMethod(nameof(ConfigureWritable), methodFlags) ??
                              throw new Exception("generic options configuration method not found");
 
-            // map all configuration sections to types by their name, construct the configuration method and invoke it
-            configuration.GetChildren()
-                .Join(Assembly.GetCallingAssembly().GetExportedTypes(),
-                    section => section.Key,
-                    type => type.Name,
-                    (section, type) => openMethod
-                        .MakeGenericMethod(type)
-                        .Invoke(null, new object[] {services, section, optionsPath}))
+            // map all options to configuration sections, construct the configuration method and invoke it
+            Assembly.GetCallingAssembly().ExportedTypes
+                .Where(t => Attribute.IsDefined(t, typeof(OptionsAttribute)))
+                .Select(t => openMethod
+                    .MakeGenericMethod(t)
+                    .Invoke(null, new object[] {services, configuration.GetSection(t.Name), optionsPath}))
                 .Consume();
+
             return services;
         }
 

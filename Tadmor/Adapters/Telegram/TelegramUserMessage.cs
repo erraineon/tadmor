@@ -9,18 +9,21 @@ namespace Tadmor.Adapters.Telegram
 {
     public class TelegramUserMessage : IUserMessage
     {
-        private static readonly IAttachment[] EmptyAttachments = new IAttachment[0];
         private readonly Message _apiMessage;
 
         public TelegramUserMessage(TelegramGuild guild, TelegramGuildUser user,
             Message apiMessage)
         {
+            IEnumerable<IAttachment> GetAttachments()
+            {
+                if (apiMessage.Photo is { } photos)
+                    yield return new TelegramAttachment(photos.Last());
+            }
+
             _apiMessage = apiMessage;
             Channel = guild;
             Author = user;
-            Attachments = apiMessage.Photo is {} photos
-                ? new IAttachment[] {new TelegramAttachment(photos.Last())}
-                : EmptyAttachments;
+            Attachments = GetAttachments().ToList();
         }
 
         public ulong Id => (ulong) _apiMessage.MessageId;

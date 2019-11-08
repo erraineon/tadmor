@@ -2,6 +2,7 @@
 
 namespace Tadmor.Services.Sonagen
 {
+    [Options]
     public class SonagenOptions
     {
         public List<AttributeGroup> AttributeGroups { get; set; } = null!;

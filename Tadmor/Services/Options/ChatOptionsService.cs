@@ -25,7 +25,7 @@ namespace Tadmor.Services.Options
 
         public GuildOptions GetGuildOptions(ulong guildId, ChatOptions chatOptions)
         {
-            var guildOptions = (chatOptions.GuildOptions ??= new List<GuildOptions>())
+            var guildOptions = chatOptions.GuildOptions
                 .SingleOrDefault(options => options.Id == guildId);
             if (guildOptions == null)
             {
@@ -52,7 +52,7 @@ namespace Tadmor.Services.Options
 
         private static IEnumerable<CommandUsagePermission> GetPermissions(string commandName, ChatOptions commandOptions)
         {
-            var permissions = (commandOptions.CommandUsagePermissions ??= new List<CommandUsagePermission>())
+            var permissions = commandOptions.CommandUsagePermissions
                 .Where(options => string.Equals(options.CommandName, commandName, StringComparison.OrdinalIgnoreCase));
             return permissions;
         }
@@ -78,6 +78,10 @@ namespace Tadmor.Services.Options
                     ScopeType = scopeType
                 };
                 options.Value.CommandUsagePermissions.Add(permission);
+            }
+            else if (permissionType == PermissionType.None)
+            {
+                options.Value.CommandUsagePermissions.Remove(permission);
             }
 
             permission.PermissionType = permissionType;
