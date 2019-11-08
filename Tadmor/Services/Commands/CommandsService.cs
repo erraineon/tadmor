@@ -12,6 +12,7 @@ using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Tadmor.Services.Commands
 {
@@ -20,10 +21,12 @@ namespace Tadmor.Services.Commands
     {
         private readonly CommandService _commands;
         private readonly IServiceProvider _services;
+        private readonly ILogger _logger;
 
-        public CommandsService(IServiceProvider services)
+        public CommandsService(IServiceProvider services, ILogger<CommandService> logger)
         {
             _services = services;
+            _logger = logger;
             _commands = new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async});
         }
 
@@ -54,8 +57,15 @@ namespace Tadmor.Services.Commands
             if (logMessage.Exception is CommandException commandException)
             {
                 var e = commandException.InnerException ?? commandException;
-                var message = e.GetType() == typeof(Exception) ? e.Message : ToShortString(e);
-                await commandException.Context.Channel.SendMessageAsync(message);
+                if (e.GetType() == typeof(Exception))
+                {
+                    await commandException.Context.Channel.SendMessageAsync(e.Message);
+                }
+                else
+                {
+                    _logger.LogError(ToShortString(e));
+                    await commandException.Context.Channel.SendMessageAsync("crap");
+                }
             }
         }
 
