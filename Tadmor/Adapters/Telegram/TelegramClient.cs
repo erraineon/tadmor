@@ -190,13 +190,9 @@ namespace Tadmor.Adapters.Telegram
 
         public async Task<byte[]> GetImageAsync(string fileId)
         {
-            if (!_imagesCache.TryGetValue(fileId, out var data))
-            {
-                var memoryStream = new MemoryStream();
-                await Api.GetInfoAndDownloadFileAsync(fileId, memoryStream);
-                data = _imagesCache[fileId] = memoryStream.ToArray();
-            }
-
+            var memoryStream = new MemoryStream();
+            await Api.GetInfoAndDownloadFileAsync(fileId, memoryStream);
+            var data = memoryStream.ToArray();
             return data;
         }
     }

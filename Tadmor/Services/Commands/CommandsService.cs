@@ -81,6 +81,7 @@ namespace Tadmor.Services.Commands
                 {
                     scope.Dispose();
                     _commands.CommandExecuted -= DisposeScope;
+                    _logger.LogInformation($"ok: {context.Message.Content}");
                 }
 
                 return Task.CompletedTask;
