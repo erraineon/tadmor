@@ -20,7 +20,6 @@ namespace Tadmor.Adapters.Telegram
         private readonly AsyncConcurrentDictionary<long, TelegramGuild> _guildsByChatId = new AsyncConcurrentDictionary<long, TelegramGuild>();
         private TelegramBotClient? _api;
         private IApplication? _application;
-        private readonly IDictionary<string, byte[]> _imagesCache = new Dictionary<string, byte[]>();
 
         public TelegramClient(TelegramClientConfig configuration)
         {
@@ -151,7 +150,9 @@ namespace Tadmor.Adapters.Telegram
                     .Select(a => (ulong) a.User.Id)
                     .Concat(new[] {(ulong) api.BotId})
                     .ToHashSet();
-                return new TelegramGuild(this, api, chat, administratorIds);
+                var guild = new TelegramGuild(this, api, chat, administratorIds);
+                guild.MessageReceived += message => MessageReceived(message);
+                return guild;
             });
         }
 
@@ -176,8 +177,7 @@ namespace Tadmor.Adapters.Telegram
             if (apiMessage.Chat.Type != ChatType.Private)
             {
                 var guild = await GetTelegramGuild(apiMessage.Chat);
-                var telegramMessage = guild.ProcessInboundMessage(apiMessage);
-                await MessageReceived(telegramMessage);
+                await guild.ProcessInboundMessage(apiMessage);
             }
         }
 

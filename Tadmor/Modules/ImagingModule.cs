@@ -44,7 +44,7 @@ namespace Tadmor.Modules
 
         [Summary("make a tier list")]
         [Command("tier")]
-        public async Task Quad(params string[] tiers)
+        public async Task Tier(params string[] tiers)
         {
             var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
             var result = _imaging.Rank(rngAndAvatars, tiers);

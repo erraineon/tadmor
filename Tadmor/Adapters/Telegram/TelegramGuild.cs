@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -23,7 +24,7 @@ namespace Tadmor.Adapters.Telegram
         private readonly Chat _chat;
         private readonly FixedSizedQueue<IMessage> _messageCache;
         private readonly TelegramClient _telegram;
-        private readonly IDictionary<ulong, TelegramGuildUser> _usersCache = new Dictionary<ulong, TelegramGuildUser>();
+        private readonly ConcurrentDictionary<ulong, TelegramGuildUser> _usersCache = new ConcurrentDictionary<ulong, TelegramGuildUser>();
 
         public TelegramGuild(TelegramClient telegram, TelegramBotClient api, Chat chat, HashSet<ulong> administratorIds)
         {
@@ -491,7 +492,7 @@ namespace Tadmor.Adapters.Telegram
             // replace regular markdown with the kind that telegram expects
             text = Regex.Replace(text, @"([*_])\1(.*?)\1\1", @"$1$2$1");
             var message = await _api.SendTextMessageAsync(_chat.Id, text, ParseMode.Markdown);
-            return ProcessInboundMessage(message);
+            return await ProcessInboundMessage(message);
         }
 
         private static string ToText(IEmbed embed)
@@ -529,7 +530,7 @@ namespace Tadmor.Adapters.Telegram
             var message = videoExtensions.Any(filename.EndsWith)
                 ? await _api.SendVideoAsync(_chat.Id, new InputOnlineFile(stream), caption: text)
                 : await _api.SendPhotoAsync(_chat.Id, new InputOnlineFile(stream), text);
-            return ProcessInboundMessage(message);
+            return await ProcessInboundMessage(message);
         }
 
         public Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload,
@@ -596,14 +597,17 @@ namespace Tadmor.Adapters.Telegram
                 .ToAsyncEnumerable();
         }
 
-        public TelegramUserMessage ProcessInboundMessage(Message msg)
+        public async Task<TelegramUserMessage> ProcessInboundMessage(Message msg)
         {
             var user = new TelegramGuildUser(_telegram, this, msg.From);
             var message = new TelegramUserMessage(this, user, msg);
             _messageCache.Enqueue(message);
             _usersCache[user.Id] = user;
+            await MessageReceived(message);
             return message;
         }
+
+        public event Func<IUserMessage, Task> MessageReceived = _ => Task.CompletedTask;
 
         public bool IsAdmin(TelegramGuildUser telegramGuildUser)
         {
