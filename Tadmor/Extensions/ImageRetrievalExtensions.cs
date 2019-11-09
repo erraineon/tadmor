@@ -88,7 +88,7 @@ namespace Tadmor.Extensions
             var images = context.Channel
                 .GetMessagesAsync()
                 .Flatten()
-                .Where(m => scanOnlyOwnMessages || m.Author.Id == context.User.Id)
+                .Where(m => !scanOnlyOwnMessages || m.Author.Id == context.User.Id)
                 .OfType<IUserMessage>()
                 .SelectMany(m => GetAllImagesAsync(m, context.Client, linkedUrls));
             await foreach (var image in images)
