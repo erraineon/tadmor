@@ -33,8 +33,10 @@ namespace Tadmor
                     .AddMemoryCache()
                     .AddDbContext<AppDbContext>(builder => builder
                         .UseSqlite(hostContext.Configuration.GetConnectionString("Main")))
-                    .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig {MessageCacheSize = 100}))
-                    .AddSingleton(new TelegramClient(new TelegramClientConfig {MessageCacheSize = 100}))
+                    .AddSingleton(new DiscordSocketConfig { MessageCacheSize = 100 })
+                    .AddSingleton(new TelegramClientConfig { MessageCacheSize = 100 })
+                    .AddSingleton<DiscordSocketClient>()
+                    .AddSingleton<TelegramClient>()
                     .Scan(scan => scan
                         .FromEntryAssembly()
                         .AddClasses(classes => classes.WithAttribute<TransientServiceAttribute>())

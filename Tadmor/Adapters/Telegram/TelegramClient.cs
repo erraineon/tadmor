@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Microsoft.Extensions.Caching.Memory;
+using Tadmor.Extensions;
 using Tadmor.Services.Abstractions;
-using Tadmor.Utils;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
@@ -17,13 +17,14 @@ namespace Tadmor.Adapters.Telegram
 {
     public class TelegramClient : IDiscordClient
     {
-        private readonly AsyncConcurrentDictionary<long, TelegramGuild> _guildsByChatId = new AsyncConcurrentDictionary<long, TelegramGuild>();
+        private const string GuildsKeyPrefix = "telegram-guilds";
+        private readonly IMemoryCache _cache;
         private TelegramBotClient? _api;
         private IApplication? _application;
-        private readonly AsyncConcurrentDictionary<string, byte[]> _imagesCache = new AsyncConcurrentDictionary<string, byte[]>();
 
-        public TelegramClient(TelegramClientConfig configuration)
+        public TelegramClient(TelegramClientConfig configuration, IMemoryCache cache)
         {
+            _cache = cache;
             Configuration = configuration;
         }
 
@@ -92,7 +93,11 @@ namespace Tadmor.Adapters.Telegram
         public Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
-            return Task.FromResult((IReadOnlyCollection<IGuild>) _guildsByChatId.Values.ToList().AsReadOnly());
+            return Task.FromResult((IReadOnlyCollection<IGuild>) _cache.GetKeys()
+                .OfType<string>()
+                .Where(k => k.StartsWith(GuildsKeyPrefix))
+                .Select(k => _cache.Get<IGuild>(k))
+                .ToArray());
         }
 
         public Task<IGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream? jpegIcon = null,
@@ -143,10 +148,10 @@ namespace Tadmor.Adapters.Telegram
 
         private async Task<TelegramGuild> GetTelegramGuild(Chat chat)
         {
-            return await _guildsByChatId.GetOrAddAsync(chat.Id, async chatId =>
+            return await _cache.GetOrCreateAsyncLock($"guilds-{chat.Id}", async _ =>
             {
                 var api = Api;
-                var administrators = await api.GetChatAdministratorsAsync(new ChatId(chatId));
+                var administrators = await api.GetChatAdministratorsAsync(new ChatId(chat.Id));
                 var administratorIds = administrators
                     .Select(a => (ulong) a.User.Id)
                     .Concat(new[] {(ulong) api.BotId})
@@ -191,8 +196,9 @@ namespace Tadmor.Adapters.Telegram
 
         public async Task<byte[]> GetImageAsync(string fileId)
         {
-            var data = await _imagesCache.GetOrAddAsync(fileId, async id =>
+            var data = await _cache.GetOrCreateAsyncLock($"telegram-file-{fileId}", async entry =>
             {
+                entry.SetSlidingExpiration(TimeSpan.FromDays(1));
                 var memoryStream = new MemoryStream();
                 await Api.GetInfoAndDownloadFileAsync(fileId, memoryStream);
                 return memoryStream.ToArray();

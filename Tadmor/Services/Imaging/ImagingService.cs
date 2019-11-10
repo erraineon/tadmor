@@ -83,8 +83,8 @@ namespace Tadmor.Services.Imaging
                         avatars.Composite(avatarsForCell[i], i * avatarWidth, 0, CompositeOperator.Over);
                     if (avatars.Width > cellRect.Width)
                     {
-                        var cellRectWidth = avatarsSize * (cellRect.Width / avatars.Width);
-                        avatars.Resize(cellRectWidth.Width, cellRectWidth.Height);
+                        var cellRectWidth = avatarsSize * (cellRect.Width / (float)avatars.Width);
+                        avatars.Resize((int) cellRectWidth.Width, (int)cellRectWidth.Height);
                     }
 
                     //use the average color from the avatars as cell background

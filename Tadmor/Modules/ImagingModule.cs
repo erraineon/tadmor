@@ -31,7 +31,7 @@ namespace Tadmor.Modules
         [Command("poly")]
         public async Task Poly(params string[] sides)
         {
-            var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
+            var rngAndAvatars = await GetRngAndAvatars();
             var result = _imagingLegacy.Poly(rngAndAvatars, sides);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
@@ -40,7 +40,7 @@ namespace Tadmor.Modules
         [Command("quad")]
         public async Task Quad(string top, string bottom, string left, string right)
         {
-            var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
+            var rngAndAvatars = await GetRngAndAvatars();
             var result = _imagingLegacy.Quadrant(rngAndAvatars, top, bottom, left, right);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
@@ -49,7 +49,7 @@ namespace Tadmor.Modules
         [Command("tier")]
         public async Task Tier(params string[] tiers)
         {
-            var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
+            var rngAndAvatars = await GetRngAndAvatars();
             var result = _imagingLegacy.Rank(rngAndAvatars, tiers);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
@@ -59,7 +59,7 @@ namespace Tadmor.Modules
         public async Task AlignmentChart(params string[] options)
         {
             if (!options.Any()) options = new[] {"lawful", "neutral", "chaotic", "good", "neutral", "evil"};
-            var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
+            var rngAndAvatars = await GetRngAndAvatars();
             var result = _imaging.AlignmentChart(rngAndAvatars, options);
             await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
@@ -170,14 +170,18 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(result, "result.gif");
         }
 
-        private async IAsyncEnumerable<(Random rng, byte[])> GetRngAndAvatars()
+        private async Task<List<(Random, byte[])>> GetRngAndAvatars()
         {
-            var rngAndAvatars = _activityMonitor.GetActiveUsers(Context.Guild)
-                .SelectAwait(ImageRetrievalExtensions.GetAvatarAsync)
-                .Where(image => image != null)
-                .SelectAwait(async image => (image.Id.ToRandom(), await image.GetDataAsync()))
-                .Reverse();
-            await foreach (var rngAndAvatar in rngAndAvatars) yield return rngAndAvatar;
+            var activeUsers = await _activityMonitor.GetActiveUsers(Context.Guild).ToListAsync();
+            // as callers consume all avatars, it's better to request the images in parallel
+            // rather than use IAsyncEnumerable
+            var rngAndAvatars = (await Task.WhenAll(activeUsers
+                    .Select(async user => await user.GetAvatarAsync() is { } avatar
+                        ? (avatar.Id.ToRandom(), await avatar.GetDataAsync())
+                        : default)))
+                .Where(t => t != default)
+                .ToList();
+            return rngAndAvatars;
         }
     }
 }
