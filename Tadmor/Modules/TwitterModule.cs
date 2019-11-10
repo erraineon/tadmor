@@ -16,9 +16,9 @@ namespace Tadmor.Modules
     {
         private readonly TwitterService _twitter;
         private readonly ActivityMonitorService _activityMonitor;
-        private readonly ImagingService _imaging;
+        private readonly ImagingServiceLegacy _imaging;
 
-        public TwitterModule(TwitterService twitter, ActivityMonitorService activityMonitor, ImagingService imaging)
+        public TwitterModule(TwitterService twitter, ActivityMonitorService activityMonitor, ImagingServiceLegacy imaging)
         {
             _twitter = twitter;
             _activityMonitor = activityMonitor;

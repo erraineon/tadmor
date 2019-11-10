@@ -55,7 +55,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\HelveticaNeueMedium.ttf">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
 
@@ -78,6 +78,7 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.11.16" />
     <PackageReference Include="Humanizer.Core" Version="2.7.9" />
     <PackageReference Include="linqtotwitter" Version="5.0.0" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="7.14.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.0.0">
       <PrivateAssets>all</PrivateAssets>
@@ -111,10 +112,16 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\angry.png" />
     <EmbeddedResource Include="Resources\down.gif" />
-    <EmbeddedResource Include="Resources\HelveticaNeue.ttf" />
-    <EmbeddedResource Include="Resources\micross.ttf" />
+    <EmbeddedResource Include="Resources\HelveticaNeue.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\micross.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\up.gif" />
-    <EmbeddedResource Include="Resources\GothamRoundedLight.ttf" />
+    <EmbeddedResource Include="Resources\GothamRoundedLight.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

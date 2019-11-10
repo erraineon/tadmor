@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -17,11 +18,13 @@ namespace Tadmor.Modules
     {
         private readonly ActivityMonitorService _activityMonitor;
         private readonly ImagingService _imaging;
+        private readonly ImagingServiceLegacy _imagingLegacy;
 
-        public ImagingModule(ImagingService imaging, ActivityMonitorService activityMonitor)
+        public ImagingModule(ImagingServiceLegacy imagingLegacy, ActivityMonitorService activityMonitor, ImagingService imaging)
         {
-            _imaging = imaging;
+            _imagingLegacy = imagingLegacy;
             _activityMonitor = activityMonitor;
+            _imaging = imaging;
         }
 
         [Summary("make a polygonal chart")]
@@ -29,7 +32,7 @@ namespace Tadmor.Modules
         public async Task Poly(params string[] sides)
         {
             var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
-            var result = _imaging.Poly(rngAndAvatars, sides);
+            var result = _imagingLegacy.Poly(rngAndAvatars, sides);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
@@ -38,7 +41,7 @@ namespace Tadmor.Modules
         public async Task Quad(string top, string bottom, string left, string right)
         {
             var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
-            var result = _imaging.Quadrant(rngAndAvatars, top, bottom, left, right);
+            var result = _imagingLegacy.Quadrant(rngAndAvatars, top, bottom, left, right);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
@@ -47,7 +50,7 @@ namespace Tadmor.Modules
         public async Task Tier(params string[] tiers)
         {
             var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
-            var result = _imaging.Rank(rngAndAvatars, tiers);
+            var result = _imagingLegacy.Rank(rngAndAvatars, tiers);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
@@ -58,7 +61,7 @@ namespace Tadmor.Modules
             if (!options.Any()) options = new[] {"lawful", "neutral", "chaotic", "good", "neutral", "evil"};
             var rngAndAvatars = await GetRngAndAvatars().ToListAsync();
             var result = _imaging.AlignmentChart(rngAndAvatars, options);
-            await Context.Channel.SendFileAsync(result, "result.png");
+            await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
 
         [Browsable(false)]
@@ -101,7 +104,7 @@ namespace Tadmor.Modules
 
             var avatarData = await user.GetAvatarAsync() is {} avatar ? await avatar.GetDataAsync() : null;
             if (avatarData == null) throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
-            var result = _imaging.Ok(text, avatarData);
+            var result = _imagingLegacy.Ok(text, avatarData);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
@@ -122,7 +125,7 @@ namespace Tadmor.Modules
             var avatarData = await user.GetAvatarAsync() is { } avatar ? await avatar.GetDataAsync() : null;
             if (avatarData == null) throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
             var imageData = image != null ? await image.GetDataAsync() : null;
-            var result = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text, imageData);
+            var result = _imagingLegacy.Imitate(avatarData, user.Nickname ?? user.Username, text, imageData);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
@@ -140,7 +143,7 @@ namespace Tadmor.Modules
         public async Task Sms([ShowAsOptional] IGuildUser user, [Remainder] string? text = null)
         {
             if (text == null) text = await GetLastMessage(user);
-            var result = _imaging.Text(user.Nickname ?? user.Username, text);
+            var result = _imagingLegacy.Text(user.Nickname ?? user.Username, text);
             await Context.Channel.SendFileAsync(result, "result.png");
         }
 
@@ -163,7 +166,7 @@ namespace Tadmor.Modules
             var avatarData = user != null && await user.GetAvatarAsync() is {} avatar
                 ? await avatar.GetDataAsync()
                 : null;
-            var result = _imaging.UpDownGif(text.ToUpper(), avatarData, $"{direction}.gif");
+            var result = _imagingLegacy.UpDownGif(text.ToUpper(), avatarData, $"{direction}.gif");
             await Context.Channel.SendFileAsync(result, "result.gif");
         }
 
