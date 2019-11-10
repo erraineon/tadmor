@@ -20,6 +20,7 @@ namespace Tadmor.Adapters.Telegram
         private readonly AsyncConcurrentDictionary<long, TelegramGuild> _guildsByChatId = new AsyncConcurrentDictionary<long, TelegramGuild>();
         private TelegramBotClient? _api;
         private IApplication? _application;
+        private readonly AsyncConcurrentDictionary<string, byte[]> _imagesCache = new AsyncConcurrentDictionary<string, byte[]>();
 
         public TelegramClient(TelegramClientConfig configuration)
         {
@@ -190,9 +191,12 @@ namespace Tadmor.Adapters.Telegram
 
         public async Task<byte[]> GetImageAsync(string fileId)
         {
-            var memoryStream = new MemoryStream();
-            await Api.GetInfoAndDownloadFileAsync(fileId, memoryStream);
-            var data = memoryStream.ToArray();
+            var data = await _imagesCache.GetOrAddAsync(fileId, async id =>
+            {
+                var memoryStream = new MemoryStream();
+                await Api.GetInfoAndDownloadFileAsync(fileId, memoryStream);
+                return memoryStream.ToArray();
+            });
             return data;
         }
     }
