@@ -11,16 +11,16 @@ namespace Tadmor.Services.Options
     [SingletonService]
     public class ChatOptionsService
     {
-        private readonly IServiceProvider _services;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public ChatOptionsService(IServiceProvider services)
+        public ChatOptionsService(IServiceScopeFactory scopeFactory)
         {
-            _services = services;
+            _scopeFactory = scopeFactory;
         }
 
         public IWritableOptionsSnapshot<ChatOptions> GetOptions()
         {
-            return _services.GetService<IWritableOptionsSnapshot<ChatOptions>>();
+            return _scopeFactory.CreateScope().ServiceProvider.GetService<IWritableOptionsSnapshot<ChatOptions>>();
         }
 
         public GuildOptions GetGuildOptions(ulong guildId, ChatOptions chatOptions)

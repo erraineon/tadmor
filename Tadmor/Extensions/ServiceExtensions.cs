@@ -40,7 +40,7 @@ namespace Tadmor.Extensions
         {
             services
                 .Configure<T>(section)
-                .AddTransient<IWritableOptionsSnapshot<T>>(provider =>
+                .AddScoped<IWritableOptionsSnapshot<T>>(provider =>
                 {
                     var environment = provider.GetService<IHostEnvironment>();
                     var options = provider.GetService<IOptionsSnapshot<T>>();
