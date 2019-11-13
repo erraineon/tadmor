@@ -10,7 +10,7 @@ namespace Tadmor.Services.FourChan
         {
             _post = post;
             Replies = repliesCount;
-            var url = Constants.GetThreadUrl(post.Board, threadNumber).Replace(".json", string.Empty);
+            var url = $"https://boards.4chan.org/{post.Board}/thread/{threadNumber}";
             if (post.PostNumber != threadNumber) url += $"#p{post.PostNumber}";
             Url = url;
             Name = threadSubject;

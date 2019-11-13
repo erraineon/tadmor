@@ -60,7 +60,6 @@ namespace Tadmor.Services.Imaging
                 //alignment text
                 using var textCanvas = new MagickImage($"label:{text}", new MagickReadSettings
                 {
-                    Font = TimesNewRomanFont,
                     FontFamily = TimesNewRomanFont,
                     Width = cellRect.Width,
                     Height = textHeight,
@@ -122,7 +121,6 @@ namespace Tadmor.Services.Imaging
             mask.VirtualPixelMethod = VirtualPixelMethod.HorizontalTile;
             mask.BackgroundColor = MagickColors.None;
             mask.Distort(DistortMethod.Polar, 0);
-            mask.Write("output.png");
             image.Composite(mask, CompositeOperator.DstIn);
             image.RePage();
             return image;
