@@ -41,15 +41,12 @@ namespace Tadmor.Services.Imaging
                 .Batch(axisLength)
                 .SelectMany((col, x) => col.Select((cell, y) => (cell: cell.ToUpper(), x, y)))
                 .ToList();
-            var alignmentString = string.Concat(cells.Select(t => t.cell));
-            var rows = cells.Max(t => t.y) + 1;
-            var cols = cells.Max(t => t.x) + 1;
             var avatarsByCell = rngAndAvatarDatas
-                .Select(tuple => (rng: (alignmentString, tuple.rng.Next()).ToRandom(), tuple.avatarData))
+                .Select(tuple => (rng: (options, tuple.rng.Next()).ToRandom(), tuple.avatarData))
                 .ToLookup(
-                    tuple => (tuple.rng.Next(cols), tuple.rng.Next(rows)),
+                    tuple => (tuple.rng.Next(axisLength), tuple.rng.Next(axisLength)),
                     tuple => CropCircle(tuple.avatarData));
-            using var canvas = new MagickImage(MagickColors.Black, cellW * cols, cellH * rows);
+            using var canvas = new MagickImage(MagickColors.Black, cellW * axisLength, cellH * axisLength);
             foreach (var (text, x, y) in cells)
             {
                 //alignment cell
@@ -74,7 +71,6 @@ namespace Tadmor.Services.Imaging
                 {
                     //draw all the avatars on one image, then resize if necessary
                     var avatarWidth = avatarsForCell.First().Width;
-                    var avatarsSize = new Size(avatarWidth * avatarsForCell.Count, avatarWidth);
                     var avatars = new MagickImage(MagickColors.Transparent, avatarWidth * avatarsForCell.Count,
                         avatarWidth);
 
@@ -82,19 +78,17 @@ namespace Tadmor.Services.Imaging
                         avatars.Composite(avatarsForCell[i], i * avatarWidth, 0, CompositeOperator.Over);
                     if (avatars.Width > cellRect.Width)
                     {
-                        var cellRectWidth = avatarsSize * (cellRect.Width / (float)avatars.Width);
-                        avatars.Resize((int) cellRectWidth.Width, (int)cellRectWidth.Height);
+                        avatars.Resize(cellRect.Width, cellRect.Width);
                     }
 
                     //use the average color from the avatars as cell background
-                    var blurryAvatars = avatars.Clone();
-                    blurryAvatars.Blur(10, 10);
-                    var middlePixel = blurryAvatars.GetPixels()[blurryAvatars.Width / 2, blurryAvatars.Height / 2];
-                    var magickColor = middlePixel.ToColor();
+                    var backgroundColorImage = avatars.Clone();
+                    backgroundColorImage.Resize(1, 1);
+                    var singlePixel = backgroundColorImage.GetPixels().Single();
                     canvas.Draw(new Drawables()
-                        .FillColor(magickColor)
+                        .FillColor(singlePixel.ToColor())
                         .Rectangle(cellRect.Left, cellRect.Top, cellRect.Right, cellRect.Bottom));
-                    var position = cellCenter - avatarsSize / 2;
+                    var position = cellCenter - new Size(avatars.Width, avatars.Height) / 2;
                     canvas.Composite(avatars, position.X, position.Y, CompositeOperator.Over);
                 }
                 else
@@ -108,7 +102,7 @@ namespace Tadmor.Services.Imaging
             return canvas.ToByteArray(MagickFormat.Png);
         }
 
-        private MagickImage CropCircle(byte[] imageData)
+        private MagickImage CropCircle(byte[]? imageData)
         {
             const int avatarSize = 128;
             var image = imageData != null
