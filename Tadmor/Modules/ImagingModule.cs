@@ -96,12 +96,7 @@ namespace Tadmor.Modules
         [Command("ok")]
         public async Task Ok([ShowAsOptional] IGuildUser user, [Remainder] string? text = null)
         {
-            if (text == null)
-            {
-                var lastMessage = await _activityMonitor.GetLastMessageAsync(user);
-                text = (lastMessage as IUserMessage)?.Resolve() ?? throw new Exception($"{user.Mention} hasn't talked");
-            }
-
+            text ??= await GetLastMessage(user);
             var avatarData = await user.GetAvatarAsync() is {} avatar ? await avatar.GetDataAsync() : null;
             if (avatarData == null) throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
             var result = _imagingLegacy.Ok(text, avatarData);
@@ -131,11 +126,25 @@ namespace Tadmor.Modules
 
         [Summary("mimics someone else's message after running a replacement on the text")]
         [Command("replace")]
-        public async Task MimicReplace([ShowAsOptional] IGuildUser user, string pattern, [Remainder] string replacement)
+        public async Task MimicReplace([ShowAsOptional] IGuildUser? user, string pattern, [Remainder] string replacement)
         {
-            var input = await GetLastMessage(user);
-            var text = Regex.Replace(input, pattern, replacement, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
-            await Mimic(user, text);
+            var regex = new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
+            var (author, text) = await Context.Channel.GetMessagesAsync()
+                .Flatten()
+                .Where(m => user == null || m.Author.Id == user.Id)
+                .Select(m => (message: m, newValue: regex.Replace(m.Content, replacement)))
+                .Where(t => t.message.Content != t.newValue)
+                .Select(t => (t.message.Author, t.newValue))
+                .FirstAsync();
+            await Mimic((IGuildUser) author, text);
+        }
+
+        [Summary("mimics someone else's message after running a replacement on the text")]
+        [Command("replace")]
+        [Browsable(false)]
+        public async Task MimicReplace(string pattern, [Remainder] string replacement)
+        {
+            await MimicReplace(default, pattern, replacement);
         }
 
         [Summary("fake sms with the specified text")]
