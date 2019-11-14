@@ -126,6 +126,7 @@ namespace Tadmor.Modules
 
         [Summary("mimics someone else's message after running a replacement on the text")]
         [Command("replace")]
+        [Priority(-1)]
         public async Task MimicReplace([ShowAsOptional] IGuildUser? user, string pattern, [Remainder] string replacement)
         {
             var regex = new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
