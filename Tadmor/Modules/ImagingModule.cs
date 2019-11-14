@@ -132,7 +132,7 @@ namespace Tadmor.Modules
             var regex = new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
             var (author, text) = await Context.Channel.GetMessagesAsync()
                 .Flatten()
-                .Where(m => user == null || m.Author.Id == user.Id)
+                .Where(m => m.Id != Context.Message.Id && (user == null || m.Author.Id == user.Id))
                 .Select(m => (message: m, newValue: regex.Replace(m.Content, replacement)))
                 .Where(t => t.message.Content != t.newValue)
                 .Select(t => (t.message.Author, t.newValue))
