@@ -102,7 +102,7 @@ namespace Tadmor.Modules
 
             [Summary("add a word filter and a response command to a message by the specified user")]
             [Command("filter")]
-            [Priority(-1)]
+            [Priority(1)]
             public async Task OnInputDelete(IGuildUser sender, string input, [Remainder] string reaction)
             {
                 _events.AddInputEvent(Context, sender, reaction, input, true);
@@ -138,7 +138,7 @@ namespace Tadmor.Modules
 
             [Summary("add an event in response to a message")]
             [Command]
-            [Priority(-1)]
+            [Priority(1)]
             public async Task OnInput(string input, [Remainder] string reaction)
             {
                 _events.AddInputEvent(Context, default, reaction, input, false);
@@ -147,7 +147,7 @@ namespace Tadmor.Modules
 
             [Summary("add an event in response to a specific user's message")]
             [Command]
-            [Priority(-1)]
+            [Priority(2)]
             public async Task OnInput(IGuildUser sender, string input, [Remainder] string reaction)
             {
                 _events.AddInputEvent(Context, sender, reaction, input, false);

@@ -112,7 +112,6 @@ namespace Tadmor.Modules
 
         [Summary("mimics someone else's message")]
         [Command("mimic")]
-        [Priority(-1)]
         public async Task Mimic(IGuildUser user, [Remainder] string? text = default)
         {
             var image = await Context.Message.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
@@ -126,8 +125,8 @@ namespace Tadmor.Modules
 
         [Summary("mimics someone else's message after running a replacement on the text")]
         [Command("replace")]
-        [Priority(-1)]
-        public async Task MimicReplace([ShowAsOptional] IGuildUser? user, string pattern, [Remainder] string replacement)
+        [Priority(1)]
+        public async Task MimicReplace([ShowAsOptional] IGuildUser user, string pattern, [Remainder] string replacement)
         {
             var regex = new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
             var (author, text) = await Context.Channel.GetMessagesAsync()
