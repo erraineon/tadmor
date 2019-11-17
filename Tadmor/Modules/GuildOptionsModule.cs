@@ -138,7 +138,7 @@ namespace Tadmor.Modules
 
             [Summary("add an event in response to a message")]
             [Command]
-            [Priority(1)]
+            [Priority(-2)]
             public async Task OnInput(string input, [Remainder] string reaction)
             {
                 _events.AddInputEvent(Context, default, reaction, input, false);
@@ -147,7 +147,7 @@ namespace Tadmor.Modules
 
             [Summary("add an event in response to a specific user's message")]
             [Command]
-            [Priority(2)]
+            [Priority(-1)]
             public async Task OnInput(IGuildUser sender, string input, [Remainder] string reaction)
             {
                 _events.AddInputEvent(Context, sender, reaction, input, false);
