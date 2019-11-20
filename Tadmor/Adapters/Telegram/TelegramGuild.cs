@@ -488,7 +488,7 @@ namespace Tadmor.Adapters.Telegram
             }
 
             // escape telegram markdown tokens out of urls
-            text = Regex.Replace(text, @"http.+?(?=\s|$)", m => Regex.Replace(m.Value, @"[*_~]", @"\$&"));
+            text = Regex.Replace(text, @"(http|\@).+?(?=\s|$)", m => Regex.Replace(m.Value, @"[*_~]", @"\$&"));
             // replace regular markdown with the kind that telegram expects
             text = Regex.Replace(text, @"([*_])\1(.*?)\1\1", @"$1$2$1");
             var message = await _api.SendTextMessageAsync(_chat.Id, text, ParseMode.Markdown);

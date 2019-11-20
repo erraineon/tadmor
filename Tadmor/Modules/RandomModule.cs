@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Humanizer;
-using Microsoft.Extensions.Options;
 using MoreLinq.Extensions;
-using Tadmor.Extensions;
-using Tadmor.Preconditions;
 using Tadmor.Services.Compliments;
 using Tadmor.Services.Data;
 using Tadmor.Services.Tumblr;
@@ -21,12 +16,13 @@ namespace Tadmor.Modules
     public class RandomModule : ModuleBase<ICommandContext>
     {
         private static readonly Random Random = new Random();
+        private readonly ComplimentsService _complimentsService;
+        private readonly AppDbContext _context;
         private readonly TumblrService _tumblr;
         private readonly TwitterService _twitter;
-        private readonly AppDbContext _context;
-        private readonly ComplimentsService _complimentsService;
 
-        public RandomModule(TwitterService twitter, TumblrService tumblr, AppDbContext context, ComplimentsService complimentsService)
+        public RandomModule(TwitterService twitter, TumblrService tumblr, AppDbContext context,
+            ComplimentsService complimentsService)
         {
             _twitter = twitter;
             _tumblr = tumblr;
@@ -36,7 +32,10 @@ namespace Tadmor.Modules
 
         [Summary("roll a number between 1 and the specified one (defaults to 2)")]
         [Command("roll")]
-        public Task Roll(int max = 2) => ReplyAsync((Random.Next(max) + 1).ToString());
+        public Task Roll(int max = 2)
+        {
+            return ReplyAsync((Random.Next(max) + 1).ToString());
+        }
 
         [Summary("pick a number of users who reacted to your last message with reactions")]
         [Command("someonereaction")]
@@ -47,7 +46,7 @@ namespace Tadmor.Modules
                 .Flatten()
                 .OfType<IUserMessage>()
                 .FirstOrDefaultAsync(m => m.Author.Id == Context.User.Id &&
-                                     m.Reactions.Any());
+                                          m.Reactions.Any());
             if (lastMessageWithReactions == null)
                 throw new Exception("none of your recent messages have reactions");
             var reactions = lastMessageWithReactions.Reactions;
@@ -65,11 +64,17 @@ namespace Tadmor.Modules
 
         [Summary("post a random food gore picture")]
         [Command("foodgore")]
-        public Task FoodGore() => PostRandomTumblrPicture("someoneatethis");
+        public Task FoodGore()
+        {
+            return PostRandomTumblrPicture("someoneatethis");
+        }
 
         [Summary("post a random bad fursuit")]
         [Command("fursuit")]
-        public Task Fursuit() => PostRandomTumblrPicture("horrificfursuits");
+        public Task Fursuit()
+        {
+            return PostRandomTumblrPicture("horrificfursuits");
+        }
 
         [Summary("post a random image from the specified tumblr")]
         [Command("tumblr")]
