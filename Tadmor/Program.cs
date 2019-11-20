@@ -26,7 +26,8 @@ namespace Tadmor
             var host = new HostBuilder()
                 .ConfigureAppConfiguration(configApp => configApp
                     .AddJsonFile(settingsFilename, false, true)
-                    .AddJsonFile("sonagen.json"))
+                    .AddJsonFile("sonagen.json")
+                    .AddJsonFile("compliments.json", false))
                 .ConfigureServices((hostContext, services) => services
                     .AddWritableOptions(hostContext.Configuration, settingsFilename)
                     .AddLogging()

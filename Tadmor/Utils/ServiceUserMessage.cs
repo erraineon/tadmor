@@ -30,7 +30,7 @@ namespace Tadmor.Utils
         public bool IsTTS => throw new NotImplementedException();
 
         public bool IsPinned => throw new NotImplementedException();
-        public bool IsSuppressed { get; }
+        public bool IsSuppressed => throw new NotImplementedException();
 
         public string Content { get; }
 
@@ -55,6 +55,7 @@ namespace Tadmor.Utils
         public IReadOnlyCollection<ulong> MentionedUserIds => throw new NotImplementedException();
         public MessageActivity Activity => throw new NotImplementedException();
         public MessageApplication Application => throw new NotImplementedException();
+        public MessageReference Reference => throw new NotImplementedException();
 
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions? options = null)
         {

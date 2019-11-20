@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Humanizer;
+using Microsoft.Extensions.Options;
 using MoreLinq.Extensions;
 using Tadmor.Extensions;
 using Tadmor.Preconditions;
+using Tadmor.Services.Compliments;
 using Tadmor.Services.Data;
 using Tadmor.Services.Tumblr;
 using Tadmor.Services.Twitter;
@@ -22,12 +24,14 @@ namespace Tadmor.Modules
         private readonly TumblrService _tumblr;
         private readonly TwitterService _twitter;
         private readonly AppDbContext _context;
+        private readonly ComplimentsService _complimentsService;
 
-        public RandomModule(TwitterService twitter, TumblrService tumblr, AppDbContext context)
+        public RandomModule(TwitterService twitter, TumblrService tumblr, AppDbContext context, ComplimentsService complimentsService)
         {
             _twitter = twitter;
             _tumblr = tumblr;
             _context = context;
+            _complimentsService = complimentsService;
         }
 
         [Summary("roll a number between 1 and the specified one (defaults to 2)")]
@@ -91,6 +95,15 @@ namespace Tadmor.Modules
             if (options.Distinct().Count() < 2) throw new Exception("need at least two options");
             var option = options.RandomSubset(1).Single();
             await ReplyAsync(option);
+        }
+
+        [Summary("flirts with the specified user, or the sender")]
+        [Command("flirt")]
+        public async Task Flirt(IGuildUser? user = null)
+        {
+            user ??= (IGuildUser) Context.User;
+            var compliment = _complimentsService.Compliments.RandomSubset(1).Single();
+            await ReplyAsync($"{user.Mention}: {compliment}");
         }
     }
 }

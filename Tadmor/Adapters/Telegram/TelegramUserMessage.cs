@@ -52,6 +52,7 @@ namespace Tadmor.Adapters.Telegram
         public IReadOnlyCollection<ulong> MentionedUserIds => new ulong[0];
         public MessageActivity Activity => throw new NotImplementedException();
         public MessageApplication Application => throw new NotImplementedException();
+        public MessageReference Reference => throw new NotImplementedException();
         public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
 
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions? options = null)
