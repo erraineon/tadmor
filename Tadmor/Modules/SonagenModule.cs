@@ -21,14 +21,14 @@ namespace Tadmor.Modules
             _sonagen = sonagen;
         }
 
-        private Task GenerateSona(Random random, IUser? user = default, string? seed = default)
+        private Task GenerateSona(Random random, IGuildUser? user = default, string? seed = default)
         {
             var sona = _sonagen.GenerateSona(random);
             var builder = new EmbedBuilder();
             builder
                 .WithDescription(sona.Description)
                 .WithTitle($"{sona.Species} • {sona.Gender}");
-            if (user != null) builder.WithAuthor(user);
+            if (user != null) builder.WithAuthor(user.Nickname);
             if (seed != null) builder.WithAuthor(seed);
             return ReplyAsync(string.Empty, embed: builder.Build());
         }
