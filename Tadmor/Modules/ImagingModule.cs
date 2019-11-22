@@ -94,6 +94,7 @@ namespace Tadmor.Modules
 
         [Summary("ok msg box with the specified text")]
         [Command("ok")]
+        [Priority(1)]
         public async Task Ok([ShowAsOptional] IGuildUser user, [Remainder] string? text = null)
         {
             text ??= await GetLastMessage(user);
