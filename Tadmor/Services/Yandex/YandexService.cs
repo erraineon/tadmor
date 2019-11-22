@@ -45,7 +45,7 @@ namespace Tadmor.Services.Yandex
             if (!_enabled) throw new Exception("yandex service is disabled. provide a yandex api key in the settings");
             var translation = await new[] {"en"}
                 .Concat(new[] {"zh", "ja"})
-                .Concat(_languages.RandomSubset(8))
+                .Concat(_languages.RandomSubset(4))
                 .Distinct()
                 .Concat(new[] {"en"})
                 .Pairwise((currentLanguage, nextLanguage) => $"{currentLanguage}-{nextLanguage}")
