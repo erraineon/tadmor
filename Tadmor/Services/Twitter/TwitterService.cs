@@ -80,6 +80,7 @@ namespace Tadmor.Services.Twitter
                 .Where(m => EF.Functions.Like(displayName, m.Username));
             var lastCachedTweet = (ulong) mediaQuery
                 .Select(m => m.TweetId)
+                .AsEnumerable()
                 .DefaultIfEmpty()
                 .Max(ti => (long) ti);
             var tweets = await GetTweets(displayName, lastCachedTweet);
