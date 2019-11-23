@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Audio;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
@@ -235,12 +236,19 @@ namespace Tadmor.Adapters.Telegram
             return Task.FromResult((IReadOnlyCollection<IGuildUser>) new IGuildUser[0]);
         }
 
-        public async Task<IGuildUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload,
+        public async Task<IGuildUser?> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
-            var chatMember = await _api.GetChatMemberAsync(new ChatId(_chat.Id), (int)id,
-                options?.CancelToken ?? default);
-            return new TelegramGuildUser(_telegram, this, chatMember.User);
+            try
+            {
+                var chatMember = await _api.GetChatMemberAsync(new ChatId(_chat.Id), (int)id,
+                    options?.CancelToken ?? default);
+                return new TelegramGuildUser(_telegram, this, chatMember.User);
+            }
+            catch (UserNotFoundException)
+            {
+                return null;
+            }
         }
 
         public async Task<IGuildUser> GetCurrentUserAsync(CacheMode mode = CacheMode.AllowDownload,
