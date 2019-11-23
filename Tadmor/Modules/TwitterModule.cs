@@ -43,6 +43,7 @@ namespace Tadmor.Modules
         public async Task Tweet([Remainder]string? input = null)
         {
             var image = await Context.Message.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
+            if (image == null && input == null) throw new Exception("provide either text or an image");
             var imitation = await Imitate(image, (IGuildUser) Context.User, input);
             await Tweet(imitation);
         }

@@ -249,6 +249,10 @@ namespace Tadmor.Adapters.Telegram
             {
                 return null;
             }
+            catch (InvalidUserIdException)
+            {
+                return null;
+            }
         }
 
         public async Task<IGuildUser> GetCurrentUserAsync(CacheMode mode = CacheMode.AllowDownload,
