@@ -148,7 +148,7 @@ namespace Tadmor.Adapters.Telegram
 
         private async Task<TelegramGuild> GetTelegramGuild(Chat chat)
         {
-            return await _cache.GetOrCreateAsyncLock($"guilds-{chat.Id}", async _ =>
+            return await _cache.GetOrCreateAsyncLock($"{GuildsKeyPrefix}-{chat.Id}", async _ =>
             {
                 var api = Api;
                 var administrators = await api.GetChatAdministratorsAsync(new ChatId(chat.Id));
@@ -189,8 +189,13 @@ namespace Tadmor.Adapters.Telegram
 
         public async Task<Image?> GetAvatarAsync(ulong userId)
         {
-            var userPhotos = (await Api.GetUserProfilePhotosAsync((int) userId, 0, 1)).Photos;
-            var photo = userPhotos.FirstOrDefault()?.FirstOrDefault();
+            var photo = await _cache.GetOrCreateAsyncLock($"telegram-userphoto-{userId}", async entry =>
+            {
+                entry.SetSlidingExpiration(TimeSpan.FromHours(4));
+                var userPhotos = (await Api.GetUserProfilePhotosAsync((int)userId, 0, 1)).Photos;
+                return userPhotos.FirstOrDefault()?.FirstOrDefault();
+            });
+           
             return photo != null ? new TelegramImage(this, photo.FileId) : default;
         }
 
