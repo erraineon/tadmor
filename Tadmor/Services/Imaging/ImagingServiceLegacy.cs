@@ -535,5 +535,28 @@ namespace Tadmor.Services.Imaging
                          r2 * (float) Math.Sqrt(r1) * c;
             return result;
         }
+
+        public MemoryStream Stack(IEnumerable<byte[]> imageDatas, int margin, int padding)
+        {
+            var images = imageDatas
+                .Select(Image.Load<Rgba32>)
+                .ToList();
+            var w = images.Max(i => i.Width) + margin*2;
+            var h = images.Sum(i => i.Height) + margin * 2 + padding * (images.Count - 1);
+            var output = new MemoryStream();
+            using var canvas = new Image<Rgba32>(w, h);
+            canvas.Mutate(c =>
+            {
+                var y = margin;
+                foreach (var image in images)
+                {
+                    c.DrawImage(image, 1, new Point(margin, y));
+                    y += image.Height + padding;
+                }
+            });
+            canvas.SaveAsPng(output);
+            output.Seek(0, SeekOrigin.Begin);
+            return output;
+        }
     }
 }

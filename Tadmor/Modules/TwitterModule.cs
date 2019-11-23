@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -8,6 +10,8 @@ using Tadmor.Extensions;
 using Tadmor.Preconditions;
 using Tadmor.Services.Imaging;
 using Tadmor.Services.Twitter;
+using Tadmor.Utils;
+using Image = Tadmor.Services.Abstractions.Image;
 
 namespace Tadmor.Modules
 {
@@ -15,13 +19,11 @@ namespace Tadmor.Modules
     public class TwitterModule : ModuleBase<ICommandContext>
     {
         private readonly TwitterService _twitter;
-        private readonly ActivityMonitorService _activityMonitor;
         private readonly ImagingServiceLegacy _imaging;
 
-        public TwitterModule(TwitterService twitter, ActivityMonitorService activityMonitor, ImagingServiceLegacy imaging)
+        public TwitterModule(TwitterService twitter, ImagingServiceLegacy imaging)
         {
             _twitter = twitter;
-            _activityMonitor = activityMonitor;
             _imaging = imaging;
         }
 
@@ -41,7 +43,8 @@ namespace Tadmor.Modules
         public async Task Tweet([Remainder]string? input = null)
         {
             var image = await Context.Message.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
-            await Tweet(Context.Message, input, image);
+            var imitation = await Imitate(image, (IGuildUser) Context.User, input);
+            await Tweet(imitation);
         }
 
         [RequireWhitelist]
@@ -49,23 +52,61 @@ namespace Tadmor.Modules
         [Command("tweet")]
         public async Task Tweet(IGuildUser user)
         {
-            var lastMessage = await _activityMonitor.GetLastMessageAsync(user) ??
-                throw new Exception($"{user.Mention} hasn't talked");
-            var text = lastMessage.Resolve();
-            var image = await lastMessage.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
-            await Tweet(lastMessage, text, image);
+            await Tweet(user, 1);
         }
 
-        private async Task Tweet(IMessage message, string? text, Services.Abstractions.Image? image)
+        [RequireWhitelist]
+        [Summary("tweets the specified amount of messages ending with the last user's message")]
+        [Command("tweet")]
+        [Priority(1)]
+        public async Task Tweet([ShowAsOptional]IGuildUser? user, int messagesCount)
+        {
+            if (messagesCount > 16) throw new Exception("please no");
+            var messages = await Context.Channel.GetMessagesAsync()
+                .Flatten()
+                .OfType<IUserMessage>()
+                .SkipWhile(m => m.Id == Context.Message.Id || user != null && m.Author.Id != user.Id)
+                .Take(messagesCount)
+                .ToListAsync();
+            if (!messages.Any())
+                throw new Exception(user != null
+                    ? $"{user.Mention} hasn't talked"
+                    : "there's no messages in this chat");
+            var images = await Task.WhenAll(messages.Select(async message =>
+            {
+                var image = await message.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
+                var messageAuthor = message.Author;
+                var text = message.Resolve();
+                return await Imitate(image, (IGuildUser) messageAuthor, text);
+            }));
+            var stackedImages = _imaging.Stack(images.Reverse(), 5, 10).ToArray();
+            await Tweet(stackedImages);
+        }
+
+        [RequireWhitelist]
+        [Summary("tweets the specified amount of messages ending with the last user's message")]
+        [Command("tweet")]
+        [Priority(1)]
+        [Browsable(false)]
+        public async Task Tweet(int messagesCount)
+        {
+            await Tweet(null, messagesCount);
+        }
+
+        private async Task Tweet(byte[] image)
+        {
+            await Context.Channel.SendFileAsync(new MemoryStream(image), "result.png");
+            //var tweetUrl = await _twitter.Tweet(stackedImages);
+            //await ReplyAsync(tweetUrl);
+        }
+
+        private async Task<byte[]> Imitate(Image image, IGuildUser user, string? text)
         {
             var imageData = image != null ? await image.GetDataAsync() : null;
-            var user = (IGuildUser) message.Author;
-            var avatar = await user.GetAvatarAsync() ??
-                         throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
+            var avatar = await user.GetAvatarAsync() ?? throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
             var avatarData = await avatar.GetDataAsync();
-            var toUpload = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text, imageData).ToArray();
-            var tweetUrl = await _twitter.Tweet(toUpload);
-            await ReplyAsync(tweetUrl);
+            var imitation = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text, imageData);
+            return imitation.ToArray();
         }
     }
 }
