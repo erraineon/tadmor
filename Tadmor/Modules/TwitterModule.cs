@@ -95,9 +95,8 @@ namespace Tadmor.Modules
 
         private async Task Tweet(byte[] image)
         {
-            await Context.Channel.SendFileAsync(new MemoryStream(image), "result.png");
-            //var tweetUrl = await _twitter.Tweet(stackedImages);
-            //await ReplyAsync(tweetUrl);
+            var tweetUrl = await _twitter.Tweet(image);
+            await ReplyAsync(tweetUrl);
         }
 
         private async Task<byte[]> Imitate(Image image, IGuildUser user, string? text)
