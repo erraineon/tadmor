@@ -87,7 +87,7 @@ namespace Tadmor.Services.Imaging
             const int rowHeight = 140;
             var headerSize = new Size(250, rowHeight);
             var valueSize = new Size(1000, rowHeight);
-            var valuesPadding = new Size(12, 12);
+            var valuesPadding = new Size(6, 6);
             var canvasSize = new Size(headerSize.Width + valueSize.Width, rowHeight * tiers.Count);
             using var canvas = new MagickImage(MagickColors.White, canvasSize.Width, canvasSize.Height);
 
@@ -109,9 +109,9 @@ namespace Tadmor.Services.Imaging
                 var avatars = avatarsByRow[i].ToList();
                 if (avatars.Any())
                 {
-                    var stackedAvatars = StackHorizontally(avatars, valueSize);
                     var avatarsRect = new Rectangle(headerSize.Width, rowY, valueSize.Width, valueSize.Height);
                     avatarsRect.Inflate(valuesPadding * -1);
+                    var stackedAvatars = StackHorizontally(avatars, avatarsRect.Size);
                     drawables.Composite(avatarsRect, CompositeOperator.Over, stackedAvatars, Gravity.West);
                 }
             }
@@ -163,7 +163,7 @@ namespace Tadmor.Services.Imaging
 
             if (panel.Width > maxSize.Width || panel.Height > maxSize.Height)
             {
-                panel.Resize(maxSize.Width, maxSize.Width);
+                panel.Resize(maxSize.Width, maxSize.Height);
             }
 
             return panel;
