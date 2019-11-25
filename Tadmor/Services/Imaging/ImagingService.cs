@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Linq;
 using ImageMagick;
 using MoreLinq;
-using Tadmor.Extensions;
 
 namespace Tadmor.Services.Imaging
 {
@@ -20,89 +19,109 @@ namespace Tadmor.Services.Imaging
         private const string HelveticaNeueMediumFont = ResourcesPath + "HelveticaNeueMedium.ttf";
 
         public byte[] AlignmentChart(
-            IEnumerable<(Random rng, byte[] avatarData)> rngAndAvatarDatas,
-            string[] options)
+            IEnumerable<RngImage> rngAvatars,
+            IList<string> options)
         {
-            //constants
-            const int cellW = 500;
-            const int cellH = 300;
-            const int horMargin = 30;
-            const int verMargin = 20;
-            const int textHeight = 50;
-            const int textMargin = 10;
-            var color = MagickColors.LightGray;
+            if (options.Count % 2 != 0) throw new Exception("need an even number of options");
+            if (options.Count > 16) throw new Exception("please no");
 
-            if (options.Length % 2 != 0) throw new Exception("need an even number of options");
-            if (options.Length > 16) throw new Exception("please no");
-            //computed variables
-            var axisLength = options.Length / 2;
+            var cellSize = new Size(500, 300);
+            var cellPadding = new Size(30, 20);
+            const int panelHeight = 210;
+            const int textHeight = 50;
+            var axisLength = options.Count / 2;
+            var canvasSize = cellSize * axisLength;
+            using var canvas = new MagickImage(MagickColors.Black, canvasSize.Width, canvasSize.Height);
+
+            // create an n*n labeled matrix, then join each cell with its avatars based on seeded rng
             var cells = options.Take(axisLength)
                 .Cartesian(options.Skip(axisLength), (s1, s2) => s1 == s2 ? $"true {s1}" : $"{s1} {s2}")
                 .Batch(axisLength)
-                .SelectMany((col, x) => col.Select((cell, y) => (cell: cell.ToUpper(), x, y)))
-                .ToList();
-            var avatarsByCell = rngAndAvatarDatas
-                .Select(tuple => (rng: (options, tuple.rng.Next()).ToRandom(), tuple.avatarData))
-                .ToLookup(
-                    tuple => (tuple.rng.Next(axisLength), tuple.rng.Next(axisLength)),
-                    tuple => CropCircle(tuple.avatarData));
-            using var canvas = new MagickImage(MagickColors.Black, cellW * axisLength, cellH * axisLength);
-            foreach (var (text, x, y) in cells)
+                .SelectMany((col, x) => col.Select((cell, y) => (text: cell.ToUpper(), x, y)))
+                .GroupJoin(rngAvatars.Select(a => a.Extend(options)),
+                    cell => (cell.x, cell.y),
+                    avatar => (avatar.Random.Next(axisLength), avatar.Random.Next(axisLength)),
+                    (cell, avatars) => (
+                        cell.text,
+                        new Point(cell.x * cellSize.Width, cell.y * cellSize.Height),
+                        avatars.Select(t => CropCircle(t.ImageData)).ToList()));
+
+            foreach (var (text, cellPos, avatars) in cells)
             {
-                //alignment cell
-                var cellRect = new Rectangle(cellW * x, cellH * y, cellW, cellH - textHeight);
-                cellRect.Inflate(-horMargin, -verMargin);
-                var cellCenter = cellRect.Location + cellRect.Size / 2;
+                var cellRect = new Rectangle(cellPos, cellSize);
+                cellRect.Inflate(cellPadding * -1);
 
-                //alignment text
-                using var textCanvas = new MagickImage($"label:{text}", new MagickReadSettings
+                var panelRect = new Rectangle(cellRect.Location, new Size(cellRect.Width, panelHeight));
+                var drawables = new Drawables()
+                    .Rectangle(panelRect.Left, panelRect.Top, panelRect.Right, panelRect.Bottom);
+                if (avatars.Any())
                 {
-                    FontFamily = TimesNewRomanFont,
-                    Width = cellRect.Width,
-                    Height = textHeight,
-                    FillColor = MagickColors.White,
-                    TextGravity = Gravity.Center,
-                    BackgroundColor = MagickColors.Transparent
-                });
-                canvas.Composite(textCanvas, cellRect.Left, cellRect.Bottom + textMargin, CompositeOperator.Over);
-
-                var avatarsForCell = avatarsByCell[(x, y)].ToList();
-                if (avatarsForCell.Any())
-                {
-                    //draw all the avatars on one image, then resize if necessary
-                    var avatarWidth = avatarsForCell.First().Width;
-                    var avatars = new MagickImage(MagickColors.Transparent, avatarWidth * avatarsForCell.Count,
-                        avatarWidth);
-
-                    for (var i = 0; i < avatarsForCell.Count; i++)
-                        avatars.Composite(avatarsForCell[i], i * avatarWidth, 0, CompositeOperator.Over);
-                    if (avatars.Width > cellRect.Width)
-                    {
-                        avatars.Resize(cellRect.Width, cellRect.Width);
-                    }
-
-                    //use the average color from the avatars as cell background
-                    var backgroundColorImage = avatars.Clone();
-                    backgroundColorImage.Resize(1, 1);
-                    var singlePixel = backgroundColorImage.GetPixels().Single();
-                    canvas.Draw(new Drawables()
-                        .FillColor(singlePixel.ToColor())
-                        .Rectangle(cellRect.Left, cellRect.Top, cellRect.Right, cellRect.Bottom));
-                    var position = cellCenter - new Size(avatars.Width, avatars.Height) / 2;
-                    canvas.Composite(avatars, position.X, position.Y, CompositeOperator.Over);
+                    var stackedAvatars = StackHorizontally(avatars, panelRect.Size);
+                    var averageColor = GetAverageColor(stackedAvatars);
+                    drawables
+                        .FillColor(averageColor)
+                        .Composite(panelRect, CompositeOperator.Over, stackedAvatars, Gravity.Center);
                 }
                 else
                 {
-                    canvas.Draw(new Drawables()
-                        .FillColor(color)
-                        .Rectangle(cellRect.Left, cellRect.Top, cellRect.Right, cellRect.Bottom));
+                    drawables.FillColor(MagickColors.LightGray);
                 }
+
+                var textRect = new Rectangle(cellRect.Left, cellRect.Bottom - textHeight, cellRect.Width, textHeight);
+                drawables
+                    .DrawText(text, textRect, TimesNewRomanFont, MagickColors.White, Gravity.Center)
+                    .Draw(canvas);
             }
 
             return canvas.ToByteArray(MagickFormat.Png);
         }
 
-        private MagickImage CropCircle(byte[]? imageData)
+
+
+        public byte[] Rank(
+            IEnumerable<RngImage> rngAvatars,
+            IList<string> tiers)
+        {
+            if (!tiers.Any()) throw new Exception("need at least one tier");
+
+            const int rowHeight = 140;
+            var headerSize = new Size(250, rowHeight);
+            var valueSize = new Size(1000, rowHeight);
+            var valuesPadding = new Size(12, 12);
+            var canvasSize = new Size(headerSize.Width + valueSize.Width, rowHeight * tiers.Count);
+            using var canvas = new MagickImage(MagickColors.White, canvasSize.Width, canvasSize.Height);
+
+            var avatarsByRow = rngAvatars
+                .Select(avatar => avatar.Extend(tiers))
+                .ToLookup(avatar => avatar.Random.Next(tiers.Count), tuple => CropCircle(tuple.ImageData));
+
+            var drawables = new Drawables()
+                .Line(headerSize.Width, 0, headerSize.Width, canvasSize.Height);
+
+            for (var i = 0; i < tiers.Count; i++)
+            {
+                var tier = tiers[i];
+                var rowY = rowHeight * i;
+                var textRect = new Rectangle(new Point(0, rowY), headerSize);
+                drawables.DrawText(tier, textRect, ArialFont, wordWrap: true, fointPointSize: 40);
+                if (rowY > 0) drawables.Line(0, rowY, canvasSize.Width, rowY);
+
+                var avatars = avatarsByRow[i].ToList();
+                if (avatars.Any())
+                {
+                    var stackedAvatars = StackHorizontally(avatars, valueSize);
+                    var avatarsRect = new Rectangle(headerSize.Width, rowY, valueSize.Width, valueSize.Height);
+                    avatarsRect.Inflate(valuesPadding * -1);
+                    drawables.Composite(avatarsRect, CompositeOperator.Over, stackedAvatars, Gravity.West);
+                }
+            }
+
+            drawables.Draw(canvas);
+            return canvas.ToByteArray(MagickFormat.Png);
+        }
+
+
+        private static MagickImage CropCircle(byte[]? imageData)
         {
             const int avatarSize = 128;
             var image = imageData != null
@@ -118,6 +137,36 @@ namespace Tadmor.Services.Imaging
             image.Composite(mask, CompositeOperator.DstIn);
             image.RePage();
             return image;
+        }
+
+        private static MagickColor GetAverageColor(IMagickImage image)
+        {
+            using var clonedImage = image.Clone();
+            clonedImage.Resize(1, 1);
+            var singlePixel = clonedImage.GetPixels().Single();
+            var averageColor = singlePixel.ToColor();
+            return averageColor;
+        }
+
+        private static MagickImage StackHorizontally(IReadOnlyCollection<MagickImage> images, Size maxSize)
+        {
+            var panel = new MagickImage(MagickColors.Transparent,
+                images.Sum(a => a.Width),
+                images.Max(a => a.Height));
+
+            var avatarX = 0;
+            foreach (var avatar in images)
+            {
+                panel.Composite(avatar, avatarX, 0, CompositeOperator.Over);
+                avatarX += avatar.Width;
+            }
+
+            if (panel.Width > maxSize.Width || panel.Height > maxSize.Height)
+            {
+                panel.Resize(maxSize.Width, maxSize.Width);
+            }
+
+            return panel;
         }
     }
 }

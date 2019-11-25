@@ -49,9 +49,9 @@ namespace Tadmor.Modules
         [Command("tier")]
         public async Task Tier(params string[] tiers)
         {
-            var rngAndAvatars = await GetRngAndAvatars();
-            var result = _imagingLegacy.Rank(rngAndAvatars, tiers);
-            await Context.Channel.SendFileAsync(result, "result.png");
+            var rngAndAvatars = await GetRngImages();
+            var result = _imaging.Rank(rngAndAvatars, tiers);
+            await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
 
         [Summary("make an alignment chart")]
@@ -59,8 +59,8 @@ namespace Tadmor.Modules
         public async Task AlignmentChart(params string[] options)
         {
             if (!options.Any()) options = new[] {"lawful", "neutral", "chaotic", "good", "neutral", "evil"};
-            var rngAndAvatars = await GetRngAndAvatars();
-            var result = _imaging.AlignmentChart(rngAndAvatars, options);
+            var rngImages = await GetRngImages();
+            var result = _imaging.AlignmentChart(rngImages, options);
             await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
 
@@ -180,6 +180,7 @@ namespace Tadmor.Modules
             await Context.Channel.SendFileAsync(result, "result.gif");
         }
 
+        [Obsolete]
         private async Task<List<(Random, byte[])>> GetRngAndAvatars()
         {
             var activeUsers = await _activityMonitor.GetActiveUsers(Context.Guild).ToListAsync();
@@ -188,6 +189,20 @@ namespace Tadmor.Modules
             var rngAndAvatars = (await Task.WhenAll(activeUsers
                     .Select(async user => await user.GetAvatarAsync() is { } avatar
                         ? (avatar.Id.ToRandom(), await avatar.GetDataAsync())
+                        : default)))
+                .Where(t => t != default)
+                .ToList();
+            return rngAndAvatars;
+        }
+
+        private async Task<List<RngImage>> GetRngImages()
+        {
+            var activeUsers = await _activityMonitor.GetActiveUsers(Context.Guild).ToListAsync();
+            // as callers consume all avatars, it's better to request the images in parallel
+            // rather than use IAsyncEnumerable
+            var rngAndAvatars = (await Task.WhenAll(activeUsers
+                    .Select(async user => await user.GetAvatarAsync() is { } avatar
+                        ? new RngImage(await avatar.GetDataAsync(), avatar.Id.ToRandom())
                         : default)))
                 .Where(t => t != default)
                 .ToList();
