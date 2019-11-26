@@ -69,14 +69,12 @@ namespace Tadmor.Services.Imaging
 
                 var textRect = new Rectangle(cellRect.Left, cellRect.Bottom - textHeight, cellRect.Width, textHeight);
                 drawables
-                    .DrawText(text, textRect, TimesNewRomanFont, MagickColors.White, Gravity.Center)
+                    .Text(text, textRect, TimesNewRomanFont, MagickColors.White, Gravity.Center)
                     .Draw(canvas);
             }
 
             return canvas.ToByteArray(MagickFormat.Png);
         }
-
-
 
         public byte[] Rank(
             IEnumerable<RngImage> rngAvatars,
@@ -103,7 +101,7 @@ namespace Tadmor.Services.Imaging
                 var tier = tiers[i];
                 var rowY = rowHeight * i;
                 var textRect = new Rectangle(new Point(0, rowY), headerSize);
-                drawables.DrawText(tier, textRect, ArialFont, wordWrap: true, fointPointSize: 40);
+                drawables.Text(tier, textRect, ArialFont, wordWrap: true, fointPointSize: 40);
                 if (rowY > 0) drawables.Line(0, rowY, canvasSize.Width, rowY);
 
                 var avatars = avatarsByRow[i].ToList();
@@ -118,6 +116,44 @@ namespace Tadmor.Services.Imaging
 
             drawables.Draw(canvas);
             return canvas.ToByteArray(MagickFormat.Png);
+        }
+
+        public byte[] UpDownGif(string text, byte[]? avatarData, string baseFilename)
+        {
+            //credits to https://twitter.com/reedjeyy for base images, font and constants
+            const float fadeDuration = 11;
+            const int fadeStartIndex = 65;
+            const int textLeftMargin = 10;
+            const int textRightMargin = 255;
+            const int textVerticalMargin = 100;
+            const int avatarRightMargin = 8;
+
+            var frames = new MagickImageCollection(ResourcesPath + baseFilename);
+            frames.Coalesce();
+            var canvas = frames.First();
+
+            using var customImage = new MagickImage(MagickColors.Transparent, canvas.Width, canvas.Height);
+            var textPos = new Point(textLeftMargin, textVerticalMargin);
+            var textSize = new Size(canvas.Width - textRightMargin, canvas.Height - textVerticalMargin * 2);
+            var textRect = new Rectangle(textPos, textSize);
+            var drawables = new Drawables().Text(text, textRect, GothamRoundedLightFont, MagickColors.White, Gravity.East);
+            if (avatarData != null)
+            {
+                var avatar = CropCircle(avatarData);
+                var avatarRect = new Rectangle(0, 0, canvas.Width, canvas.Height);
+                drawables.Composite(avatarRect, CompositeOperator.Over, avatar, Gravity.East, new Size(-avatarRightMargin, 0));
+            }
+            drawables.Draw(customImage);
+
+            for (var i = 0; i < frames.Count; i++)
+            {
+                var frame = frames[i];
+                var opacity = 1 - Math.Clamp(1 / fadeDuration * (i - fadeStartIndex), 0, 1);
+                customImage.SetOpacity(opacity);
+                frame.Composite(customImage, CompositeOperator.Over);
+            }
+
+            return frames.ToByteArray(MagickFormat.Gif);
         }
 
 

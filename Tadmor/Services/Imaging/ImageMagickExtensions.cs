@@ -11,7 +11,8 @@ namespace Tadmor.Services.Imaging
             Rectangle rectangle, 
             CompositeOperator composite, 
             IMagickImage image, 
-            Gravity gravity)
+            Gravity gravity,
+            Size offset = default)
         {
             var rectW = rectangle.Size.Width;
             var rectH = rectangle.Size.Height;
@@ -32,17 +33,18 @@ namespace Tadmor.Services.Imaging
                 Gravity.Southeast => rectangle.Size - imgSize,
                 _ => throw new ArgumentOutOfRangeException(nameof(gravity))
             };
-            var pos = rectangle.Location + posDelta;
+            var pos = rectangle.Location + posDelta + offset;
             return drawables.Composite(pos.X, pos.Y, composite, image);
         }
 
-        public static Drawables DrawText(this Drawables drawables, string text, Rectangle textRectangle, string font,
+        public static Drawables Text(this Drawables drawables, string text, Rectangle textRectangle, string font,
             MagickColor? textColor = default, Gravity textGravity = Gravity.Center, bool wordWrap = false, double fointPointSize = 0)
         {
             var textType = wordWrap ? "caption" : "label";
             var textCanvas = new MagickImage($"{textType}:{text}", new MagickReadSettings
             {
                 FontFamily = font,
+                Font = font,
                 Width = textRectangle.Width,
                 Height = textRectangle.Height,
                 FillColor = textColor,
@@ -52,6 +54,12 @@ namespace Tadmor.Services.Imaging
             });
             drawables.Composite(textRectangle.X, textRectangle.Y, CompositeOperator.Over, textCanvas);
             return drawables;
+        }
+
+        public static void SetOpacity(this MagickImage image, float opacity)
+        {
+            image.Alpha(AlphaOption.Set);
+            image.Evaluate(Channels.Alpha, EvaluateOperator.Multiply, opacity);
         }
     }
 }

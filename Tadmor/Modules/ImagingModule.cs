@@ -176,8 +176,8 @@ namespace Tadmor.Modules
             var avatarData = user != null && await user.GetAvatarAsync() is {} avatar
                 ? await avatar.GetDataAsync()
                 : null;
-            var result = _imagingLegacy.UpDownGif(text.ToUpper(), avatarData, $"{direction}.gif");
-            await Context.Channel.SendFileAsync(result, "result.gif");
+            var result = _imaging.UpDownGif(text.ToUpper(), avatarData, $"{direction}.gif");
+            await Context.Channel.SendFileAsync(new MemoryStream(result), "result.gif");
         }
 
         [Obsolete]
