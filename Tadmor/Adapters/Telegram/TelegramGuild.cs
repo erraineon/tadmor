@@ -10,6 +10,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Audio;
+using Microsoft.Extensions.Caching.Memory;
+using Tadmor.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
@@ -23,15 +25,17 @@ namespace Tadmor.Adapters.Telegram
         private readonly HashSet<ulong> _administratorIds;
         private readonly TelegramBotClient _api;
         private readonly Chat _chat;
+        private readonly IMemoryCache _cache;
         private readonly FixedSizedQueue<IMessage> _messageCache;
         private readonly TelegramClient _telegram;
         private readonly ConcurrentDictionary<ulong, TelegramGuildUser> _usersCache = new ConcurrentDictionary<ulong, TelegramGuildUser>();
 
-        public TelegramGuild(TelegramClient telegram, TelegramBotClient api, Chat chat, HashSet<ulong> administratorIds)
+        public TelegramGuild(TelegramClient telegram, TelegramBotClient api, Chat chat, IMemoryCache cache, HashSet<ulong> administratorIds)
         {
             _telegram = telegram;
             _api = api;
             _chat = chat;
+            _cache = cache;
             _administratorIds = administratorIds;
             _messageCache = new FixedSizedQueue<IMessage>(telegram.Configuration.MessageCacheSize);
         }
@@ -241,8 +245,8 @@ namespace Tadmor.Adapters.Telegram
         {
             try
             {
-                var chatMember = await _api.GetChatMemberAsync(new ChatId(_chat.Id), (int)id,
-                    options?.CancelToken ?? default);
+                var chatMember = await _cache.GetOrCreateAsyncLock($"telegram-user-{id}", async entry =>
+                    await _api.GetChatMemberAsync(new ChatId(_chat.Id), (int) id, options?.CancelToken ?? default));
                 return new TelegramGuildUser(_telegram, this, chatMember.User);
             }
             catch (UserNotFoundException)

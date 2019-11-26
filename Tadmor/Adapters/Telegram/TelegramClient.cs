@@ -156,7 +156,7 @@ namespace Tadmor.Adapters.Telegram
                     .Select(a => (ulong) a.User.Id)
                     .Concat(new[] {(ulong) api.BotId})
                     .ToHashSet();
-                var guild = new TelegramGuild(this, api, chat, administratorIds);
+                var guild = new TelegramGuild(this, api, chat, _cache, administratorIds);
                 guild.MessageReceived += message => MessageReceived(message);
                 return guild;
             });
