@@ -77,10 +77,9 @@ namespace Tadmor.Services.Discord
                 .Where(e => (e.TriggerType, eventType) switch
                 {
                     (GuildEventTriggerType.GuildJoin, GuildEventType.Join) => true,
-                    (GuildEventTriggerType.GuildJoin, _) => false,
                     (GuildEventTriggerType.RegexMatch, GuildEventType.Message) => MatchesRegex(e),
                     (GuildEventTriggerType.EverySoOften, GuildEventType.Message) => MatchesEverySoOften(e),
-                    _ => throw new ArgumentOutOfRangeException(nameof(e.TriggerType), e.TriggerType, null)
+                    _ => false
                 });
 
             return events;
