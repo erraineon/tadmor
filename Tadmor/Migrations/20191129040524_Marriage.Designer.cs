@@ -2,30 +2,26 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tadmor.Services.Data;
 
 namespace Tadmor.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20191129040524_Marriage")]
+    partial class Marriage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "3.0.0");
 
-            modelBuilder.Entity("Tadmor.Services.Marriage.MarriedCouple", b =>
+            modelBuilder.Entity("Tadmor.Services.Data.MarriedCouple", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Kisses")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("LastKissed")
                         .HasColumnType("TEXT");
 
                     b.Property<ulong>("Partner1Id")

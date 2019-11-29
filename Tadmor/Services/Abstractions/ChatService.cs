@@ -102,6 +102,24 @@ namespace Tadmor.Services.Abstractions
             }
         }
 
+        public Task<IUserMessage> Next(Func<IUserMessage, bool> predicate, CancellationToken cancellationToken = default)
+        {
+            var tcs = new TaskCompletionSource<IUserMessage>();
+
+            Task OnMessageReceivedNext(IDiscordClient _, IMessage msg)
+            {
+                if (msg is IUserMessage userMessage && (predicate == null || predicate(userMessage)))
+                    tcs.TrySetResult(userMessage);
+                return Task.CompletedTask;
+            }
+
+            cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+            MessageReceived += OnMessageReceivedNext;
+            tcs.Task.ContinueWith(_ => MessageReceived -= OnMessageReceivedNext,
+                TaskContinuationOptions.ExecuteSynchronously);
+            return tcs.Task;
+        }
+
         private Task OnDiscordUserJoined(SocketGuildUser arg) => UserJoined(_discordClient, arg);
 
         private Task OnTelegramMessageReceived(IUserMessage arg) => MessageReceived(_telegramClient, arg);
