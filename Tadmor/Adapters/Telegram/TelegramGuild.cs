@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Audio;
 using Microsoft.Extensions.Caching.Memory;
+using MoreLinq;
 using Tadmor.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -237,15 +238,17 @@ namespace Tadmor.Adapters.Telegram
         public Task<IReadOnlyCollection<IGuildUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
-            return Task.FromResult((IReadOnlyCollection<IGuildUser>) new IGuildUser[0]);
+            return Task.FromResult(GetUsers());
         }
+
+        private const string UsersKeyPrefix = "telegram-user";
 
         public async Task<IGuildUser?> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
             try
             {
-                var chatMember = await _cache.GetOrCreateAsyncLock($"telegram-user-{id}", async entry =>
+                var chatMember = await _cache.GetOrCreateAsyncLock($"{UsersKeyPrefix}-{id}", async entry =>
                     await _api.GetChatMemberAsync(new ChatId(_chat.Id), (int) id, options?.CancelToken ?? default));
                 return new TelegramGuildUser(_telegram, this, chatMember.User);
             }
@@ -465,7 +468,16 @@ namespace Tadmor.Adapters.Telegram
 
         IAsyncEnumerable<IReadOnlyCollection<IUser>> IChannel.GetUsersAsync(CacheMode mode, RequestOptions? options)
         {
-            return ToAsyncEnumerableReadOnlyCollection(_usersCache.Values.Cast<IUser>());
+            return new[]{ GetUsers() }.ToAsyncEnumerable();
+        }
+
+        private IReadOnlyCollection<IGuildUser> GetUsers()
+        {
+            return _cache.GetKeys()
+                .OfType<string>()
+                .Where(k => k.StartsWith(UsersKeyPrefix))
+                .Select(k => _cache.Get<IGuildUser>(k))
+                .ToArray();
         }
 
         public Task DeleteMessagesAsync(IEnumerable<IMessage> messages, RequestOptions? options = null)
@@ -618,6 +630,7 @@ namespace Tadmor.Adapters.Telegram
             var user = new TelegramGuildUser(_telegram, this, msg.From);
             var message = new TelegramUserMessage(this, user, msg);
             _messageCache.Enqueue(message);
+            _cache.Set($"{UsersKeyPrefix}-{user.Id}", user);
             _usersCache[user.Id] = user;
             await MessageReceived(message);
             return message;

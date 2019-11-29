@@ -100,8 +100,8 @@ namespace Tadmor.Modules
             text ??= await GetLastMessage(user);
             var avatarData = await user.GetAvatarAsync() is {} avatar ? await avatar.GetDataAsync() : null;
             if (avatarData == null) throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
-            var result = _imagingLegacy.Ok(text, avatarData);
-            await Context.Channel.SendFileAsync(result, "result.png");
+            var result = _imaging.Ok(text, avatarData);
+            await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
 
         [Browsable(false)]

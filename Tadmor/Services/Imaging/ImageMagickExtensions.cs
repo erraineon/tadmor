@@ -38,7 +38,7 @@ namespace Tadmor.Services.Imaging
         }
 
         public static Drawables Text(this Drawables drawables, string text, Rectangle textRectangle, string font,
-            MagickColor? textColor = default, Gravity textGravity = Gravity.Center, bool wordWrap = false, double fointPointSize = 0)
+            MagickColor? textColor = default, Gravity textGravity = Gravity.Center, bool wordWrap = false, double fontPointSize = 0)
         {
             var textType = wordWrap ? "caption" : "label";
             var textCanvas = new MagickImage($"{textType}:{text}", new MagickReadSettings
@@ -49,7 +49,7 @@ namespace Tadmor.Services.Imaging
                 Height = textRectangle.Height,
                 FillColor = textColor,
                 TextGravity = textGravity,
-                FontPointsize = fointPointSize,
+                FontPointsize = fontPointSize,
                 BackgroundColor = MagickColors.Transparent
             });
             drawables.Composite(textRectangle.X, textRectangle.Y, CompositeOperator.Over, textCanvas);

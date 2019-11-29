@@ -189,7 +189,7 @@ namespace Tadmor.Adapters.Telegram
 
         public async Task<Image?> GetAvatarAsync(ulong userId)
         {
-            var photo = await _cache.GetOrCreateAsyncLock($"telegram-userphoto-{userId}", async entry =>
+            var photo = await _cache.GetOrCreateAsyncLock($"telegram-profilephoto-{userId}", async entry =>
             {
                 entry.SetSlidingExpiration(TimeSpan.FromHours(4));
                 var userPhotos = (await Api.GetUserProfilePhotosAsync((int)userId, 0, 1)).Photos;

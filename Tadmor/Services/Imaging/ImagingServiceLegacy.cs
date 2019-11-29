@@ -25,49 +25,12 @@ namespace Tadmor.Services.Imaging
     public class ImagingServiceLegacy
     {
         private static readonly FontFamily Arial = SystemFonts.Find("Arial");
-        private static readonly FontFamily MsSansSerif = new FontCollection().Install(Resource.Load("micross.ttf"));
 
         private static readonly FontFamily HelveticaNeue =
             new FontCollection().Install(Resource.Load("HelveticaNeue.ttf"));
 
         private static readonly FontFamily HelveticaNeueMedium =
             new FontCollection().Install(Resource.Load("HelveticaNeueMedium.ttf"));
-
-        public MemoryStream Ok(string text, byte[] avatarData)
-        {
-            const float leftMargin = 4;
-            const float topMargin = 4;
-            const float avatarWidth = 70;
-            const float avatarHeight = 74;
-            const float textX = 80;
-            const float textY = 12;
-            var avatarSize = new SizeF(avatarWidth, avatarHeight);
-            var avatarPosition = new PointF(leftMargin, topMargin);
-            var textPosition = new PointF(textX, textY);
-            var font = MsSansSerif.CreateFont(10);
-
-            var output = new MemoryStream();
-            using (var resource = Resource.Load("angry.png"))
-            using (var baseImage = Image.Load<Rgba32>(resource))
-            using (var avatar = Image.Load(avatarData))
-            {
-                var textOptions = new TextGraphicsOptions
-                {
-                    WrapTextWidth = baseImage.Width - textPosition.X
-                };
-                avatar.Mutate(a => a.Resize((Size) avatarSize).Dither(new BayerDither2x2()));
-                baseImage.Mutate(i =>
-                {
-                    i.DrawImage(avatar, 1, (Point) avatarPosition);
-                    i.DrawText(textOptions, text, font, Rgba32.Black, textPosition);
-                    i.Resize(baseImage.Size() * 3);
-                });
-                baseImage.SaveAsPng(output);
-            }
-
-            output.Seek(0, SeekOrigin.Begin);
-            return output;
-        }
 
         public MemoryStream Text(string name, string text)
         {

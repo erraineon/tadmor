@@ -101,7 +101,7 @@ namespace Tadmor.Services.Imaging
                 var tier = tiers[i];
                 var rowY = rowHeight * i;
                 var textRect = new Rectangle(new Point(0, rowY), headerSize);
-                drawables.Text(tier, textRect, ArialFont, wordWrap: true, fointPointSize: 40);
+                drawables.Text(tier, textRect, ArialFont, wordWrap: true, fontPointSize: 40);
                 if (rowY > 0) drawables.Line(0, rowY, canvasSize.Width, rowY);
 
                 var avatars = avatarsByRow[i].ToList();
@@ -154,6 +154,31 @@ namespace Tadmor.Services.Imaging
             }
 
             return frames.ToByteArray(MagickFormat.Gif);
+        }
+
+
+        public byte[] Ok(string text, byte[] avatarData)
+        {
+            var avatarSize = new Size(70, 74);
+            var avatarPosition = new Point(4, 4);
+            var textPos = new Point(81, 9);
+
+            using var baseImage = new MagickImage(ResourcesPath + "angry.png");
+            using var avatar = new MagickImage(avatarData);
+            avatar.Resize(new MagickGeometry(avatarSize.Width, avatarSize.Height) {IgnoreAspectRatio = true});
+            avatar.Quantize(new QuantizeSettings
+            {
+                Colors = 10,
+                ColorSpace = ColorSpace.RGB,
+                DitherMethod = DitherMethod.Riemersma
+            });
+            var textRect = new Rectangle(textPos, new Size(baseImage.Width - textPos.X, baseImage.Height - textPos.Y));
+            new Drawables()
+                .Composite(avatarPosition.X, avatarPosition.Y, avatar)
+                .Text(text, textRect, MsSansSerifFont, MagickColors.Black, Gravity.Northwest, true, 11)
+                .Draw(baseImage);
+            baseImage.Scale(new Percentage(300));
+            return baseImage.ToByteArray(MagickFormat.Png);
         }
 
 
