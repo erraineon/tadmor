@@ -84,10 +84,10 @@ namespace Tadmor.Adapters.Telegram
             throw new NotImplementedException();
         }
 
-        public Task<IGuild> GetGuildAsync(ulong id, CacheMode mode = CacheMode.AllowDownload,
+        public async Task<IGuild> GetGuildAsync(ulong id, CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
-            throw new NotImplementedException();
+            return (await GetGuildsAsync()).SingleOrDefault(g => g.Id == id);
         }
 
         public Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload,
