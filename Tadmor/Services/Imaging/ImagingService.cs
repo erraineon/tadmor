@@ -205,7 +205,7 @@ namespace Tadmor.Services.Imaging
             const int margin = s / 25;
             const int textMargin = s / 100;
             const int median = s / 2;
-            var fontSize = 35;
+            const int fontSize = 35;
 
             var parametersSeed = $"{opt1}{opt2}{opt3}{opt4}".ToLower();
             var avatarsAndPositions = rngImages

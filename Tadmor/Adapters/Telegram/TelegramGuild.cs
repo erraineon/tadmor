@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -29,7 +28,6 @@ namespace Tadmor.Adapters.Telegram
         private readonly IMemoryCache _cache;
         private readonly FixedSizedQueue<IMessage> _messageCache;
         private readonly TelegramClient _telegram;
-        private readonly ConcurrentDictionary<ulong, TelegramGuildUser> _usersCache = new ConcurrentDictionary<ulong, TelegramGuildUser>();
 
         public TelegramGuild(TelegramClient telegram, TelegramBotClient api, Chat chat, IMemoryCache cache, HashSet<ulong> administratorIds)
         {
@@ -480,7 +478,7 @@ namespace Tadmor.Adapters.Telegram
             return _cache.GetKeys()
                 .OfType<string>()
                 .Where(k => k.StartsWith(UsersKeyPrefix))
-                .Select(k => new TelegramUser(_cache.Get<User>(k)))
+                .Select(k => _cache.Get<TelegramUser>(k))
                 .Cast<IGuildUser>()
                 .ToArray();
         }
@@ -636,7 +634,6 @@ namespace Tadmor.Adapters.Telegram
             var message = new TelegramUserMessage(this, user, msg);
             _messageCache.Enqueue(message);
             _cache.Set($"{UsersKeyPrefix}-{user.Id}", user);
-            _usersCache[user.Id] = user;
             await MessageReceived(message);
             return message;
         }
