@@ -26,6 +26,7 @@ namespace Tadmor.Modules
         {
             try
             {
+                if (user.Id == Context.Client.CurrentUser.Id) throw new Exception("😳");
                 await _marriageService.Marry(Context.User, user, Context.Channel, _dbContext);
                 await ReplyAsync("now kiss plz");
             }

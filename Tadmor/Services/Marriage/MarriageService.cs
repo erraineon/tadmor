@@ -94,20 +94,20 @@ namespace Tadmor.Services.Marriage
 
         private async Task EnsureBothSay(IUser partner1, IUser partner2, string expected)
         {
-            async Task EnsureSays(ulong partnerId, CancellationTokenSource cts)
+            async Task EnsureSays(ulong partnerId, CancellationToken token)
             {
-                var response = await _chatService.Next(m => m.Author.Id == partnerId, cts.Token);
+                var response = await _chatService.Next(m => m.Author.Id == partnerId, token);
                 var trimmedContent = response.Content?.Trim(' ', '\'', '"');
                 if (!string.Equals(trimmedContent, expected, StringComparison.OrdinalIgnoreCase))
                 {
-                    cts.Cancel();
+                    throw new TaskCanceledException();
                 }
             }
 
             try
             {
                 using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-                await Task.WhenAll(EnsureSays(partner1.Id, cts), EnsureSays(partner2.Id, cts));
+                await Task.WhenAll(EnsureSays(partner1.Id, cts.Token), EnsureSays(partner2.Id, cts.Token));
             }
             catch (TaskCanceledException)
             {
