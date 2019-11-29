@@ -40,9 +40,9 @@ namespace Tadmor.Modules
         [Command("quad")]
         public async Task Quad(string top, string bottom, string left, string right)
         {
-            var rngAndAvatars = await GetRngAndAvatars();
-            var result = _imagingLegacy.Quadrant(rngAndAvatars, top, bottom, left, right);
-            await Context.Channel.SendFileAsync(result, "result.png");
+            var rngAndAvatars = await GetRngImages();
+            var result = _imaging.Quadrant(rngAndAvatars, top, bottom, left, right);
+            await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
 
         [Summary("make a tier list")]

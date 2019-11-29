@@ -248,9 +248,13 @@ namespace Tadmor.Adapters.Telegram
         {
             try
             {
-                var chatMember = await _cache.GetOrCreateAsyncLock($"{UsersKeyPrefix}-{id}", async entry =>
-                    await _api.GetChatMemberAsync(new ChatId(_chat.Id), (int) id, options?.CancelToken ?? default));
-                return new TelegramGuildUser(_telegram, this, chatMember.User);
+                var user = await _cache.GetOrCreateAsyncLock($"{UsersKeyPrefix}-{id}", async entry =>
+                {
+                    var chatMember = await _api.GetChatMemberAsync(new ChatId(_chat.Id), (int) id,
+                        options?.CancelToken ?? default);
+                    return new TelegramGuildUser(_telegram, this, chatMember.User);
+                });
+                return user;
             }
             catch (UserNotFoundException)
             {
@@ -476,7 +480,8 @@ namespace Tadmor.Adapters.Telegram
             return _cache.GetKeys()
                 .OfType<string>()
                 .Where(k => k.StartsWith(UsersKeyPrefix))
-                .Select(k => _cache.Get<IGuildUser>(k))
+                .Select(k => new TelegramUser(_cache.Get<User>(k)))
+                .Cast<IGuildUser>()
                 .ToArray();
         }
 

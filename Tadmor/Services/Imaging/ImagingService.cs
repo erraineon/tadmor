@@ -199,6 +199,40 @@ namespace Tadmor.Services.Imaging
             return canvas.ToByteArray(MagickFormat.Png);
         }
 
+        public byte[] Quadrant(IEnumerable<RngImage> rngImages, string opt1, string opt2, string opt3, string opt4)
+        {
+            const int s = 1280;
+            const int margin = s / 25;
+            const int textMargin = s / 100;
+            const int median = s / 2;
+            var fontSize = 35;
+
+            var parametersSeed = $"{opt1}{opt2}{opt3}{opt4}".ToLower();
+            var avatarsAndPositions = rngImages
+                .Select(i => i.Extend(parametersSeed))
+                .Select(i => (avatar: CropCircle(i.ImageData), pos: new Point(i.Random.Next(s), i.Random.Next(s))));
+            using var canvas = new MagickImage(MagickColors.White, s, s);
+            var drawables = new Drawables()
+                .StrokeWidth(5)
+                .Line(median, margin, median, s - margin)
+                .Line(margin, median, s - margin, median);
+
+            foreach (var (image, pos) in avatarsAndPositions)
+            {
+                drawables
+                    .Composite(pos.X - image.Width / 2, pos.Y - image.Height / 2, CompositeOperator.Over, image);
+            }
+            var canvasRectangle = new Rectangle(0, 0, s, s);
+            canvasRectangle.Inflate(-textMargin, -textMargin);
+            drawables
+                .Text(opt1, canvasRectangle, ArialFont, textGravity: Gravity.North, fontPointSize: fontSize)
+                .Text(opt2, canvasRectangle, ArialFont, textGravity: Gravity.South, fontPointSize: fontSize)
+                .Text(opt3, canvasRectangle, ArialFont, textGravity: Gravity.West, fontPointSize: fontSize, offset: new Size(0, -textMargin))
+                .Text(opt4, canvasRectangle, ArialFont, textGravity: Gravity.East, fontPointSize: fontSize, offset: new Size(0, -textMargin))
+                .Draw(canvas);
+            return canvas.ToByteArray(MagickFormat.Png);
+        }
+
         private static MagickImage CropCircle(byte[]? imageData)
         {
             const int avatarSize = 128;
