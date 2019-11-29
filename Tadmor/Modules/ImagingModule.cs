@@ -150,6 +150,7 @@ namespace Tadmor.Modules
 
         [Summary("fake sms with the specified text")]
         [Command("sms")]
+        [Priority(1)]
         public async Task Sms([ShowAsOptional] IGuildUser user, [Remainder] string? text = null)
         {
             if (text == null) text = await GetLastMessage(user);

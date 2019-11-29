@@ -192,8 +192,8 @@ namespace Tadmor.Services.Imaging
             using var canvas = new MagickImage(ResourcesPath + "text1.png");
             var textSize = new Size(canvas.Width - namePosition.X - textRightMargin, canvas.Height);
             new Drawables()
-                .Text(name, new Rectangle(namePosition, textSize), nameFont, textColor, Gravity.Northwest, false, 14)
-                .Text(text, new Rectangle(textPosition, textSize), textFont, textColor, Gravity.Northwest, false, 14.75)
+                .Text(name, new Rectangle(namePosition, textSize), nameFont, textColor, Gravity.Northwest, true, 14)
+                .Text(text, new Rectangle(textPosition, textSize), textFont, textColor, Gravity.Northwest, true, 14.75)
                 .Draw(canvas);
             canvas.AdaptiveResize(new MagickGeometry(new Percentage(300), new Percentage(300)));
             return canvas.ToByteArray(MagickFormat.Png);
