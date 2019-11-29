@@ -153,8 +153,8 @@ namespace Tadmor.Modules
         public async Task Sms([ShowAsOptional] IGuildUser user, [Remainder] string? text = null)
         {
             if (text == null) text = await GetLastMessage(user);
-            var result = _imagingLegacy.Text(user.Nickname ?? user.Username, text);
-            await Context.Channel.SendFileAsync(result, "result.png");
+            var result = _imaging.Text(user.Nickname ?? user.Username, text);
+            await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
 
         [Browsable(false)]

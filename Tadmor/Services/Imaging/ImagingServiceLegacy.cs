@@ -32,39 +32,6 @@ namespace Tadmor.Services.Imaging
         private static readonly FontFamily HelveticaNeueMedium =
             new FontCollection().Install(Resource.Load("HelveticaNeueMedium.ttf"));
 
-        public MemoryStream Text(string name, string text)
-        {
-            const int textX = 19;
-            const int nameY = 252;
-            const int textY = 269;
-            const int textRightMargin = 20;
-            var namePosition = new PointF(textX, nameY);
-            var textPosition = new PointF(textX, textY);
-            var nameFont = HelveticaNeueMedium.CreateFont(14);
-            var textFont = HelveticaNeue.CreateFont(14.75F);
-            var textColor = new Rgba32(4, 4, 4);
-
-            var output = new MemoryStream();
-            using (var resource = Resource.Load("text1.png"))
-            using (var baseImage = Image.Load<Rgba32>(resource))
-            {
-                var textOptions = new TextGraphicsOptions
-                {
-                    WrapTextWidth = baseImage.Width - textPosition.X - textRightMargin
-                };
-                baseImage.Mutate(i =>
-                {
-                    i.DrawText(textOptions, name, nameFont, textColor, namePosition);
-                    i.DrawText(textOptions, text, textFont, textColor, textPosition);
-                    i.Resize(baseImage.Size() * 3);
-                });
-                baseImage.SaveAsPng(output);
-            }
-
-            output.Seek(0, SeekOrigin.Begin);
-            return output;
-        }
-
         private Image<Rgba32> CropCircle(byte[] imageData)
         {
             const int avatarSize = 128;

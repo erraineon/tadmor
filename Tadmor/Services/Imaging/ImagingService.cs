@@ -156,14 +156,13 @@ namespace Tadmor.Services.Imaging
             return frames.ToByteArray(MagickFormat.Gif);
         }
 
-
         public byte[] Ok(string text, byte[] avatarData)
         {
             var avatarSize = new Size(70, 74);
             var avatarPosition = new Point(4, 4);
             var textPos = new Point(81, 9);
 
-            using var baseImage = new MagickImage(ResourcesPath + "angry.png");
+            using var canvas = new MagickImage(ResourcesPath + "angry.png");
             using var avatar = new MagickImage(avatarData);
             avatar.Resize(new MagickGeometry(avatarSize.Width, avatarSize.Height) {IgnoreAspectRatio = true});
             avatar.Quantize(new QuantizeSettings
@@ -172,15 +171,33 @@ namespace Tadmor.Services.Imaging
                 ColorSpace = ColorSpace.RGB,
                 DitherMethod = DitherMethod.Riemersma
             });
-            var textRect = new Rectangle(textPos, new Size(baseImage.Width - textPos.X, baseImage.Height - textPos.Y));
+            var textRect = new Rectangle(textPos, new Size(canvas.Width - textPos.X, canvas.Height - textPos.Y));
             new Drawables()
                 .Composite(avatarPosition.X, avatarPosition.Y, avatar)
                 .Text(text, textRect, MsSansSerifFont, MagickColors.Black, Gravity.Northwest, true, 11)
-                .Draw(baseImage);
-            baseImage.Scale(new Percentage(300));
-            return baseImage.ToByteArray(MagickFormat.Png);
+                .Draw(canvas);
+            canvas.Scale(new Percentage(300));
+            return canvas.ToByteArray(MagickFormat.Png);
         }
 
+        public byte[] Text(string name, string text)
+        {
+            const int textRightMargin = 20;
+            var namePosition = new Point(19, 252);
+            var textPosition = new Point(19, 269);
+            var textColor = new MagickColor(4, 4, 4);
+            var nameFont = HelveticaNeueMediumFont;
+            var textFont = HelveticaNeueFont;
+
+            using var canvas = new MagickImage(ResourcesPath + "text1.png");
+            var textSize = new Size(canvas.Width - namePosition.X - textRightMargin, canvas.Height);
+            new Drawables()
+                .Text(name, new Rectangle(namePosition, textSize), nameFont, textColor, Gravity.Northwest, false, 14)
+                .Text(text, new Rectangle(textPosition, textSize), textFont, textColor, Gravity.Northwest, false, 14.75)
+                .Draw(canvas);
+            canvas.AdaptiveResize(new MagickGeometry(new Percentage(300), new Percentage(300)));
+            return canvas.ToByteArray(MagickFormat.Png);
+        }
 
         private static MagickImage CropCircle(byte[]? imageData)
         {
