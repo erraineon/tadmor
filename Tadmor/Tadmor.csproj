@@ -102,6 +102,7 @@
     <PackageReference Include="SixLabors.Shapes" Version="1.0.0-beta0006" />
     <PackageReference Include="System.Runtime.Caching" Version="4.6.0" />
     <PackageReference Include="Telegram.Bot" Version="15.0.0" />
+    <PackageReference Include="WolframAlphaNET" Version="2.0.0" />
     <PackageReference Include="YandexTranslateCoreSdk" Version="1.0.0" />
   </ItemGroup>
 

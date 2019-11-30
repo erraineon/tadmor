@@ -18,6 +18,7 @@ namespace Tadmor.Services.Imaging
             var pos = rectangle.Location + posDelta;
             return drawables.Composite(pos.X, pos.Y, composite, image);
         }
+
         public static Drawables Composite(
             this Drawables drawables,
             IMagickImage image,
@@ -64,7 +65,7 @@ namespace Tadmor.Services.Imaging
                 TextAlignment.Right => Gravity.East,
                 _ => default
             };
-            var textCanvas = CreateTextCanvas(text, "label", textRect.Width, textRect.Height, font, textGravity, default, textColor, backgroundColor);
+            var textCanvas = CreateTextCanvas(text, "label", textRect.Size, font, textGravity, default, textColor, backgroundColor);
             drawables.Composite(textRect.X, textRect.Y, CompositeOperator.Over, textCanvas);
             return drawables;
         }
@@ -78,23 +79,22 @@ namespace Tadmor.Services.Imaging
             MagickColor? textColor = default,
             MagickColor? backgroundColor = default)
         {
-            var textCanvas = GetCaption(text, textRect.Size.Width, textRect.Size.Height, font, textGravity, fontPointSize, textColor, backgroundColor);
+            var textCanvas = GetCaption(text, textRect.Size, font, textGravity, fontPointSize, textColor, backgroundColor);
             drawables.Composite(textRect.X, textRect.Y, CompositeOperator.Over, textCanvas);
             return drawables;
         }
 
-        public static MagickImage GetCaption(string text, int width, int? height, string font, Gravity textGravity,
+        public static MagickImage GetCaption(string text, Size size, string font, Gravity textGravity,
             double fontPointSize, MagickColor? textColor, MagickColor? backgroundColor)
         {
-            var textCanvas = CreateTextCanvas(text, "caption", width, height, font, textGravity,
+            var textCanvas = CreateTextCanvas(text, "caption", size, font, textGravity,
                 fontPointSize, textColor, backgroundColor);
             return textCanvas;
         }
 
         private static MagickImage CreateTextCanvas(string text,
             string textType,
-            int? width,
-            int? height,
+            Size? size,
             string font,
             Gravity textGravity,
             double fontPointSize,
@@ -104,8 +104,8 @@ namespace Tadmor.Services.Imaging
             return new MagickImage($"{textType}:{text}", new MagickReadSettings
             {
                 FontFamily = font,
-                Width = width,
-                Height = height,
+                Width = size?.Width,
+                Height = size?.Height,
                 Font = font,
                 TextGravity = textGravity,
                 FontPointsize = fontPointSize,
@@ -125,7 +125,7 @@ namespace Tadmor.Services.Imaging
             MagickColor? textColor = default,
             MagickColor? backgroundColor = default)
         {
-            var textCanvas = CreateTextCanvas(text, "label", null, null, font, textGravity, fontPointSize, textColor, backgroundColor);
+            var textCanvas = CreateTextCanvas(text, "label", null, font, textGravity, fontPointSize, textColor, backgroundColor);
             var textSize = textCanvas.GetSize();
             textPos += GetGravityDelta(textSize, default, textGravity);
             if (bounds != default)

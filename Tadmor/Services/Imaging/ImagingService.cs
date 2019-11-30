@@ -312,20 +312,20 @@ namespace Tadmor.Services.Imaging
             var nameFont = HelveticaNeueMediumFont;
             var bubbleContentW = bubbleW - bubblePadding * 2;
             using var textImage = text != null
-                ? ImageMagickExtensions.GetCaption(text, bubbleW, null, font, Gravity.Northwest, fontSize, textColor,
+                ? ImageMagickExtensions.GetCaption(text, new Size(bubbleW, 0), font, Gravity.Northwest, fontSize, textColor,
                     null) : null;
 
             var textHeight = textImage != null ? textImage.Height : 0;
             using var image = imageData != null ? new MagickImage(imageData) : null;
-            if (image?.Width > bubbleContentW)
-                image.Resize(bubbleContentW, image.Height);
+            if (image?.Width > bubbleContentW) image.Resize(bubbleContentW, image.Height);
             var imageHeight = image?.Height ?? 0;
             var marginUnderImage = image != null ? marginUnderName : 0;
             var nameHeight = fontSize;
             var bubbleContentH = bubblePadding * 2 + nameHeight + marginUnderName +
                                  imageHeight + marginUnderImage + textHeight;
             var avatar = CropCircle(avatarData);
-            avatar.Resize(new MagickGeometry(avatarSize, avatarSize) {IgnoreAspectRatio = true});
+            if (avatar.Width > avatarSize)
+                avatar.Resize(new MagickGeometry(avatarSize, avatarSize) {IgnoreAspectRatio = true});
             var bubbleH = Math.Max(bubbleContentH, avatar.Height);
             var h = bubbleH + imagePadding * 2;
             using var canvas = new MagickImage(MagickColors.Transparent,w, h);
