@@ -20,7 +20,7 @@ namespace Tadmor.Services.Marriage
             _chatService = chatService;
         }
 
-        public async Task Marry(IUser partner1, IUser partner2, IMessageChannel channel, AppDbContext dbContext)
+        public async Task Marry(IUser partner1, IGuildUser partner2, IMessageChannel channel, AppDbContext dbContext)
         {
             if (_channelsWithMarriages.Contains(channel.Id)) throw new Exception("someone's already getting married");
             if (partner1.Id == partner2.Id) throw new Exception("you cant marry yourself");
@@ -74,7 +74,8 @@ namespace Tadmor.Services.Marriage
                 {
                     Partner1Id = partner1.Id,
                     Partner2Id = partner2.Id,
-                    TimeStamp = DateTime.Now
+                    TimeStamp = DateTime.Now,
+                    GuildId = partner2.GuildId
                 });
                 await dbContext.SaveChangesAsync();
             }

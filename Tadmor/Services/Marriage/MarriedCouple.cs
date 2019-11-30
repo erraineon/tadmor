@@ -10,5 +10,6 @@ namespace Tadmor.Services.Marriage
         public DateTime TimeStamp { get; set; }
         public int Kisses { get; set; }
         public DateTime LastKissed { get; set; }
+        public ulong GuildId { get; set; }
     }
 }
