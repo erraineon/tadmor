@@ -44,7 +44,7 @@ namespace Tadmor.Modules
             var bestImageCandidate = orderedPods
                 .SelectMany(p => p.SubPods, (_, subPod) => subPod.Image)
                 .FirstOrDefault(i => string.IsNullOrEmpty(i.Title) && !string.IsNullOrEmpty(i.Src));
-            if (bestImageCandidate != null) embedBuilder.WithImageUrl(bestImageCandidate.Src);
+            if (bestImageCandidate != null) embedBuilder.WithImageUrl(bestImageCandidate.Src.Replace("image/gif", "image/png"));
 
             await ReplyAsync(string.Empty, embed: embedBuilder.Build());
         }
