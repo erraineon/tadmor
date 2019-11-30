@@ -22,7 +22,7 @@ namespace Tadmor.Services.Data
             modelBuilder.Entity<TwitterMedia>()
                 .HasKey(media => new {media.TweetId, media.MediaId, media.Username});
             modelBuilder.Entity<MarriedCouple>()
-                .HasIndex(media => new {media.Partner1Id, media.Partner2Id})
+                .HasIndex(couple => new {couple.Partner1Id, couple.Partner2Id, couple.GuildId})
                 .IsUnique();
         }
 

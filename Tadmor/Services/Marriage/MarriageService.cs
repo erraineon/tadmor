@@ -25,8 +25,9 @@ namespace Tadmor.Services.Marriage
         {
             if (_channelsWithMarriages.Contains(channel.Id)) throw new Exception("someone's already getting married");
             if (partner1.Id == partner2.Id) throw new Exception("you cant marry yourself");
-            await AssertNotMarried(partner1, dbContext);
-            await AssertNotMarried(partner2, dbContext);
+            var guildId = partner2.GuildId;
+            await AssertNotMarried(partner1, guildId, dbContext);
+            await AssertNotMarried(partner2, guildId, dbContext);
             try
             {
                 _channelsWithMarriages.Add(channel.Id);
@@ -46,7 +47,7 @@ namespace Tadmor.Services.Marriage
                     Partner1Id = partner1.Id,
                     Partner2Id = partner2.Id,
                     TimeStamp = DateTime.Now,
-                    GuildId = partner2.GuildId
+                    GuildId = guildId
                 });
                 await dbContext.SaveChangesAsync();
             }
@@ -57,9 +58,12 @@ namespace Tadmor.Services.Marriage
         }
 
 
-        private async Task AssertNotMarried(IUser partner, AppDbContext dbContext)
+        private async Task AssertNotMarried(IUser partner, ulong guildId, AppDbContext dbContext)
         {
-            var existingMarriage = await EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(dbContext.MarriedCouples, c => c.Partner1Id == partner.Id || c.Partner2Id == partner.Id);
+            var existingMarriage = await dbContext.MarriedCouples
+                .AsQueryable()
+                .FirstOrDefaultAsync(c => c.GuildId == guildId &&
+                                          (c.Partner1Id == partner.Id || c.Partner2Id == partner.Id));
             if (existingMarriage != null) throw new AlreadyMarriedException(existingMarriage);
         }
 
