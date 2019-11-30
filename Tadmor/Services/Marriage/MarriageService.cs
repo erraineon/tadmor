@@ -129,7 +129,7 @@ namespace Tadmor.Services.Marriage
             var marriage = await GetMarriage(partner1, partner2, dbContext);
             if (marriage == null) throw new Exception($"you can only kiss your partner");
             var now = DateTime.Now;
-            if (now - marriage.LastKissed < TimeSpan.FromDays(1)) throw new Exception("you can only kiss once a day");
+            if (now - marriage.LastKissed < TimeSpan.FromHours(1)) throw new Exception("you can only kiss once an hour");
             marriage.Kisses++;
             marriage.LastKissed = now;
             await dbContext.SaveChangesAsync();
