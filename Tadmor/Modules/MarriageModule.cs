@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -32,11 +33,31 @@ namespace Tadmor.Modules
             }
             catch (AlreadyMarriedException e)
             {
-                var partner1 = await Context.Guild.GetUserAsync(e.ExistingMarriage.Partner1Id);
-                var partner2 = await Context.Guild.GetUserAsync(e.ExistingMarriage.Partner2Id);
-                var timeMarried = (DateTime.Now - e.ExistingMarriage.TimeStamp).Humanize();
-                throw new Exception($"{partner1.Username} has already been married to {partner2.Username} for {timeMarried}");
+                var marriage = e.ExistingMarriage;
+                var formattableString = await GetStringDescription(marriage);
+                throw new Exception(formattableString);
             }
+        }
+
+        private async Task<string> GetStringDescription(MarriedCouple marriage)
+        {
+            var partner1 = await Context.Guild.GetUserAsync(marriage.Partner1Id);
+            var partner2 = await Context.Guild.GetUserAsync(marriage.Partner2Id);
+            var timeMarried = (DateTime.Now - marriage.TimeStamp).Humanize();
+            var result = $"{partner1.Username} has been married to {partner2.Username} " +
+                         $"for {timeMarried} with {marriage.Kisses} kisses";
+            return result;
+        }
+
+        [Summary("lists existing marriages")]
+        [Command("marriages")]
+        public async Task Marriages()
+        {
+            var marriages = await _marriageService.GetMarriages(Context.Guild, _dbContext);
+            var marriageStrings = await Task.WhenAll(marriages.Select(GetStringDescription));
+            await ReplyAsync(marriageStrings.Any()
+                ? string.Join(Environment.NewLine, marriageStrings)
+                : "no users are married");
         }
 
         [Summary("divorces the sender with another user")]

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -32,44 +33,14 @@ namespace Tadmor.Services.Marriage
                 var partner1Name = partner1.Username;
                 var partner2Name = partner2.Username;
                 var invocationMsg = $"we are here today to celebrate with {partner1Name} and {partner2Name} " +
-                                    "as they proclaim their love and commitment etc to the world. we here to rejoice, with " +
-                                    "and for them, in the new life they are about to take on together";
+                                    "as they proclaim their love and commitment etc etc etc. if youre both " +
+                                    "committed to it, please reply: ok";
                 await channel.SendMessageAsync(invocationMsg);
-                await Task.Delay(TimeSpan.FromSeconds(10));
-                var intentMsg = $"{partner1Name} and {partner2Name}, the relationship you enter into today has to be " +
-                                "grounded in the strength of your love and the power of your faith in each other. " +
-                                "to make your relationship succeed it will take a lot of love. it will take trust, " +
-                                "to know in your hearts blah blah blah yadda yadda yadda";
-                await channel.SendMessageAsync(intentMsg);
-                await Task.Delay(TimeSpan.FromSeconds(10));
-                var intentMsg2 = "if you both understand the effort involved to make your relationship thrive, " +
-                                 "and are committed to it, please reply: ok";
-                await channel.SendMessageAsync(intentMsg2);
                 await EnsureBothSay(partner1, partner2, "ok");
                 await Task.Delay(TimeSpan.FromSeconds(1));
-                var ringMsgExpectedReply = "with this ring, i promise to stand with you as we share this life, " +
-                                           "and cherish the memories we make together";
-                var ringMsg = "now place the ring on each others hands and repeat after me: " + ringMsgExpectedReply;
-                await channel.SendMessageAsync(ringMsg);
-                await EnsureBothSay(partner1, partner2, ringMsgExpectedReply);
-                await Task.Delay(TimeSpan.FromSeconds(1));
-                var pronouncementMsg1 = $"{partner1Name} and {partner2Name}, prior to this moment you each walked a " +
-                                        "separate path. now, you embark together on a shared path. it is the strength " +
-                                        "of your love that shall nourish you all together as a family";
-                await channel.SendMessageAsync(pronouncementMsg1);
-                await Task.Delay(TimeSpan.FromSeconds(10));
-                var pronouncementMsg2 = $"{partner1Name} and {partner2Name}, today you have stood before these " +
-                                        "witnesses and declared your intent to commit your lives to each other " +
-                                        "in marriage. you have made promises to each other. i hope you will never " +
-                                        "forget the fight and perseverance it has taken to get to this moment. and " +
-                                        "I hope you will never forget the love and joy you feel today, because these " +
-                                        "are the values that will keep your marriage and bond to one another strong";
-                await channel.SendMessageAsync(pronouncementMsg2);
-                await Task.Delay(TimeSpan.FromSeconds(12));
-                var pronouncementMsg3 = "and so, by the power vested in me by the Ministry of Smoothies, " +
-                                        "i now pronounce you husband and wife";
+                var pronouncementMsg3 = "nice job youre married";
                 await channel.SendMessageAsync(pronouncementMsg3);
-                await Task.Delay(TimeSpan.FromSeconds(5));
+                await Task.Delay(TimeSpan.FromSeconds(1));
                 await dbContext.MarriedCouples.AddAsync(new MarriedCouple
                 {
                     Partner1Id = partner1.Id,
@@ -88,8 +59,7 @@ namespace Tadmor.Services.Marriage
 
         private async Task AssertNotMarried(IUser partner, AppDbContext dbContext)
         {
-            var existingMarriage = await dbContext.MarriedCouples
-                .FirstOrDefaultAsync(c => c.Partner1Id == partner.Id || c.Partner2Id == partner.Id);
+            var existingMarriage = await EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(dbContext.MarriedCouples, c => c.Partner1Id == partner.Id || c.Partner2Id == partner.Id);
             if (existingMarriage != null) throw new AlreadyMarriedException(existingMarriage);
         }
 
@@ -139,10 +109,18 @@ namespace Tadmor.Services.Marriage
 
         private async Task<MarriedCouple> GetMarriage(IUser partner1, IUser partner2, AppDbContext dbContext)
         {
-            var marriage = await dbContext.MarriedCouples
-                .FirstOrDefaultAsync(c => c.Partner1Id == partner1.Id && c.Partner2Id == partner2.Id ||
+            var marriage = await EntityFrameworkQueryableExtensions.FirstOrDefaultAsync(dbContext.MarriedCouples, c => c.Partner1Id == partner1.Id && c.Partner2Id == partner2.Id ||
                                           c.Partner2Id == partner1.Id && c.Partner1Id == partner2.Id);
             return marriage;
+        }
+
+        public async Task<IList<MarriedCouple>> GetMarriages(IGuild guild, AppDbContext dbContext)
+        {
+            var marriedCouples = await dbContext.MarriedCouples
+                .AsQueryable()
+                .Where(c => c.GuildId == guild.Id)
+                .ToListAsync();
+            return marriedCouples;
         }
     }
 }
