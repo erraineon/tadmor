@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using MoreLinq;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -11,12 +10,10 @@ using SixLabors.ImageSharp.Processing.Convolution;
 using SixLabors.ImageSharp.Processing.Dithering;
 using SixLabors.ImageSharp.Processing.Dithering.Ordered;
 using SixLabors.ImageSharp.Processing.Drawing;
-using SixLabors.ImageSharp.Processing.Drawing.Pens;
 using SixLabors.ImageSharp.Processing.Text;
 using SixLabors.ImageSharp.Processing.Transforms;
 using SixLabors.Primitives;
 using SixLabors.Shapes;
-using Tadmor.Extensions;
 using Tadmor.Resources;
 
 namespace Tadmor.Services.Imaging
@@ -71,70 +68,6 @@ namespace Tadmor.Services.Imaging
                 new GraphicsOptions(true) { BlenderMode = PixelBlenderMode.Src }, //use overlay colors
                 Rgba32.Transparent, 
                 corners);
-        }
-
-        public MemoryStream Poly(List<(Random rng, byte[])> rngAndAvatars, string[] options)
-        {
-            //constants
-            const int s = 1280; //picture size
-            const float extent = s * .5F;
-            var color = Rgba32.Black;
-            const double polyRadius = s * 0.45;
-            var center = new PointF(extent, extent);
-            const float textMargin = 10;
-
-            //computed variables
-            var smallArial = Arial.CreateFont(28);
-            var rendererOptions = new RendererOptions(smallArial);
-            var poly = (IPath) new RegularPolygon(center, options.Length, (int) polyRadius, (float) Math.PI);
-            var polyBounds = poly.Bounds.Location + poly.Bounds.Size / 2;
-            var polyCenter = 2 * center - polyBounds;
-            poly = poly.Translate(polyCenter - center);
-            var vertices = poly.Flatten().Single().Points;
-            var output = new MemoryStream();
-            using (var canvas = new Image<Rgba32>(s, s))
-            {
-                canvas.Mutate(c =>
-                {
-                    //background
-                    c.Fill(Rgba32.White);
-                    c.Draw(new Pen<Rgba32>(color, 5), poly);
-                    var t = new TextGraphicsOptions(true)
-                    {
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        VerticalAlignment = VerticalAlignment.Center
-                    };
-                    var optionsAndVertices = options.EquiZip(vertices, (o, v) => (o, v));
-                    foreach (var (option, vertex) in optionsAndVertices)
-                    {
-                        var tPosition = vertex + (vertex - polyCenter) * 0.1F;
-                        var tExtent = TextMeasurer.Measure(option, rendererOptions) / 2;
-                        var clampedPosition = new PointF(
-                            Math.Clamp(tPosition.X, tExtent.Width + textMargin, s - tExtent.Width - textMargin),
-                            Math.Clamp(tPosition.Y, tExtent.Height + textMargin, s - tExtent.Height - textMargin));
-                        c.DrawText(t, option, smallArial, color, clampedPosition);
-                    }
-
-                    //avatars
-                    foreach (var (rng, avatarData) in rngAndAvatars)
-                    {
-                        var saltedRng = (options, rng.Next()).ToRandom();
-                        using (var avatar = CropCircle(avatarData))
-                        {
-                            var vIndex = saltedRng.Next(vertices.Count);
-                            var vA = polyCenter;
-                            var vB = vertices[vIndex];
-                            var vC = vertices[(vIndex + 1) % vertices.Count];
-                            var aPosition = RandomPointInTriangle(saltedRng, vA, vB, vC) - avatar.Size() / 2;
-                            c.DrawImage(avatar, 1, new Point((int) aPosition.X, (int) aPosition.Y));
-                        }
-                    }
-                });
-                canvas.SaveAsPng(output);
-            }
-
-            output.Seek(0, SeekOrigin.Begin);
-            return output;
         }
 
         public MemoryStream Imitate(byte[] avatarData, string username, string? text, byte[]? imageData)
@@ -196,16 +129,6 @@ namespace Tadmor.Services.Imaging
             canvas.SaveAsPng(output);
             output.Seek(0, SeekOrigin.Begin);
             return output;
-        }
-
-        private static PointF RandomPointInTriangle(Random rng, PointF a, PointF b, PointF c)
-        {
-            var r1 = (float) rng.NextDouble();
-            var r2 = (float) rng.NextDouble();
-            var result = (1 - (float) Math.Sqrt(r1)) * a +
-                         (float) Math.Sqrt(r1) * (1 - r2) * b +
-                         r2 * (float) Math.Sqrt(r1) * c;
-            return result;
         }
 
         public MemoryStream Stack(IEnumerable<byte[]> imageDatas, int margin, int padding)

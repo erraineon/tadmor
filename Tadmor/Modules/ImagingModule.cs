@@ -120,8 +120,8 @@ namespace Tadmor.Modules
             var avatarData = await user.GetAvatarAsync() is { } avatar ? await avatar.GetDataAsync() : null;
             if (avatarData == null) throw new Exception($"{user.Mention}'s avatar cannot be retrieved");
             var imageData = image != null ? await image.GetDataAsync() : null;
-            var result = _imagingLegacy.Imitate(avatarData, user.Nickname ?? user.Username, text, imageData);
-            await Context.Channel.SendFileAsync(result, "result.png");
+            var result = _imaging.Imitate(avatarData, user.Nickname ?? user.Username, text, imageData);
+            await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
 
         [Summary("mimics someone else's message after running a replacement on the text")]

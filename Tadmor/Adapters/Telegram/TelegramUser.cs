@@ -16,7 +16,7 @@ namespace Tadmor.Adapters.Telegram
         }
 
         public virtual ulong Id => (ulong) _user.Id;
-        public string Mention => $"@{Username}";
+        public string Mention => Username;
         public IActivity Activity => throw new NotImplementedException();
         public UserStatus Status => UserStatus.Online;
         public IImmutableSet<ClientType> ActiveClients => throw new NotImplementedException();
@@ -41,7 +41,8 @@ namespace Tadmor.Adapters.Telegram
         public ushort DiscriminatorValue => default;
         public bool IsBot => _user.IsBot;
         public bool IsWebhook => false;
-        public string Username => _user.Username;
+        // username must contain @ to allow mentions to be converted to IGuildUser parameters in commands
+        public string Username => $"@{_user.Username}";
         public DateTimeOffset CreatedAt => throw new NotImplementedException();
     }
 }

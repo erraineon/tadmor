@@ -248,12 +248,11 @@ namespace Tadmor.Services.Imaging
             if (options.Count < 3) throw new Exception("need at least three options");
             const int s = 1280;
             const int median = s / 2;
-            const float polyRadius = s * 0.45F;
+            const int polyRadius = (int) (s * 0.45F);
             const int margin = 10;
             var polyCenter = new SizeF(median, median);
 
-            //computed variables
-            var x = options
+            var polygonInfo = options
                 .Select((option, i) =>
                 {
                     var angle = (float) (Math.PI * 2) / options.Count * i;
@@ -263,7 +262,7 @@ namespace Tadmor.Services.Imaging
                     return (option, vertex, textPos: new Point((int) textPos.X, (int) textPos.Y));
                 })
                 .ToList();
-            var verticalOffset = (s - x.Max(t => t.vertex.Y) - x.Min(t => t.vertex.Y)) / 2;
+            var verticalOffset = (s - polygonInfo.Max(t => t.vertex.Y) - polygonInfo.Min(t => t.vertex.Y)) / 2;
 
             using var canvas = new MagickImage(MagickColors.White, s, s);
             var drawables = new Drawables()
@@ -271,27 +270,79 @@ namespace Tadmor.Services.Imaging
                 .StrokeWidth(5)
                 .FillColor(MagickColors.Transparent)
                 .StrokeColor(MagickColors.Black)
-                .Polygon(x.Select(p => new PointD(p.vertex.X, p.vertex.Y)));
+                .Polygon(polygonInfo.Select(p => new PointD(p.vertex.X, p.vertex.Y)));
             var textBounds = canvas.GetRectangle();
             textBounds.Inflate(-margin, -margin);
-            foreach (var (option, _, textPos) in x)
+            foreach (var (option, _, textPos) in polygonInfo)
             {
-                drawables.Label(option, textPos, ArialFont, Gravity.Center, 28, textBounds);
+                drawables.Label(option, textPos, ArialFont, Gravity.Center, 28, textBounds,
+                    backgroundColor: MagickColors.White);
             }
 
-            //avatars
             foreach (var rngImage in rngImages)
             {
                 rngImage.Extend(options);
                 var avatar = CropCircle(rngImage.ImageData);
-                var vIndex = rngImage.Random.Next(x.Count);
+                var vIndex = rngImage.Random.Next(polygonInfo.Count);
                 var a = polyCenter;
-                var b = new SizeF(x[vIndex].vertex);
-                var c = new SizeF(x[(vIndex + 1) % x.Count].vertex);
+                var b = new SizeF(polygonInfo[vIndex].vertex);
+                var c = new SizeF(polygonInfo[(vIndex + 1) % polygonInfo.Count].vertex);
                 var avatarPos = RandomPointInTriangle(rngImage.Random, a, b, c);
                 drawables.Composite(avatar, new Point((int) avatarPos.X, (int) avatarPos.Y), Gravity.Center);
             }
 
+            drawables.Draw(canvas);
+            return canvas.ToByteArray(MagickFormat.Png);
+        }
+
+        public byte[] Imitate(byte[] avatarData, string username, string? text, byte[]? imageData)
+        {
+            const int imagePadding = 10;
+            const int w = 720 + imagePadding * 2;
+            const int bubbleXMargin = 10;
+            const int bubblePadding = 20;
+            const int avatarSize = 128;
+            const int bubbleW = w - avatarSize - bubbleXMargin * 2;
+            const int marginUnderName = 15;
+
+            var nameColor = MagickColors.DarkRed;
+            var textColor = MagickColors.Black;
+            var fontSize = 28;
+            var font = HelveticaNeueFont;
+            var nameFont = HelveticaNeueMediumFont;
+            var bubbleContentW = bubbleW - bubblePadding * 2;
+            using var textImage = text != null
+                ? ImageMagickExtensions.GetCaption(text, bubbleW, null, font, Gravity.Northwest, fontSize, textColor,
+                    null) : null;
+
+            var textHeight = textImage != null ? textImage.Height : 0;
+            using var image = imageData != null ? new MagickImage(imageData) : null;
+            if (image?.Width > bubbleContentW)
+                image.Resize(bubbleContentW, image.Height);
+            var imageHeight = image?.Height ?? 0;
+            var marginUnderImage = image != null ? marginUnderName : 0;
+            var nameHeight = fontSize;
+            var bubbleContentH = bubblePadding * 2 + nameHeight + marginUnderName +
+                                 imageHeight + marginUnderImage + textHeight;
+            var avatar = CropCircle(avatarData);
+            avatar.Resize(new MagickGeometry(avatarSize, avatarSize) {IgnoreAspectRatio = true});
+            var bubbleH = Math.Max(bubbleContentH, avatar.Height);
+            var h = bubbleH + imagePadding * 2;
+            using var canvas = new MagickImage(MagickColors.Transparent,w, h);
+            var drawables = new Drawables();
+            var avatarPos = new Point(imagePadding, imagePadding);
+            drawables.Composite(avatar, avatarPos);
+            var speechBubblePos = avatarPos + new Size(bubbleXMargin + avatar.Width, 0);
+            drawables
+                .FillColor(MagickColors.White)
+                .RoundRectangle(speechBubblePos.X, speechBubblePos.Y, (speechBubblePos.X + bubbleW),
+                    speechBubblePos.Y + bubbleH, 10, 10);
+            var namePos = speechBubblePos + new Size(bubblePadding, bubblePadding);
+            drawables.Label(username, namePos, nameFont, Gravity.Northwest, fontSize, textColor: nameColor);
+            var imagePosition = namePos + new Size(0, nameHeight + marginUnderName);
+            if (image != null) drawables.Composite(image, imagePosition);
+            var textPosition = imagePosition + new Size(0, imageHeight + marginUnderImage);
+            if (textImage != null) drawables.Composite(textImage, textPosition);
             drawables.Draw(canvas);
             return canvas.ToByteArray(MagickFormat.Png);
         }

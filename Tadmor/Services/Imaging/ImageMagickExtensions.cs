@@ -22,7 +22,7 @@ namespace Tadmor.Services.Imaging
             this Drawables drawables,
             IMagickImage image,
             Point position, 
-            Gravity gravity,
+            Gravity gravity = Gravity.Northwest,
             CompositeOperator composite=CompositeOperator.Over)
         {
             return drawables.Composite(image, new Rectangle(position, default), gravity, composite);
@@ -78,9 +78,17 @@ namespace Tadmor.Services.Imaging
             MagickColor? textColor = default,
             MagickColor? backgroundColor = default)
         {
-            var textCanvas = CreateTextCanvas(text, "caption", textRect.Width, textRect.Height, font, textGravity, fontPointSize, textColor, backgroundColor);
+            var textCanvas = GetCaption(text, textRect.Size.Width, textRect.Size.Height, font, textGravity, fontPointSize, textColor, backgroundColor);
             drawables.Composite(textRect.X, textRect.Y, CompositeOperator.Over, textCanvas);
             return drawables;
+        }
+
+        public static MagickImage GetCaption(string text, int width, int? height, string font, Gravity textGravity,
+            double fontPointSize, MagickColor? textColor, MagickColor? backgroundColor)
+        {
+            var textCanvas = CreateTextCanvas(text, "caption", width, height, font, textGravity,
+                fontPointSize, textColor, backgroundColor);
+            return textCanvas;
         }
 
         private static MagickImage CreateTextCanvas(string text,
