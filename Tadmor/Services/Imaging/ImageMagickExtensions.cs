@@ -6,69 +6,144 @@ namespace Tadmor.Services.Imaging
 {
     public static class ImageMagickExtensions
     {
-        public static Drawables Composite(
-            this Drawables drawables, 
-            Rectangle rectangle, 
-            CompositeOperator composite, 
-            IMagickImage image, 
+        public static Drawables Composite(this Drawables drawables,
+            IMagickImage image,
+            Rectangle rectangle,
             Gravity gravity,
-            Size offset = default)
+            CompositeOperator composite = CompositeOperator.Over)
         {
-            var rectW = rectangle.Size.Width;
-            var rectH = rectangle.Size.Height;
-            var imgW = image.Width;
-            var imgH = image.Height;
-            var imgSize = new Size(imgW, imgH);
+            var imgSize = image.GetSize();
+            var boundsSize = rectangle.Size;
+            var posDelta = GetGravityDelta(imgSize, boundsSize, gravity);
+            var pos = rectangle.Location + posDelta;
+            return drawables.Composite(pos.X, pos.Y, composite, image);
+        }
+        public static Drawables Composite(
+            this Drawables drawables,
+            IMagickImage image,
+            Point position, 
+            Gravity gravity,
+            CompositeOperator composite=CompositeOperator.Over)
+        {
+            return drawables.Composite(image, new Rectangle(position, default), gravity, composite);
+        }
+
+        private static Size GetGravityDelta(Size imgSize, Size boundsSize, Gravity gravity)
+        {
+            var rectW = boundsSize.Width;
+            var rectH = boundsSize.Height;
             var posDelta = gravity switch
             {
                 Gravity.Undefined => new Size(),
                 Gravity.Northwest => new Size(),
-                Gravity.North => new Size((rectW - imgW) / 2, 0),
-                Gravity.Northeast => new Size(rectW - imgW, 0),
-                Gravity.West => new Size(0, (rectH - imgH) / 2),
-                Gravity.Center => (rectangle.Size - imgSize) / 2,
-                Gravity.East => new Size(rectW - imgW, (rectH - imgH) / 2),
-                Gravity.Southwest => new Size(0, rectH - imgH),
-                Gravity.South => new Size((rectW - imgW) / 2, rectH - imgH),
-                Gravity.Southeast => rectangle.Size - imgSize,
+                Gravity.North => new Size((rectW - imgSize.Width) / 2, 0),
+                Gravity.Northeast => new Size(rectW - imgSize.Width, 0),
+                Gravity.West => new Size(0, (rectH - imgSize.Height) / 2),
+                Gravity.Center => (boundsSize - imgSize) / 2,
+                Gravity.East => new Size(rectW - imgSize.Width, (rectH - imgSize.Height) / 2),
+                Gravity.Southwest => new Size(0, rectH - imgSize.Height),
+                Gravity.South => new Size((rectW - imgSize.Width) / 2, rectH - imgSize.Height),
+                Gravity.Southeast => boundsSize - imgSize,
                 _ => throw new ArgumentOutOfRangeException(nameof(gravity))
             };
-            var pos = rectangle.Location + posDelta + offset;
-            return drawables.Composite(pos.X, pos.Y, composite, image);
+            return posDelta;
         }
 
-        public static Drawables Text(
-            this Drawables drawables, 
-            string text, 
-            Rectangle textRectangle, 
+        public static Drawables TextFill(this Drawables drawables,
+            string text,
+            Rectangle textRect,
             string font,
-            MagickColor? textColor = default, 
-            Gravity textGravity = Gravity.Center, 
-            bool wordWrap = false, 
-            double fontPointSize = 0,
-            Size offset = default)
+            TextAlignment textAlignment,
+            MagickColor? textColor = default,
+            MagickColor? backgroundColor = default)
         {
-            var textType = wordWrap ? "caption" : "label";
-            var textCanvas = new MagickImage($"{textType}:{text}", new MagickReadSettings
+            var textGravity = textAlignment switch
             {
-                FontFamily = font,
-                Font = font,
-                Width = textRectangle.Width,
-                Height = textRectangle.Height,
-                FillColor = textColor,
-                TextGravity = textGravity,
-                FontPointsize = fontPointSize,
-                BackgroundColor = MagickColors.Transparent
-            });
-            drawables.Composite(textRectangle.X + offset.Width, textRectangle.Y + offset.Height, CompositeOperator.Over,
-                textCanvas);
+                TextAlignment.Center => Gravity.Center,
+                TextAlignment.Left => Gravity.West,
+                TextAlignment.Right => Gravity.East,
+                _ => default
+            };
+            var textCanvas = CreateTextCanvas(text, "label", textRect.Width, textRect.Height, font, textGravity, default, textColor, backgroundColor);
+            drawables.Composite(textRect.X, textRect.Y, CompositeOperator.Over, textCanvas);
             return drawables;
         }
 
-        public static void SetOpacity(this MagickImage image, float opacity)
+        public static Drawables Caption(this Drawables drawables,
+            string text,
+            Rectangle textRect,
+            string font,
+            Gravity textGravity,
+            double fontPointSize = 0,
+            MagickColor? textColor = default,
+            MagickColor? backgroundColor = default)
+        {
+            var textCanvas = CreateTextCanvas(text, "caption", textRect.Width, textRect.Height, font, textGravity, fontPointSize, textColor, backgroundColor);
+            drawables.Composite(textRect.X, textRect.Y, CompositeOperator.Over, textCanvas);
+            return drawables;
+        }
+
+        private static MagickImage CreateTextCanvas(string text,
+            string textType,
+            int? width,
+            int? height,
+            string font,
+            Gravity textGravity,
+            double fontPointSize,
+            MagickColor? textColor,
+            MagickColor? backgroundColor)
+        {
+            return new MagickImage($"{textType}:{text}", new MagickReadSettings
+            {
+                FontFamily = font,
+                Width = width,
+                Height = height,
+                Font = font,
+                TextGravity = textGravity,
+                FontPointsize = fontPointSize,
+                FillColor = textColor ?? MagickColors.Black,
+                BackgroundColor = backgroundColor ?? MagickColors.Transparent
+            });
+        }
+
+        public static Drawables Label(
+            this Drawables drawables,
+            string text,
+            Point textPos,
+            string font,
+            Gravity textGravity,
+            double fontPointSize,
+            Rectangle bounds = default,
+            MagickColor? textColor = default,
+            MagickColor? backgroundColor = default)
+        {
+            var textCanvas = CreateTextCanvas(text, "label", null, null, font, textGravity, fontPointSize, textColor, backgroundColor);
+            var textSize = textCanvas.GetSize();
+            textPos += GetGravityDelta(textSize, default, textGravity);
+            if (bounds != default)
+            {
+                textPos = new Point(
+                    Math.Clamp(textPos.X, bounds.X, bounds.X + bounds.Width - textSize.Width),
+                    Math.Clamp(textPos.Y, bounds.Y, bounds.Y + bounds.Height - textSize.Height));
+            }
+            drawables.Composite(textPos.X, textPos.Y, CompositeOperator.Over, textCanvas);
+            return drawables;
+        }
+
+        public static void SetOpacity(this IMagickImage image, float opacity)
         {
             image.Alpha(AlphaOption.Set);
             image.Evaluate(Channels.Alpha, EvaluateOperator.Multiply, opacity);
+        }
+
+        public static Rectangle GetRectangle(this IMagickImage image)
+        {
+            return new Rectangle(default, image.GetSize());
+        }
+
+        public static Size GetSize(this IMagickImage image)
+        {
+            return new Size(image.Width, image.Height);
         }
     }
 }

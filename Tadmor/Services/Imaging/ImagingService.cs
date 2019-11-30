@@ -60,7 +60,7 @@ namespace Tadmor.Services.Imaging
                     var averageColor = GetAverageColor(stackedAvatars);
                     drawables
                         .FillColor(averageColor)
-                        .Composite(panelRect, CompositeOperator.Over, stackedAvatars, Gravity.Center);
+                        .Composite(stackedAvatars, panelRect, Gravity.Center);
                 }
                 else
                 {
@@ -69,7 +69,7 @@ namespace Tadmor.Services.Imaging
 
                 var textRect = new Rectangle(cellRect.Left, cellRect.Bottom - textHeight, cellRect.Width, textHeight);
                 drawables
-                    .Text(text, textRect, TimesNewRomanFont, MagickColors.White, Gravity.Center)
+                    .TextFill(text, textRect, TimesNewRomanFont, TextAlignment.Center, MagickColors.White)
                     .Draw(canvas);
             }
 
@@ -101,7 +101,7 @@ namespace Tadmor.Services.Imaging
                 var tier = tiers[i];
                 var rowY = rowHeight * i;
                 var textRect = new Rectangle(new Point(0, rowY), headerSize);
-                drawables.Text(tier, textRect, ArialFont, wordWrap: true, fontPointSize: 40);
+                drawables.Caption(tier, textRect, ArialFont, Gravity.Center, 40);
                 if (rowY > 0) drawables.Line(0, rowY, canvasSize.Width, rowY);
 
                 var avatars = avatarsByRow[i].ToList();
@@ -110,7 +110,7 @@ namespace Tadmor.Services.Imaging
                     var avatarsRect = new Rectangle(headerSize.Width, rowY, valueSize.Width, valueSize.Height);
                     avatarsRect.Inflate(valuesPadding * -1);
                     var stackedAvatars = StackHorizontally(avatars, avatarsRect.Size);
-                    drawables.Composite(avatarsRect, CompositeOperator.Over, stackedAvatars, Gravity.West);
+                    drawables.Composite(stackedAvatars, avatarsRect, Gravity.West);
                 }
             }
 
@@ -136,12 +136,12 @@ namespace Tadmor.Services.Imaging
             var textPos = new Point(textLeftMargin, textVerticalMargin);
             var textSize = new Size(canvas.Width - textRightMargin, canvas.Height - textVerticalMargin * 2);
             var textRect = new Rectangle(textPos, textSize);
-            var drawables = new Drawables().Text(text, textRect, GothamRoundedLightFont, MagickColors.White, Gravity.East);
+            var drawables = new Drawables().TextFill(text, textRect, GothamRoundedLightFont, TextAlignment.Right, MagickColors.White);
             if (avatarData != null)
             {
                 var avatar = CropCircle(avatarData);
-                var avatarRect = new Rectangle(0, 0, canvas.Width, canvas.Height);
-                drawables.Composite(avatarRect, CompositeOperator.Over, avatar, Gravity.East, new Size(-avatarRightMargin, 0));
+                var avatarRect = new Rectangle(0, 0, canvas.Width - avatarRightMargin, canvas.Height);
+                drawables.Composite(avatar, avatarRect, Gravity.East);
             }
             drawables.Draw(customImage);
 
@@ -174,7 +174,7 @@ namespace Tadmor.Services.Imaging
             var textRect = new Rectangle(textPos, new Size(canvas.Width - textPos.X, canvas.Height - textPos.Y));
             new Drawables()
                 .Composite(avatarPosition.X, avatarPosition.Y, avatar)
-                .Text(text, textRect, MsSansSerifFont, MagickColors.Black, Gravity.Northwest, true, 11)
+                .Caption(text, textRect, MsSansSerifFont, Gravity.Northwest, 11)
                 .Draw(canvas);
             canvas.Scale(new Percentage(300));
             return canvas.ToByteArray(MagickFormat.Png);
@@ -192,8 +192,8 @@ namespace Tadmor.Services.Imaging
             using var canvas = new MagickImage(ResourcesPath + "text1.png");
             var textSize = new Size(canvas.Width - namePosition.X - textRightMargin, canvas.Height);
             new Drawables()
-                .Text(name, new Rectangle(namePosition, textSize), nameFont, textColor, Gravity.Northwest, true, 14)
-                .Text(text, new Rectangle(textPosition, textSize), textFont, textColor, Gravity.Northwest, true, 14.75)
+                .Label(name, namePosition, nameFont, Gravity.Northwest, 14, textColor: textColor)
+                .Caption(text, new Rectangle(textPosition, textSize), textFont, Gravity.Northwest, 14.75, textColor)
                 .Draw(canvas);
             canvas.AdaptiveResize(new MagickGeometry(new Percentage(300), new Percentage(300)));
             return canvas.ToByteArray(MagickFormat.Png);
@@ -222,14 +222,77 @@ namespace Tadmor.Services.Imaging
                 drawables
                     .Composite(pos.X - image.Width / 2, pos.Y - image.Height / 2, CompositeOperator.Over, image);
             }
-            var canvasRectangle = new Rectangle(0, 0, s, s);
-            canvasRectangle.Inflate(-textMargin, -textMargin);
+            var opt1And2Rect = new Rectangle(0, 0, s, s);
+            opt1And2Rect.Inflate(-textMargin, -textMargin);
             drawables
-                .Text(opt1, canvasRectangle, ArialFont, textGravity: Gravity.North, fontPointSize: fontSize)
-                .Text(opt2, canvasRectangle, ArialFont, textGravity: Gravity.South, fontPointSize: fontSize)
-                .Text(opt3, canvasRectangle, ArialFont, textGravity: Gravity.West, fontPointSize: fontSize, offset: new Size(0, -textMargin))
-                .Text(opt4, canvasRectangle, ArialFont, textGravity: Gravity.East, fontPointSize: fontSize, offset: new Size(0, -textMargin))
+                .Label(opt1, new Point(median, textMargin), ArialFont, Gravity.North, fontSize, backgroundColor: MagickColors.White)
+                .Label(opt2, new Point(median, s - textMargin), ArialFont, Gravity.South, fontSize, backgroundColor: MagickColors.White)
+                .Label(opt3, new Point(textMargin, median), ArialFont, Gravity.West, fontSize, backgroundColor: MagickColors.White)
+                .Label(opt4, new Point(s - textMargin, median), ArialFont, Gravity.East, fontSize, backgroundColor: MagickColors.White)
                 .Draw(canvas);
+            return canvas.ToByteArray(MagickFormat.Png);
+        }
+
+        public byte[] Poly(List<RngImage> rngImages, IList<string> options)
+        {
+            static PointF RandomPointInTriangle(Random rng, SizeF a, SizeF b, SizeF c)
+            {
+                var r1 = (float)rng.NextDouble();
+                var r2 = (float)rng.NextDouble();
+                var size = (1 - (float)Math.Sqrt(r1)) * a +
+                             (float)Math.Sqrt(r1) * (1 - r2) * b +
+                             r2 * (float)Math.Sqrt(r1) * c;
+                return size.ToPointF();
+            }
+
+            if (options.Count < 3) throw new Exception("need at least three options");
+            const int s = 1280;
+            const int median = s / 2;
+            const float polyRadius = s * 0.45F;
+            const int margin = 10;
+            var polyCenter = new SizeF(median, median);
+
+            //computed variables
+            var x = options
+                .Select((option, i) =>
+                {
+                    var angle = (float) (Math.PI * 2) / options.Count * i;
+                    var unitCirclePoint = new SizeF(-MathF.Sin(angle), -MathF.Cos(angle));
+                    var vertex = (polyCenter + unitCirclePoint * polyRadius).ToPointF();
+                    var textPos = (polyCenter + unitCirclePoint * median).ToPointF();
+                    return (option, vertex, textPos: new Point((int) textPos.X, (int) textPos.Y));
+                })
+                .ToList();
+            var verticalOffset = (s - x.Max(t => t.vertex.Y) - x.Min(t => t.vertex.Y)) / 2;
+
+            using var canvas = new MagickImage(MagickColors.White, s, s);
+            var drawables = new Drawables()
+                .Translation(0, verticalOffset)
+                .StrokeWidth(5)
+                .FillColor(MagickColors.Transparent)
+                .StrokeColor(MagickColors.Black)
+                .Polygon(x.Select(p => new PointD(p.vertex.X, p.vertex.Y)));
+            var textBounds = canvas.GetRectangle();
+            textBounds.Inflate(-margin, -margin);
+            foreach (var (option, _, textPos) in x)
+            {
+                drawables.Label(option, textPos, ArialFont, Gravity.Center, 28, textBounds);
+            }
+
+            //avatars
+            foreach (var rngImage in rngImages)
+            {
+                rngImage.Extend(options);
+                var avatar = CropCircle(rngImage.ImageData);
+                var vIndex = rngImage.Random.Next(x.Count);
+                var a = polyCenter;
+                var b = new SizeF(x[vIndex].vertex);
+                var c = new SizeF(x[(vIndex + 1) % x.Count].vertex);
+                var avatarPos = RandomPointInTriangle(rngImage.Random, a, b, c);
+                drawables.Composite(avatar, new Point((int) avatarPos.X, (int) avatarPos.Y), Gravity.Center);
+            }
+
+            drawables.Draw(canvas);
             return canvas.ToByteArray(MagickFormat.Png);
         }
 

@@ -31,17 +31,17 @@ namespace Tadmor.Modules
         [Command("poly")]
         public async Task Poly(params string[] sides)
         {
-            var rngAndAvatars = await GetRngAndAvatars();
-            var result = _imagingLegacy.Poly(rngAndAvatars, sides);
-            await Context.Channel.SendFileAsync(result, "result.png");
+            var rngImages = await GetRngImages();
+            var result = _imaging.Poly(rngImages, sides);
+            await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
 
         [Summary("make a cartesian graph")]
         [Command("quad")]
         public async Task Quad(string top, string bottom, string left, string right)
         {
-            var rngAndAvatars = await GetRngImages();
-            var result = _imaging.Quadrant(rngAndAvatars, top, bottom, left, right);
+            var rngImages = await GetRngImages();
+            var result = _imaging.Quadrant(rngImages, top, bottom, left, right);
             await Context.Channel.SendFileAsync(new MemoryStream(result), "result.png");
         }
 
