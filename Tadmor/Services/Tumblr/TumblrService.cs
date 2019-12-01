@@ -15,7 +15,7 @@ namespace Tadmor.Services.Tumblr
         private static readonly Random Random = new Random();
 
         private readonly Dictionary<string, int> _maxPostNumbersCache = new Dictionary<string, int>();
-        private TumblrClient _client;
+        private readonly TumblrClient _client;
 
         public TumblrService(IOptions<TumblrOptions> options)
         {

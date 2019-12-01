@@ -21,6 +21,24 @@ namespace Tadmor.Modules
             _dbContext = dbContext;
         }
 
+        [Summary("admin marry")]
+        [Command("adminmarry")]
+        [RequireOwner]
+        public async Task AdminMarry(IGuildUser user)
+        {
+            await _marriageService.Marry(Context.User, user, _dbContext);
+            await ReplyAsync("ok");
+        }
+
+        [Summary("admin kiss")]
+        [Command("adminkiss")]
+        [RequireOwner]
+        public async Task AdminKisses(IGuildUser user, int kisses)
+        {
+            await _marriageService.SetKisses(Context.User, user, kisses, _dbContext);
+            await ReplyAsync("ok");
+        }
+
         [Summary("marries the sender with another user")]
         [Command("marry")]
         public async Task Marry(IGuildUser user)
@@ -28,7 +46,7 @@ namespace Tadmor.Modules
             try
             {
                 if (user.Id == Context.Client.CurrentUser.Id) throw new Exception("😳");
-                await _marriageService.Marry(Context.User, user, Context.Channel, _dbContext);
+                await _marriageService.DoWedding(Context.User, user, Context.Channel, _dbContext);
                 await ReplyAsync("now kiss plz");
             }
             catch (AlreadyMarriedException e)
@@ -37,16 +55,6 @@ namespace Tadmor.Modules
                 var formattableString = await GetStringDescription(marriage);
                 throw new Exception(formattableString);
             }
-        }
-
-        private async Task<string> GetStringDescription(MarriedCouple marriage)
-        {
-            var partner1 = await Context.Guild.GetUserAsync(marriage.Partner1Id);
-            var partner2 = await Context.Guild.GetUserAsync(marriage.Partner2Id);
-            var timeMarried = (DateTime.Now - marriage.TimeStamp).Humanize();
-            var result = $"{partner1.Username} has been married to {partner2.Username} " +
-                         $"for {timeMarried} with {marriage.Kisses} kisses";
-            return result;
         }
 
         [Summary("lists existing marriages")]
@@ -58,6 +66,14 @@ namespace Tadmor.Modules
             await ReplyAsync(marriageStrings.Any()
                 ? string.Join(Environment.NewLine, marriageStrings)
                 : "no users are married");
+        }
+
+        [Summary("shows you your marriage")]
+        [Command("marriage")]
+        public async Task Marriage(IGuildUser user)
+        {
+            var marriage = await _marriageService.GetMarriage(Context.User, user, _dbContext);
+            await ReplyAsync(await GetStringDescription(marriage));
         }
 
         [Summary("divorces the sender with another user")]
@@ -72,8 +88,37 @@ namespace Tadmor.Modules
         [Command("kiss")]
         public async Task Kiss(IGuildUser user)
         {
-            var kisses = await _marriageService.Kiss(Context.User, user, _dbContext);
-            await ReplyAsync($"you have kissed your partner {kisses} time(s)");
+            var marriage = await _marriageService.Kiss(Context.User, user, _dbContext);
+            await ReplyAsync($"you have kissed your partner {marriage.Kisses} time(s) and " +
+                             $"you can again in {marriage.KissCooldown.Humanize()}");
+        }
+
+        [Summary("makes a baby with another user")]
+        [Command("baby")]
+        public async Task CreateBaby(IGuildUser user, string babyName)
+        {
+            var baby = await _marriageService.CreateBaby(Context.User, user, babyName, _dbContext);
+            await ReplyAsync($"you made: {baby}");
+        }
+
+        [Summary("get a list of babies")]
+        [Command("babies")]
+        public async Task Babies(IGuildUser user)
+        {
+            var babies = await _marriageService.GetBabies(Context.User, user, _dbContext);
+            var result = babies.Any() ? string.Join(Environment.NewLine, babies) : "you have no babies";
+            await ReplyAsync(result);
+        }
+
+        private async Task<string> GetStringDescription(MarriedCouple marriage)
+        {
+            var partner1 = await Context.Guild.GetUserAsync(marriage.Partner1Id);
+            var partner2 = await Context.Guild.GetUserAsync(marriage.Partner2Id);
+            var timeMarried = (DateTime.Now - marriage.TimeStamp).Humanize();
+            var result = $"{partner1.Username ?? partner1.Username} has been married " +
+                         $"to {partner2.Nickname ?? partner2.Username} " +
+                         $"for {timeMarried} with {marriage.Kisses} kisses";
+            return result;
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tadmor.Services.Marriage;
+using Tadmor.Services.Marriage.Babies;
 using Tadmor.Services.Twitter;
 
 namespace Tadmor.Services.Data
@@ -12,6 +13,7 @@ namespace Tadmor.Services.Data
     {
         public DbSet<TwitterMedia> TwitterMedia { get; set; } = null!;
         public DbSet<MarriedCouple> MarriedCouples { get; set; }
+        public DbSet<Baby> Babies { get; set; }
 
         public AppDbContext(DbContextOptions options) : base(options)
         {
@@ -24,6 +26,12 @@ namespace Tadmor.Services.Data
             modelBuilder.Entity<MarriedCouple>()
                 .HasIndex(couple => new {couple.Partner1Id, couple.Partner2Id, couple.GuildId})
                 .IsUnique();
+            modelBuilder.Entity<Baby>()
+                .ToTable(nameof(Babies))
+                .HasDiscriminator()
+                .HasValue<NormalBaby>(nameof(NormalBaby))
+                .HasValue<LoveBaby>(nameof(LoveBaby))
+                .HasValue<EvilBaby>(nameof(EvilBaby));
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>

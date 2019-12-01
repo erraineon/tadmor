@@ -9,6 +9,7 @@ using Tadmor.Adapters.Telegram;
 using Tadmor.Extensions;
 using Tadmor.Services;
 using Tadmor.Services.Data;
+using Tadmor.Services.Marriage.Babies;
 
 namespace Tadmor
 {
@@ -41,6 +42,9 @@ namespace Tadmor
                     .Scan(scan => scan
                         .FromEntryAssembly()
                         .AddClasses(classes => classes.WithAttribute<TransientServiceAttribute>())
+                        .AsSelfWithInterfaces()
+                        .FromEntryAssembly()
+                        .AddClasses(classes => classes.Where(t => typeof(Baby).IsAssignableFrom(t)))
                         .AsSelfWithInterfaces()
                         .WithTransientLifetime()
                         .AddClasses(classes => classes.WithAttribute<ScopedServiceAttribute>())
