@@ -115,7 +115,7 @@ namespace Tadmor.Modules
             var partner1 = await Context.Guild.GetUserAsync(marriage.Partner1Id);
             var partner2 = await Context.Guild.GetUserAsync(marriage.Partner2Id);
             var timeMarried = (DateTime.Now - marriage.TimeStamp).Humanize();
-            var result = $"{partner1.Username ?? partner1.Username} has been married " +
+            var result = $"{partner1.Nickname ?? partner1.Username} has been married " +
                          $"to {partner2.Nickname ?? partner2.Username} " +
                          $"for {timeMarried} with {marriage.Kisses} kisses";
             return result;
