@@ -77,6 +77,7 @@ namespace Tadmor.Services.Marriage
             var baby = CreateRandomBaby();
             baby.Name = babyName;
             marriage.Babies.Add(baby);
+            marriage.Kisses -= babyCost;
             await dbContext.SaveChangesAsync();
             return baby;
         }

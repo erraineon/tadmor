@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Tadmor.Services.Marriage.Babies
 {
     [BabyEffectOrder(int.MaxValue)]
-    [BabyFrequency(0.1f)]
+    [BabyFrequency(0.2f)]
     public class EvilBaby : Baby, IKissIncrementAffector
     {
         readonly Random _random = new Random();
