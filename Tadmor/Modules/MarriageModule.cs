@@ -62,7 +62,9 @@ namespace Tadmor.Modules
         public async Task Marriages()
         {
             var marriages = await _marriageService.GetMarriages(Context.Guild, _dbContext);
-            var marriageStrings = await Task.WhenAll(marriages.Select(GetStringDescription));
+            var marriageStrings = await Task.WhenAll(marriages
+                .OrderByDescending(m => m.Kisses)
+                .Select(GetStringDescription));
             await ReplyAsync(marriageStrings.Any()
                 ? string.Join(Environment.NewLine, marriageStrings)
                 : "no users are married");
@@ -95,7 +97,7 @@ namespace Tadmor.Modules
 
         [Summary("makes a baby with another user")]
         [Command("baby")]
-        public async Task CreateBaby(IGuildUser user, string babyName)
+        public async Task CreateBaby(IGuildUser user, [Remainder]string babyName)
         {
             var baby = await _marriageService.CreateBaby(Context.User, user, babyName, _dbContext);
             await ReplyAsync($"you made: {baby}");

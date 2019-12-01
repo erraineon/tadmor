@@ -72,7 +72,8 @@ namespace Tadmor.Services.Marriage
         {
             var marriage = await GetMarriage(partner1, partner2, dbContext);
             const int babyCost = 10;
-            if (marriage.Kisses < babyCost) throw new Exception("you don't have enough kisses to make a baby");
+            if (babyCost - marriage.Kisses is var missingKisses && missingKisses > 0) 
+                throw new Exception($"you need {missingKisses} more kisses to make a baby");
             var baby = CreateRandomBaby();
             baby.Name = babyName;
             marriage.Babies.Add(baby);
