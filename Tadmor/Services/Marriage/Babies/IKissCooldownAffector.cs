@@ -6,7 +6,7 @@ namespace Tadmor.Services.Marriage.Babies
 {
     public interface IKissCooldownAffector
     {
-        Task<TimeSpan> CalculateNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown, MarriedCouple marriage,
+        Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown, MarriedCouple marriage,
             IList<IKissCooldownAffector> cooldownAffectors);
     }
 }

@@ -164,6 +164,13 @@ namespace Tadmor.Services.Marriage
             await dbContext.SaveChangesAsync();
         }
 
+        public async Task ResetCooldown(IUser partner1, IGuildUser partner2, AppDbContext dbContext)
+        {
+            var marriage = await GetMarriage(partner1, partner2, dbContext);
+            marriage.KissCooldown = TimeSpan.Zero;
+            await dbContext.SaveChangesAsync();
+        }
+
         private async Task<TimeSpan> CalculateCooldown(MarriedCouple marriage)
         {
             var baseCooldown = TimeSpan.FromHours(1);
@@ -172,7 +179,7 @@ namespace Tadmor.Services.Marriage
             foreach (var kissAffector in cooldownAffectors)
             {
                 currentCooldown = await kissAffector
-                    .CalculateNewCooldown(currentCooldown, baseCooldown, marriage, cooldownAffectors);
+                    .GetNewCooldown(currentCooldown, baseCooldown, marriage, cooldownAffectors);
             }
 
             return currentCooldown;
@@ -190,7 +197,7 @@ namespace Tadmor.Services.Marriage
             foreach (var kissAffector in kissAffectors)
             {
                 currentIncrement = await kissAffector
-                    .CalculateNewIncrement(currentIncrement, baseKissIncrement, marriage, kissAffectors);
+                    .GetNewIncrement(currentIncrement, baseKissIncrement, marriage, kissAffectors);
             }
 
             return currentKisses + currentIncrement;
@@ -220,15 +227,5 @@ namespace Tadmor.Services.Marriage
             var marriage = await GetMarriage(partner1, partner2, dbContext);
             return marriage.Babies;
         }
-    }
-
-    internal class BabyFrequencyAttribute : Attribute
-    {
-        public BabyFrequencyAttribute(float weight)
-        {
-            Weight = weight;
-        }
-
-        public float Weight { get; }
     }
 }

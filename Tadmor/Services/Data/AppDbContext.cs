@@ -29,9 +29,9 @@ namespace Tadmor.Services.Data
             modelBuilder.Entity<Baby>()
                 .ToTable(nameof(Babies))
                 .HasDiscriminator()
-                .HasValue<NormalBaby>(nameof(NormalBaby))
-                .HasValue<LoveBaby>(nameof(LoveBaby))
-                .HasValue<EvilBaby>(nameof(EvilBaby));
+                .HasValue<KissBaby>("NormalBaby")
+                .HasValue<SpeedyBaby>("LoveBaby")
+                .HasValue<KissSnatcherBaby>("EvilBaby");
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>

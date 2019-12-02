@@ -39,6 +39,15 @@ namespace Tadmor.Modules
             await ReplyAsync("ok");
         }
 
+        [Summary("admin reset cd")]
+        [Command("adminresetcd")]
+        [RequireOwner]
+        public async Task AdminKisses(IGuildUser user)
+        {
+            await _marriageService.ResetCooldown(Context.User, user, _dbContext);
+            await ReplyAsync("ok");
+        }
+
         [Summary("marries the sender with another user")]
         [Command("marry")]
         public async Task Marry(IGuildUser user)
@@ -91,7 +100,7 @@ namespace Tadmor.Modules
         public async Task Kiss(IGuildUser user)
         {
             var marriage = await _marriageService.Kiss(Context.User, user, _dbContext);
-            await ReplyAsync($"you have kissed your partner {marriage.Kisses} time(s) and " +
+            await ReplyAsync($"you have kissed your partner {marriage.Kisses:#} time(s) and " +
                              $"you can again in {marriage.KissCooldown.Humanize()}");
         }
 
@@ -119,7 +128,7 @@ namespace Tadmor.Modules
             var timeMarried = (DateTime.Now - marriage.TimeStamp).Humanize();
             var result = $"{partner1.Nickname ?? partner1.Username} has been married " +
                          $"to {partner2.Nickname ?? partner2.Username} " +
-                         $"for {timeMarried} with {marriage.Kisses} kisses";
+                         $"for {timeMarried} with {marriage.Kisses:#} kisses";
             return result;
         }
     }

@@ -5,7 +5,7 @@ namespace Tadmor.Services.Marriage.Babies
 {
     public interface IKissIncrementAffector
     {
-        Task<float> CalculateNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
+        Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
             IList<IKissIncrementAffector> kissAffectors);
     }
 }
