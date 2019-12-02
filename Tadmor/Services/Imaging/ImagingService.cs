@@ -312,7 +312,7 @@ namespace Tadmor.Services.Imaging
             var nameFont = HelveticaNeueMediumFont;
             var bubbleContentW = bubbleW - bubblePadding * 2;
             using var textImage = text != null
-                ? ImageMagickExtensions.GetCaption(text, new Size(bubbleW, 0), font, Gravity.Northwest, fontSize, textColor,
+                ? ImageMagickExtensions.GetCaption(text, new Size(bubbleContentW, 0), font, Gravity.Northwest, fontSize, textColor,
                     null) : null;
 
             var textHeight = textImage != null ? textImage.Height : 0;
