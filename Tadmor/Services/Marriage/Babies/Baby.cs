@@ -12,6 +12,6 @@ namespace Tadmor.Services.Marriage.Babies
             return $"{Name} - {GetType().Name.Humanize()}: {GetDescription()}";
         }
 
-        protected abstract string GetDescription();
+        public abstract string GetDescription();
     }
 }

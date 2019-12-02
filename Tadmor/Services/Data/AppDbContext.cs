@@ -31,7 +31,8 @@ namespace Tadmor.Services.Data
                 .HasDiscriminator()
                 .HasValue<KissBaby>("NormalBaby")
                 .HasValue<SpeedyBaby>("LoveBaby")
-                .HasValue<KissSnatcherBaby>("EvilBaby");
+                .HasValue<KissSnatcherBaby>("EvilBaby")
+                .HasValue<DoubleDipBaby>("DoubleDipBaby");
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>

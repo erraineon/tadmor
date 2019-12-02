@@ -12,7 +12,7 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.FromResult(currentIncrement + baseKissIncrement * 0.5f);
         }
 
-        protected override string GetDescription()
+        public override string GetDescription()
         {
             return "increases kisses";
         }

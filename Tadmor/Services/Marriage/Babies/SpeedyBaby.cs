@@ -17,7 +17,7 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.FromResult(currentCooldown - baseCooldown * reduction);
         }
 
-        protected override string GetDescription()
+        public override string GetDescription()
         {
             return "reduces kiss cooldown";
         }

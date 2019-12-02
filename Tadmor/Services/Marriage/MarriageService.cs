@@ -86,7 +86,7 @@ namespace Tadmor.Services.Marriage
         {
             var rng = new Random();
             var babyTypes = Assembly.GetExecutingAssembly().ExportedTypes
-                .Where(type => typeof(Baby).IsAssignableFrom(type) && type != typeof(Baby))
+                .Where(type => typeof(Baby).IsAssignableFrom(type) && !type.IsAbstract)
                 .ToList();
             var babyType = babyTypes
                 .Random(t => t.GetCustomAttribute<BabyFrequencyAttribute>()?.Weight ?? 1, rng);
@@ -174,7 +174,7 @@ namespace Tadmor.Services.Marriage
         private async Task<TimeSpan> CalculateCooldown(MarriedCouple marriage)
         {
             var baseCooldown = TimeSpan.FromHours(1);
-            var cooldownAffectors = marriage.Babies.OfType<IKissCooldownAffector>().ToList();
+            var cooldownAffectors = GetBabiesOfType<IKissCooldownAffector>(marriage);
             var currentCooldown = baseCooldown;
             foreach (var kissAffector in cooldownAffectors)
             {
@@ -189,10 +189,7 @@ namespace Tadmor.Services.Marriage
         {
             const float baseKissIncrement = 1f;
             var currentKisses = marriage.Kisses;
-            var kissAffectors = marriage.Babies
-                .OfType<IKissIncrementAffector>()
-                .OrderBy(b => b.GetType().GetCustomAttribute<BabyEffectOrderAttribute>()?.Order ?? 0)
-                .ToList();
+            var kissAffectors = GetBabiesOfType<IKissIncrementAffector>(marriage);
             var currentIncrement = baseKissIncrement;
             foreach (var kissAffector in kissAffectors)
             {
@@ -201,6 +198,14 @@ namespace Tadmor.Services.Marriage
             }
 
             return currentKisses + currentIncrement;
+        }
+
+        private static List<T> GetBabiesOfType<T>(MarriedCouple marriage)
+        {
+            return marriage.Babies
+                .OfType<T>()
+                .OrderBy(b => b!.GetType().GetCustomAttribute<BabyEffectOrderAttribute>()?.Order ?? 0)
+                .ToList();
         }
 
         private async Task<MarriedCouple?> GetMarriageOrNull(IUser partner1, IUser partner2, AppDbContext dbContext)

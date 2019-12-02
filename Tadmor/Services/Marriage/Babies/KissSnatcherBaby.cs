@@ -16,7 +16,7 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.FromResult(_random.NextDouble() < 0.1 ? 0f : currentIncrement); 
         }
 
-        protected override string GetDescription()
+        public override string GetDescription()
         {
             return "has a chance of not letting you get any kisses";
         }
