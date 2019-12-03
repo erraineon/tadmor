@@ -7,7 +7,6 @@ namespace Tadmor.Services.Marriage.Babies
 {
     public class SpeedyBaby : Baby, IKissCooldownAffector
     {
-
         public Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown,
             MarriedCouple marriage, IList<IKissCooldownAffector> cooldownAffectors)
         {
@@ -20,6 +19,12 @@ namespace Tadmor.Services.Marriage.Babies
         public override string GetDescription()
         {
             return "reduces kiss cooldown";
+        }
+
+        public override Task Release(MarriedCouple marriage)
+        {
+            marriage.KissCooldown /= 2;
+            return Task.CompletedTask;
         }
     }
 }

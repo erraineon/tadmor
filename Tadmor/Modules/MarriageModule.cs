@@ -100,7 +100,7 @@ namespace Tadmor.Modules
         public async Task Kiss(IGuildUser user)
         {
             var marriage = await _marriageService.Kiss(Context.User, user, _dbContext);
-            await ReplyAsync($"you have kissed your partner {marriage.Kisses:#} time(s) and " +
+            await ReplyAsync($"you have kissed your partner {marriage.Kisses:0} time(s) and " +
                              $"you can again in {marriage.KissCooldown.Humanize()}");
         }
 
@@ -127,6 +127,14 @@ namespace Tadmor.Modules
             await ReplyAsync(result);
         }
 
+        [Summary("releases a baby")]
+        [Command("release")]
+        public async Task ReleaseBaby(IGuildUser user, [Remainder]string babyName)
+        {
+            await _marriageService.ReleaseBaby(Context.User, user, babyName, _dbContext);
+            await ReplyAsync($"bye bye {babyName}!");
+        }
+
         private async Task<string> GetStringDescription(MarriedCouple marriage)
         {
             var partner1 = await Context.Guild.GetUserAsync(marriage.Partner1Id);
@@ -134,7 +142,7 @@ namespace Tadmor.Modules
             var timeMarried = (DateTime.Now - marriage.TimeStamp).Humanize();
             var result = $"{partner1.Nickname ?? partner1.Username} has been married " +
                          $"to {partner2.Nickname ?? partner2.Username} " +
-                         $"for {timeMarried} with {marriage.Kisses:#} kisses";
+                         $"for {timeMarried} with {marriage.Kisses:0} kisses";
             return result;
         }
     }

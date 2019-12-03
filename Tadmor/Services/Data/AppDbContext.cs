@@ -32,7 +32,12 @@ namespace Tadmor.Services.Data
                 .HasValue<KissBaby>("NormalBaby")
                 .HasValue<SpeedyBaby>("LoveBaby")
                 .HasValue<KissSnatcherBaby>("EvilBaby")
-                .HasValue<DoubleDipBaby>("DoubleDipBaby");
+                .HasValue<DoubleDipBaby>("DoubleDipBaby")
+                .HasValue<LuckyBaby>("LuckyBaby")
+                .HasValue<DiscountBaby>("DiscountBaby")
+                .HasValue<AffectionateBaby>("AffectionateBaby")
+                .HasValue<GoldenBaby>("GoldenBaby")
+                .HasValue<CockBlockBaby>("CockBlockBaby");
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>

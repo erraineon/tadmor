@@ -5,26 +5,23 @@ using System.Threading.Tasks;
 namespace Tadmor.Services.Marriage.Babies
 {
     [BabyEffectOrder(int.MaxValue)]
-    [BabyFrequency(0.2f)]
-    public class DoubleDipBaby : Baby, IKissCooldownAffector
+    [BabyFrequency(0.07f)]
+    public class CockBlockBaby : Baby, IKissCooldownAffector
     {
-        readonly Random _random = new Random();
-
         public override string GetDescription()
         {
-            return "has a chance of resetting your cooldown";
+            return "doubles your kiss cooldown";
         }
 
         public override Task Release(MarriedCouple marriage)
         {
-            marriage.Kisses += 6;
-            marriage.KissCooldown = TimeSpan.Zero;
+            marriage.KissCooldown = TimeSpan.FromDays(7);
             return Task.CompletedTask;
         }
 
         public Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown, MarriedCouple marriage, IList<IKissCooldownAffector> cooldownAffectors)
         {
-            return Task.FromResult(_random.NextDouble() < 0.1 ? TimeSpan.Zero : currentCooldown);
+            return Task.FromResult(currentCooldown*2);
         }
     }
 }

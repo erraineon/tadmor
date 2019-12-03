@@ -20,5 +20,14 @@ namespace Tadmor.Services.Marriage.Babies
         {
             return "has a chance of not letting you get any kisses";
         }
+
+        public override Task Release(MarriedCouple marriage)
+        {
+            const float releaseRate = 10;
+            if (marriage.Kisses < releaseRate) 
+                throw new Exception($"you need at least {releaseRate} kisses to release this baby");
+            marriage.Kisses -= releaseRate;
+            return Task.CompletedTask;
+        }
     }
 }

@@ -71,11 +71,12 @@ namespace Tadmor.Services.Marriage
         public async Task<Baby> CreateBaby(IUser partner1, IGuildUser partner2, string babyName, AppDbContext dbContext)
         {
             var marriage = await GetMarriage(partner1, partner2, dbContext);
-            const int babyCost = 10;
+            var babyCost = await CalculateBabyCost(marriage);
             if (babyCost - marriage.Kisses is var missingKisses && missingKisses > 0) 
-                throw new Exception($"you need {missingKisses} more kisses to make a baby");
+                throw new Exception($"you need {missingKisses:0} more kisses to make a baby");
             var baby = CreateRandomBaby();
             baby.Name = babyName;
+            baby.BirthDate = DateTime.Now;
             marriage.Babies.Add(baby);
             marriage.Kisses -= babyCost;
             await dbContext.SaveChangesAsync();
@@ -176,9 +177,9 @@ namespace Tadmor.Services.Marriage
             var baseCooldown = TimeSpan.FromHours(1);
             var cooldownAffectors = GetBabiesOfType<IKissCooldownAffector>(marriage);
             var currentCooldown = baseCooldown;
-            foreach (var kissAffector in cooldownAffectors)
+            foreach (var cooldownAffector in cooldownAffectors)
             {
-                currentCooldown = await kissAffector
+                currentCooldown = await cooldownAffector
                     .GetNewCooldown(currentCooldown, baseCooldown, marriage, cooldownAffectors);
             }
 
@@ -198,6 +199,20 @@ namespace Tadmor.Services.Marriage
             }
 
             return currentKisses + currentIncrement;
+        }
+
+        private async Task<float> CalculateBabyCost(MarriedCouple marriage)
+        {
+            var baseBabyCost = 10f;
+            var costAffectors = GetBabiesOfType<IBabyCostAffector>(marriage);
+            var currentCost = baseBabyCost;
+            foreach (var costAffector in costAffectors)
+            {
+                currentCost = await costAffector
+                    .GetNewCost(currentCost, baseBabyCost, marriage, costAffectors);
+            }
+
+            return currentCost;
         }
 
         private static List<T> GetBabiesOfType<T>(MarriedCouple marriage)
@@ -231,6 +246,17 @@ namespace Tadmor.Services.Marriage
         {
             var marriage = await GetMarriage(partner1, partner2, dbContext);
             return marriage.Babies;
+        }
+
+        public async Task ReleaseBaby(IUser partner1, IGuildUser partner2, string babyName, AppDbContext dbContext)
+        {
+            var marriage = await GetMarriage(partner1, partner2, dbContext);
+            var baby = marriage.Babies
+                           .FirstOrDefault(b => string.Equals(b.Name, babyName, StringComparison.OrdinalIgnoreCase)) ??
+                       throw new Exception($"you have no baby named {babyName}");
+            await baby.Release(marriage);
+            marriage.Babies.Remove(baby);
+            await dbContext.SaveChangesAsync();
         }
     }
 }

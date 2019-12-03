@@ -16,5 +16,11 @@ namespace Tadmor.Services.Marriage.Babies
         {
             return "increases kisses";
         }
+
+        public override Task Release(MarriedCouple marriage)
+        {
+            marriage.Kisses += 2;
+            return Task.CompletedTask;
+        }
     }
 }
