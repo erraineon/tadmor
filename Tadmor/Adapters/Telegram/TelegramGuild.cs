@@ -518,10 +518,12 @@ namespace Tadmor.Adapters.Telegram
                 text = ToText(embed);
             }
 
-            // escape telegram markdown tokens out of urls
+            // escape telegram markdown tokens out of urls and usernames
             text = Regex.Replace(text, @"(http|\@).+?(?=\s|$)", m => Regex.Replace(m.Value, @"[*_~]", @"\$&"));
+            // escape unmatched markdown tokens
+            text = Regex.Replace(text, @"(?<!\\)[*_~](?!\0)", @"\$&");
             // replace regular markdown with the kind that telegram expects
-            text = Regex.Replace(text, @"([*_])\1(.*?)\1\1", @"$1$2$1");
+            text = Regex.Replace(text, @"([*_~])\1(.*?)\1\1", @"$1$2$1");
             var message = await _api.SendTextMessageAsync(_chat.Id, text, ParseMode.Markdown);
             return await ProcessInboundMessage(message);
         }
