@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Tadmor.Services.Marriage.Babies
 {
@@ -18,7 +19,8 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.CompletedTask;
         }
 
-        public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage, IList<IKissIncrementAffector> kissAffectors)
+        public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
+            IList<IKissIncrementAffector> kissAffectors, ILogger logger)
         {
             return Task.FromResult(currentIncrement*2);
         }

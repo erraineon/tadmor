@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Tadmor.Services.Marriage.Babies
 {
@@ -11,7 +12,7 @@ namespace Tadmor.Services.Marriage.Babies
         readonly Random _random = new Random();
 
         public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
-            IList<IKissIncrementAffector> kissAffectors)
+            IList<IKissIncrementAffector> kissAffectors, ILogger logger)
         {
             return Task.FromResult(_random.NextDouble() < 0.1 ? 0f : currentIncrement); 
         }

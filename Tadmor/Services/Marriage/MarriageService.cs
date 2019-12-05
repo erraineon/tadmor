@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Humanizer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Tadmor.Extensions;
 using Tadmor.Services.Abstractions;
 using Tadmor.Services.Data;
@@ -68,10 +70,11 @@ namespace Tadmor.Services.Marriage
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task<Baby> CreateBaby(IUser partner1, IGuildUser partner2, string babyName, AppDbContext dbContext)
+        public async Task<string> CreateBaby(IUser partner1, IGuildUser partner2, string babyName, AppDbContext dbContext)
         {
             var marriage = await GetMarriage(partner1, partner2, dbContext);
-            var babyCost = await CalculateBabyCost(marriage);
+            var logger = new StringBuilderLogger();
+            var babyCost = await CalculateBabyCost(marriage, logger);
             if (babyCost - marriage.Kisses is var missingKisses && missingKisses > 0) 
                 throw new Exception($"you need {missingKisses:0} more kisses to make a baby");
             var baby = CreateRandomBaby();
@@ -80,7 +83,8 @@ namespace Tadmor.Services.Marriage
             marriage.Babies.Add(baby);
             marriage.Kisses -= babyCost;
             await dbContext.SaveChangesAsync();
-            return baby;
+            logger.LogInformation($"you made {baby}");
+            return logger.ToString();
         }
 
         private Baby CreateRandomBaby()
@@ -142,20 +146,23 @@ namespace Tadmor.Services.Marriage
             return marriage;
         }
 
-        public async Task<MarriedCouple> Kiss(IUser partner1, IUser partner2, AppDbContext dbContext)
+        public async Task<string> Kiss(IUser partner1, IUser partner2, AppDbContext dbContext)
         {
             var marriage = await GetMarriageOrNull(partner1, partner2, dbContext);
             if (marriage == null) throw new Exception($"you can only kiss your partner");
+            var logger = new StringBuilderLogger();
             var now = DateTime.Now;
             if (now - marriage.LastKissed is var timeSinceLastKiss && 
                 marriage.KissCooldown - timeSinceLastKiss is var timeRemaining && 
                 timeRemaining > TimeSpan.Zero) 
                 throw new Exception($"you can kiss again in {timeRemaining.Humanize()}");
-            marriage.Kisses = await CalculateKisses(marriage);
-            marriage.KissCooldown = await CalculateCooldown(marriage);
+            marriage.Kisses = await CalculateKisses(marriage, logger);
+            marriage.KissCooldown = await CalculateCooldown(marriage, logger);
             marriage.LastKissed = now;
             await dbContext.SaveChangesAsync();
-            return marriage;
+            logger.LogInformation($"you have kissed your partner {marriage.Kisses:0} time(s) and " +
+                                  $"you can again in {marriage.KissCooldown.Humanize()}");
+            return logger.ToString();
         }
 
         public async Task SetKisses(IUser partner1, IUser partner2, int kisses, AppDbContext dbContext)
@@ -172,7 +179,7 @@ namespace Tadmor.Services.Marriage
             await dbContext.SaveChangesAsync();
         }
 
-        private async Task<TimeSpan> CalculateCooldown(MarriedCouple marriage)
+        private async Task<TimeSpan> CalculateCooldown(MarriedCouple marriage, ILogger logger)
         {
             var baseCooldown = TimeSpan.FromHours(1);
             var cooldownAffectors = GetBabiesOfType<IKissCooldownAffector>(marriage);
@@ -180,13 +187,13 @@ namespace Tadmor.Services.Marriage
             foreach (var cooldownAffector in cooldownAffectors)
             {
                 currentCooldown = await cooldownAffector
-                    .GetNewCooldown(currentCooldown, baseCooldown, marriage, cooldownAffectors);
+                    .GetNewCooldown(currentCooldown, baseCooldown, marriage, cooldownAffectors, logger);
             }
 
             return currentCooldown;
         }
 
-        private async Task<float> CalculateKisses(MarriedCouple marriage)
+        private async Task<float> CalculateKisses(MarriedCouple marriage, ILogger logger)
         {
             const float baseKissIncrement = 1f;
             var currentKisses = marriage.Kisses;
@@ -195,13 +202,13 @@ namespace Tadmor.Services.Marriage
             foreach (var kissAffector in kissAffectors)
             {
                 currentIncrement = await kissAffector
-                    .GetNewIncrement(currentIncrement, baseKissIncrement, marriage, kissAffectors);
+                    .GetNewIncrement(currentIncrement, baseKissIncrement, marriage, kissAffectors, logger);
             }
 
             return currentKisses + currentIncrement;
         }
 
-        private async Task<float> CalculateBabyCost(MarriedCouple marriage)
+        private async Task<float> CalculateBabyCost(MarriedCouple marriage, ILogger logger)
         {
             var baseBabyCost = 10f;
             var costAffectors = GetBabiesOfType<IBabyCostAffector>(marriage);
@@ -209,7 +216,7 @@ namespace Tadmor.Services.Marriage
             foreach (var costAffector in costAffectors)
             {
                 currentCost = await costAffector
-                    .GetNewCost(currentCost, baseBabyCost, marriage, costAffectors);
+                    .GetNewCost(currentCost, baseBabyCost, marriage, costAffectors, logger);
             }
 
             return currentCost;
@@ -257,6 +264,30 @@ namespace Tadmor.Services.Marriage
             await baby.Release(marriage);
             marriage.Babies.Remove(baby);
             await dbContext.SaveChangesAsync();
+        }
+
+        private class StringBuilderLogger : ILogger
+        {
+            private readonly StringBuilder _builder = new StringBuilder();
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+                _builder.AppendLine(state?.ToString());
+            }
+
+            public bool IsEnabled(LogLevel logLevel)
+            {
+                return true;
+            }
+
+            public IDisposable BeginScope<TState>(TState state)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override string ToString()
+            {
+                return _builder.ToString();
+            }
         }
     }
 }

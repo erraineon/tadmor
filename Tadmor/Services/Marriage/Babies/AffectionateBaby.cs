@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Tadmor.Services.Marriage.Babies
 {
@@ -17,9 +18,15 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.CompletedTask;
         }
 
-        public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage, IList<IKissIncrementAffector> kissAffectors)
+        public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
+            IList<IKissIncrementAffector> kissAffectors, ILogger logger)
         {
-            return Task.FromResult(currentIncrement + (int) ((DateTime.Now - marriage.LastKissed).TotalHours / 6));
+            var hoursWaited = (DateTime.Now - marriage.LastKissed).TotalHours;
+            var extraKisses = (int) (hoursWaited / 6);
+            if (extraKisses > 0)
+                logger.LogInformation($"{Name} gave you {extraKisses} extra " +
+                                      $"kisses for having waited {hoursWaited} hours");
+            return Task.FromResult(currentIncrement + extraKisses);
         }
     }
 }

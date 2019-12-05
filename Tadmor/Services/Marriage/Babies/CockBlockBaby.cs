@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Tadmor.Services.Marriage.Babies
 {
@@ -19,7 +20,8 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.CompletedTask;
         }
 
-        public Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown, MarriedCouple marriage, IList<IKissCooldownAffector> cooldownAffectors)
+        public Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown, MarriedCouple marriage, 
+            IList<IKissCooldownAffector> cooldownAffectors, ILogger logger)
         {
             return Task.FromResult(currentCooldown*2);
         }

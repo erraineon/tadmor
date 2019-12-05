@@ -99,17 +99,16 @@ namespace Tadmor.Modules
         [Command("kiss")]
         public async Task Kiss(IGuildUser user)
         {
-            var marriage = await _marriageService.Kiss(Context.User, user, _dbContext);
-            await ReplyAsync($"you have kissed your partner {marriage.Kisses:0} time(s) and " +
-                             $"you can again in {marriage.KissCooldown.Humanize()}");
+            var kissLog = await _marriageService.Kiss(Context.User, user, _dbContext);
+            await ReplyAsync(kissLog);
         }
 
         [Summary("makes a baby with another user")]
         [Command("baby")]
         public async Task CreateBaby(IGuildUser user, [Remainder]string babyName)
         {
-            var baby = await _marriageService.CreateBaby(Context.User, user, babyName, _dbContext);
-            await ReplyAsync($"you made: {baby}");
+            var babyLog = await _marriageService.CreateBaby(Context.User, user, babyName, _dbContext);
+            await ReplyAsync(babyLog);
         }
 
         [Summary("get a list of babies")]

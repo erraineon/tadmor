@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Tadmor.Services.Marriage.Babies
 {
@@ -20,9 +21,18 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.CompletedTask;
         }
 
-        public Task<float> GetNewCost(float currentCost, float baseCost, MarriedCouple marriage, IList<IBabyCostAffector> costAffectors)
+        public Task<float> GetNewCost(float currentCost, float baseCost, MarriedCouple marriage,
+            IList<IBabyCostAffector> costAffectors, ILogger logger)
         {
-            return Task.FromResult(_random.NextDouble() < 0.1 ? currentCost : currentCost / 2);
+            var proc = _random.NextDouble() < 0.1;
+            if (proc)
+            {
+                var newCost = currentCost / 2;
+                logger.LogInformation($"{Name} decreased your cost to {newCost}");
+                return Task.FromResult(newCost);
+            }
+
+            return Task.FromResult(currentCost);
         }
     }
 }
