@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System    ;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -26,7 +26,14 @@ namespace Tadmor.Services.Marriage.Babies
         public Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown, MarriedCouple marriage, 
             IList<IKissCooldownAffector> cooldownAffectors, ILogger logger)
         {
-            return Task.FromResult(_random.NextDouble() < 0.1 ? TimeSpan.Zero : currentCooldown);
+            var proc = _random.NextDouble() < 0.1;
+            if (proc)
+            {
+                logger.LogInformation($"{Name} nullified your cooldown");
+                return Task.FromResult(TimeSpan.Zero);
+            }
+
+            return Task.FromResult(currentCooldown);
         }
     }
 }

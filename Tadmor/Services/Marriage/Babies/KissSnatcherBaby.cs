@@ -14,7 +14,14 @@ namespace Tadmor.Services.Marriage.Babies
         public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
             IList<IKissIncrementAffector> kissAffectors, ILogger logger)
         {
-            return Task.FromResult(_random.NextDouble() < 0.1 ? 0f : currentIncrement); 
+            var proc = _random.NextDouble() < 0.1;
+            if (proc)
+            {
+                logger.LogInformation($"{Name} nullified your kiss gain");
+                return Task.FromResult(0f);
+            }
+
+            return Task.FromResult(currentIncrement);
         }
 
         public override string GetDescription()

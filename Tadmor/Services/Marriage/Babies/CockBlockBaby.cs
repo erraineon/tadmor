@@ -23,6 +23,7 @@ namespace Tadmor.Services.Marriage.Babies
         public Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown, MarriedCouple marriage, 
             IList<IKissCooldownAffector> cooldownAffectors, ILogger logger)
         {
+            logger.LogInformation($"{Name} doubled your cooldown");
             return Task.FromResult(currentCooldown*2);
         }
     }
