@@ -21,8 +21,8 @@ namespace Tadmor.Services.Marriage.Babies
         public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
             IList<IKissIncrementAffector> kissAffectors, ILogger logger)
         {
-            var hoursWaited = (DateTime.Now - marriage.LastKissed).TotalHours;
-            var extraKisses = (int) (hoursWaited / 6);
+            var hoursWaited = (int)(DateTime.Now - marriage.LastKissed).TotalHours;
+            var extraKisses = hoursWaited / 6;
             if (extraKisses > 0)
                 logger.LogInformation($"{Name} gave you {extraKisses} extra " +
                                       $"kisses for having waited {hoursWaited} hours");
