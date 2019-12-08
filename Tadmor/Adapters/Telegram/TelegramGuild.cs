@@ -518,12 +518,25 @@ namespace Tadmor.Adapters.Telegram
                 text = ToText(embed);
             }
 
-            // escape telegram markdown tokens out of urls and usernames
-            text = Regex.Replace(text, @"(http|\@).+?(?=\s|$)", m => Regex.Replace(m.Value, @"[*_~]", @"\$&"));
-            // escape unmatched markdown tokens
-            text = Regex.Replace(text, @"(?<!\\)[*_~](?!\0)", @"\$&");
+            var markdownChars = new[] { '*', '_', '`' };
+            var concatMarkdownChars = string.Concat(markdownChars);
             // replace regular markdown with the kind that telegram expects
-            text = Regex.Replace(text, @"([*_~])\1(.*?)\1\1", @"$1$2$1");
+            text = Regex.Replace(text, $@"([{concatMarkdownChars}])\1(.*?)\1\1", @"$1$2$1");
+            // escape telegram markdown tokens out of urls and usernames
+            text = Regex.Replace(text, @"(http|\@).+?(?=\s|$)", m => Regex.Replace(m.Value, $@"[{concatMarkdownChars}]", @"\$&"));
+            Regex.Matches("a", @"(?'x'[\*])+(?'-x')\k'x'", RegexOptions.None);
+            // escape unmatched markdown tokens
+            var charsAndIndexes = text.Select((c, i) => (c, i)).ToList();
+            var unmatchedMarkdownIndexes = markdownChars
+                .Select(c => charsAndIndexes
+                    .Where(t => t.c == c && (t.i == 0 || text[t.i - 1] != '\\'))
+                    .Select(t => t.i)
+                    .ToList())
+                .Where(indexes => indexes.Count % 2 != 0)
+                .Select(indexes => indexes.Last())
+                .OrderByDescending(index => index)
+                .ToList();
+            text = unmatchedMarkdownIndexes.Aggregate(text, (current, index) => current.Insert(index, "\\"));
             var message = await _api.SendTextMessageAsync(_chat.Id, text, ParseMode.Markdown);
             return await ProcessInboundMessage(message);
         }
@@ -557,7 +570,7 @@ namespace Tadmor.Adapters.Telegram
 
         public async Task<IUserMessage> SendFileAsync(Stream stream, string filename, string? text = null,
             bool isTts = false, Embed? embed = null,
-            RequestOptions? options = null, bool isSpoiler = false)
+            RequestOptions? options = null, bool isSpoiler = false) 
         {
             var videoExtensions = new[] {".gif", ".mp4"};
             var message = videoExtensions.Any(filename.EndsWith)
