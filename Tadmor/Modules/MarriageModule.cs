@@ -141,7 +141,7 @@ namespace Tadmor.Modules
             var timeMarried = (DateTime.Now - marriage.TimeStamp).Humanize();
             var result = $"{partner1.Nickname ?? partner1.Username} has been married " +
                          $"to {partner2.Nickname ?? partner2.Username} " +
-                         $"for {timeMarried} with {marriage.Kisses:0} kisses";
+                         $"for {timeMarried} with {Math.Floor(marriage.Kisses)} kisses";
             return result;
         }
     }

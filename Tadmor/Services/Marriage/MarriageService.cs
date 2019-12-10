@@ -76,7 +76,7 @@ namespace Tadmor.Services.Marriage
             var logger = new StringBuilderLogger();
             var babyCost = await CalculateBabyCost(marriage, logger);
             if (babyCost - marriage.Kisses is var missingKisses && missingKisses > 0) 
-                throw new Exception($"you need {missingKisses:0} more kisses to make a baby");
+                throw new Exception($"you need {Math.Ceiling(missingKisses)} more kisses to make a baby");
             var baby = CreateRandomBaby();
             baby.Name = babyName;
             baby.BirthDate = DateTime.Now;
@@ -160,7 +160,7 @@ namespace Tadmor.Services.Marriage
             marriage.KissCooldown = await CalculateCooldown(marriage, logger);
             marriage.LastKissed = now;
             await dbContext.SaveChangesAsync();
-            logger.LogInformation($"you have kissed your partner {marriage.Kisses:0} time(s) and " +
+            logger.LogInformation($"you have kissed your partner {Math.Floor(marriage.Kisses)} time(s) and " +
                                   $"you can again in {marriage.KissCooldown.Humanize()}");
             return logger.ToString();
         }
