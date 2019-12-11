@@ -127,6 +127,14 @@ namespace Tadmor.Modules
             await ReplyAsync($"bye bye {babyName}!");
         }
 
+        [Summary("combines two babies")]
+        [Command("combine")]
+        public async Task CombineBabies(IGuildUser user, string babyName1, string babyName2, [Remainder] string newBabyName)
+        {
+            var combineLog = await _marriageService.CombineBabies(Context.User, user, babyName1, babyName2, newBabyName, _dbContext);
+            await ReplyAsync(combineLog);
+        }
+
         private async Task<string> GetStringDescription(MarriedCouple marriage)
         {
             var partner1 = await Context.Guild.GetUserAsync(marriage.Partner1Id);

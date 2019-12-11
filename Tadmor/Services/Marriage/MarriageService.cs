@@ -92,6 +92,35 @@ namespace Tadmor.Services.Marriage
             return logger.ToString();
         }
 
+        public async Task<string> CombineBabies(IUser partner1, IGuildUser partner2, string babyName1, string babyName2,
+            string newBabyName,
+            AppDbContext dbContext)
+        {
+            var marriage = await GetMarriage(partner1, partner2, dbContext);
+            var baby1 = GetBaby(babyName1, marriage);
+            var baby2 = GetBaby(babyName2, marriage);
+            AssertCanCombine(baby1);
+            AssertCanCombine(baby2);
+            AssertBabyNameValid(newBabyName);
+            var logger = new StringBuilderLogger();
+            var baby = CreateRandomBaby();
+            baby.Name = newBabyName;
+            baby.BirthDate = DateTime.Now;
+            var minRank = (int)Math.Floor((baby1.Rank + baby2.Rank)/2f);
+            baby.Rank = await CalculateBabyRank(marriage, logger, minRank);
+            marriage.Babies.Add(baby);
+            marriage.Babies.Remove(baby1);
+            marriage.Babies.Remove(baby2);
+            logger.LogInformation($"{baby1.Name} and {baby2.Name} were combined to create {baby}");
+            await dbContext.SaveChangesAsync();
+            return logger.ToString();
+        }
+
+        private void AssertCanCombine(Baby baby)
+        {
+            if (!baby.CanCombine) throw new Exception($"{baby.Name} can't be combined");
+        }
+
         private static void AssertBabyNameValid(string babyName)
         {
             const int maxBabyNameLength = 64;
@@ -193,10 +222,10 @@ namespace Tadmor.Services.Marriage
 
         private async Task<int> CalculateMaxBabiesCount(MarriedCouple marriage, ILogger logger)
         {
-            return 64;
+            return 16;
         }
 
-        private async Task<int> CalculateBabyRank(MarriedCouple marriage, ILogger logger)
+        private async Task<int> CalculateBabyRank(MarriedCouple marriage, ILogger logger, int minRank = 2)
         {
             var random = new Random();
             // a rank bonus of 1 ensures that the rank is always 10
@@ -211,7 +240,7 @@ namespace Tadmor.Services.Marriage
 
             rankBonus = currentRankBonus;
             // logarithmic curve mapping 0..1 to 2..10
-            return (int)Math.Round(-2 * Math.Log(-80 * (random.NextDouble() - 1 + rankBonus) + 1, 3) + 10);
+            return (int)Math.Round(-((10 - minRank) / 4f) * Math.Log(-80 * (random.NextDouble() - 1 + rankBonus) + 1, 3) + 10);
         }
 
         private async Task<TimeSpan> CalculateCooldown(MarriedCouple marriage, ILogger logger)
@@ -302,12 +331,18 @@ namespace Tadmor.Services.Marriage
         public async Task ReleaseBaby(IUser partner1, IGuildUser partner2, string babyName, AppDbContext dbContext)
         {
             var marriage = await GetMarriage(partner1, partner2, dbContext);
-            var baby = marriage.Babies
-                           .FirstOrDefault(b => string.Equals(b.Name, babyName, StringComparison.OrdinalIgnoreCase)) ??
-                       throw new Exception($"you have no baby named {babyName}");
+            var baby = GetBaby(babyName, marriage);
             await baby.Release(marriage);
             marriage.Babies.Remove(baby);
             await dbContext.SaveChangesAsync();
+        }
+
+        private static Baby GetBaby(string babyName, MarriedCouple marriage)
+        {
+            var baby = marriage.Babies
+                           .FirstOrDefault(b => string.Equals(b.Name, babyName, StringComparison.OrdinalIgnoreCase)) ??
+                       throw new Exception($"you have no baby named {babyName}");
+            return baby;
         }
 
         private class StringBuilderLogger : ILogger

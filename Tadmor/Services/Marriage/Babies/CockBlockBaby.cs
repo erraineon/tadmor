@@ -42,5 +42,7 @@ namespace Tadmor.Services.Marriage.Babies
 
             return Task.FromResult(currentIncrement);
         }
+
+        public override bool CanCombine => !IsPowerBaby;
     }
 }

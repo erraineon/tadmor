@@ -37,5 +37,7 @@ namespace Tadmor.Services.Marriage.Babies
             marriage.Kisses -= releaseRate;
             return Task.CompletedTask;
         }
+
+        public override bool CanCombine => false;
     }
 }
