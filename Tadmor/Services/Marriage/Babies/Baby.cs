@@ -10,7 +10,11 @@ namespace Tadmor.Services.Marriage.Babies
         public string Name { get; set; }
         public DateTime BirthDate { get; set; }
         public int Rank { get; set; }
-        public virtual bool CanCombine { get; } = true;
+
+        public virtual Task Combine(MarriedCouple marriage)
+        {
+            return Task.CompletedTask;
+        }
 
         public override string ToString()
         {

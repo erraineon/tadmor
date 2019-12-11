@@ -38,6 +38,13 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.CompletedTask;
         }
 
-        public override bool CanCombine => false;
+        public override Task Combine(MarriedCouple marriage)
+        {
+            const float combineRate = 15;
+            if (marriage.Kisses < combineRate)
+                throw new Exception($"you need at least {combineRate} kisses to combine this baby");
+            marriage.Kisses -= combineRate;
+            return Task.CompletedTask;
+        }
     }
 }

@@ -20,7 +20,7 @@ namespace Tadmor.Services.Marriage.Babies
 
         public override Task Release(MarriedCouple marriage)
         {
-            if (!IsPowerBaby) marriage.KissCooldown = TimeSpan.FromDays(7);
+            if (!IsPowerBaby) marriage.KissCooldown += TimeSpan.FromDays(7);
             return Task.CompletedTask;
         }
 
@@ -43,6 +43,11 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.FromResult(currentIncrement);
         }
 
-        public override bool CanCombine => !IsPowerBaby;
+
+        public override Task Combine(MarriedCouple marriage)
+        {
+            if (!IsPowerBaby) marriage.KissCooldown += TimeSpan.FromDays(10);
+            return Task.CompletedTask;
+        }
     }
 }

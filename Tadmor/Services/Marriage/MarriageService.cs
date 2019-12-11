@@ -99,8 +99,8 @@ namespace Tadmor.Services.Marriage
             var marriage = await GetMarriage(partner1, partner2, dbContext);
             var baby1 = GetBaby(babyName1, marriage);
             var baby2 = GetBaby(babyName2, marriage);
-            AssertCanCombine(baby1);
-            AssertCanCombine(baby2);
+            ExecuteCombinePrecondition(baby1, marriage);
+            ExecuteCombinePrecondition(baby2, marriage);
             AssertBabyNameValid(newBabyName);
             var logger = new StringBuilderLogger();
             var baby = CreateRandomBaby();
@@ -116,9 +116,9 @@ namespace Tadmor.Services.Marriage
             return logger.ToString();
         }
 
-        private void AssertCanCombine(Baby baby)
+        private void ExecuteCombinePrecondition(Baby baby, MarriedCouple marriage)
         {
-            if (!baby.CanCombine) throw new Exception($"{baby.Name} can't be combined");
+            baby.Combine(marriage);
         }
 
         private static void AssertBabyNameValid(string babyName)
