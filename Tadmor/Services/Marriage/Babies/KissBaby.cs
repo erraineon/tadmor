@@ -10,7 +10,7 @@ namespace Tadmor.Services.Marriage.Babies
             MarriedCouple marriage,
             IList<IKissIncrementAffector> kissAffectors, ILogger logger)
         {
-            return Task.FromResult(currentIncrement + baseKissIncrement * 0.5f);
+            return Task.FromResult(currentIncrement + baseKissIncrement * (Rank / 8f));
         }
 
         public override string GetDescription()
@@ -20,7 +20,7 @@ namespace Tadmor.Services.Marriage.Babies
 
         public override Task Release(MarriedCouple marriage)
         {
-            marriage.Kisses += 2;
+            marriage.Kisses += Rank / 2f;
             return Task.CompletedTask;
         }
     }

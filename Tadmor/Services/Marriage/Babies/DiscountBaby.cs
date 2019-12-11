@@ -17,14 +17,16 @@ namespace Tadmor.Services.Marriage.Babies
 
         public override Task Release(MarriedCouple marriage)
         {
-            marriage.Kisses += 3;
+            var doubleRank = Rank * 2;
+            marriage.Kisses += doubleRank * doubleRank;
             return Task.CompletedTask;
         }
 
         public Task<float> GetNewCost(float currentCost, float baseCost, MarriedCouple marriage,
             IList<IBabyCostAffector> costAffectors, ILogger logger)
         {
-            var proc = _random.NextDouble() < 0.1;
+            var procChance = Rank * 0.025;
+            var proc = _random.NextDouble() < procChance;
             if (proc)
             {
                 var newCost = currentCost / 2;

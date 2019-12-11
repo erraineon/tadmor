@@ -115,15 +115,8 @@ namespace Tadmor.Modules
         [Command("babies")]
         public async Task Babies(IGuildUser user)
         {
-            var babies = await _marriageService.GetBabies(Context.User, user, _dbContext);
-            var babyStrings = babies
-                .GroupBy(
-                    b => $"{b.GetType().Name.Humanize()}: {b.GetDescription()}",
-                    b => b.Name,
-                    (description, names) => $"{string.Join(", ", names)} - {description}")
-                .ToList();
-            var result = babyStrings.Any() ? string.Join(Environment.NewLine, babyStrings) : "you have no babies";
-            await ReplyAsync(result);
+            var babiesInfo = await _marriageService.GetBabiesInfo(Context.User, user, _dbContext);
+            await ReplyAsync(babiesInfo);
         }
 
         [Summary("releases a baby")]

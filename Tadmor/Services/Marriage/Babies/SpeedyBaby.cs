@@ -11,9 +11,11 @@ namespace Tadmor.Services.Marriage.Babies
         public Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown,
             MarriedCouple marriage, IList<IKissCooldownAffector> cooldownAffectors, ILogger logger)
         {
-            var loveBabiesCount = cooldownAffectors.OfType<SpeedyBaby>().Count();
+            var speedyBabies = cooldownAffectors.OfType<SpeedyBaby>().ToList();
+            var babiesCount = (float)speedyBabies.Count;
+            var babiesRank = speedyBabies.Sum(b => b.Rank / 2f);
             // parabola with asymptote at y = .66
-            var reduction = .66 * loveBabiesCount / ((loveBabiesCount + 10) * loveBabiesCount);
+            var reduction = .66 * babiesRank / ((babiesRank + 10) * babiesCount);
             return Task.FromResult(currentCooldown - baseCooldown * reduction);
         }
 

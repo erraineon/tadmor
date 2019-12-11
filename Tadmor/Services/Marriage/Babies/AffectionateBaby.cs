@@ -9,12 +9,13 @@ namespace Tadmor.Services.Marriage.Babies
     {
         public override string GetDescription()
         {
-            return "adds a kiss for each 6 hours since your last kiss";
+            return "add kisses the longer you wait";
         }
 
         public override Task Release(MarriedCouple marriage)
         {
-            marriage.Kisses += 2;
+            var halfRank = Rank / 2f;
+            marriage.Kisses += (int) halfRank * halfRank;
             return Task.CompletedTask;
         }
 
@@ -22,7 +23,7 @@ namespace Tadmor.Services.Marriage.Babies
             IList<IKissIncrementAffector> kissAffectors, ILogger logger)
         {
             var hoursWaited = (int)(DateTime.Now - marriage.LastKissed).TotalHours;
-            var extraKisses = hoursWaited / 6;
+            var extraKisses = hoursWaited * Rank / 12;
             if (extraKisses > 0)
                 logger.LogInformation($"{Name} gave you {extraKisses} extra " +
                                       $"kisses for having waited {hoursWaited} hours");

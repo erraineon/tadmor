@@ -47,8 +47,8 @@ namespace Tadmor.Services.Marriage
                 await channel.SendMessageAsync(invocationMsg);
                 await EnsureBothSay(partner1, partner2, "ok");
                 await Task.Delay(TimeSpan.FromSeconds(1));
-                var pronouncementMsg3 = "nice job youre married";
-                await channel.SendMessageAsync(pronouncementMsg3);
+                var pronouncementMsg = "nice job youre married";
+                await channel.SendMessageAsync(pronouncementMsg);
                 await Task.Delay(TimeSpan.FromSeconds(1));
                 await Marry(partner1, partner2, dbContext);
             }
@@ -73,18 +73,30 @@ namespace Tadmor.Services.Marriage
         public async Task<string> CreateBaby(IUser partner1, IGuildUser partner2, string babyName, AppDbContext dbContext)
         {
             var marriage = await GetMarriage(partner1, partner2, dbContext);
+            AssertBabyNameValid(babyName);
             var logger = new StringBuilderLogger();
             var babyCost = await CalculateBabyCost(marriage, logger);
             if (babyCost - marriage.Kisses is var missingKisses && missingKisses > 0) 
                 throw new Exception($"you need {Math.Ceiling(missingKisses)} more kisses to make a baby");
+            var maxBabiesCount = await CalculateMaxBabiesCount(marriage, logger);
+            if (marriage.Babies.Count > maxBabiesCount)
+                throw new Exception($"you can have at most {maxBabiesCount} babies");
             var baby = CreateRandomBaby();
             baby.Name = babyName;
             baby.BirthDate = DateTime.Now;
+            baby.Rank = await CalculateBabyRank(marriage, logger);
             marriage.Babies.Add(baby);
             marriage.Kisses -= babyCost;
             await dbContext.SaveChangesAsync();
             logger.LogInformation($"you made {baby}");
             return logger.ToString();
+        }
+
+        private static void AssertBabyNameValid(string babyName)
+        {
+            const int maxBabyNameLength = 64;
+            if (babyName.Length > maxBabyNameLength)
+                throw new Exception($"baby names can't exceed {maxBabyNameLength} characters");
         }
 
         private Baby CreateRandomBaby()
@@ -179,6 +191,29 @@ namespace Tadmor.Services.Marriage
             await dbContext.SaveChangesAsync();
         }
 
+        private async Task<int> CalculateMaxBabiesCount(MarriedCouple marriage, ILogger logger)
+        {
+            return 64;
+        }
+
+        private async Task<int> CalculateBabyRank(MarriedCouple marriage, ILogger logger)
+        {
+            var random = new Random();
+            // a rank bonus of 1 ensures that the rank is always 10
+            float rankBonus = 0;
+            var cooldownAffectors = GetBabiesOfType<IBabyRankBonusAffector>(marriage);
+            var currentRankBonus = rankBonus;
+            foreach (var cooldownAffector in cooldownAffectors)
+            {
+                currentRankBonus = await cooldownAffector
+                    .GetNewBabyRankBonus(currentRankBonus, rankBonus, marriage, cooldownAffectors, logger);
+            }
+
+            rankBonus = currentRankBonus;
+            // logarithmic curve mapping 0..1 to 2..10
+            return (int)Math.Round(-2 * Math.Log(-80 * (random.NextDouble() - 1 + rankBonus) + 1, 3) + 10);
+        }
+
         private async Task<TimeSpan> CalculateCooldown(MarriedCouple marriage, ILogger logger)
         {
             var baseCooldown = TimeSpan.FromHours(1);
@@ -249,10 +284,19 @@ namespace Tadmor.Services.Marriage
             return marriedCouples;
         }
 
-        public async Task<IList<Baby>> GetBabies(IUser partner1, IGuildUser partner2, AppDbContext dbContext)
+        public async Task<string> GetBabiesInfo(IUser partner1, IGuildUser partner2, AppDbContext dbContext)
         {
             var marriage = await GetMarriage(partner1, partner2, dbContext);
-            return marriage.Babies;
+
+            var babyStrings = marriage.Babies
+                .OrderByDescending(b => b.Rank)
+                .GroupBy(
+                    b => $"{b.GetType().Name.Humanize()}: {b.GetDescription()}",
+                    b => $"{Environment.NewLine}{b.Name} {b.GetStarRank()}",
+                    (description, names) => $"**{description}**{string.Concat(names)}")
+                .ToList();
+            var result = babyStrings.Any() ? string.Join(Environment.NewLine, babyStrings) : "you have no babies";
+            return result;
         }
 
         public async Task ReleaseBaby(IUser partner1, IGuildUser partner2, string babyName, AppDbContext dbContext)

@@ -9,10 +9,20 @@ namespace Tadmor.Services.Marriage.Babies
         public Guid Id { get; set; }
         public string Name { get; set; }
         public DateTime BirthDate { get; set; }
+        public int Rank { get; set; }
 
         public override string ToString()
         {
-            return $"{Name} - {GetType().Name.Humanize()}: {GetDescription()}";
+            return $"{Name} {GetStarRank()} - {GetType().Name.Humanize()}: {GetDescription()}";
+        }
+
+        public string GetStarRank()
+        {
+            var halfRank = Rank / 2f;
+            var flooredHalfRank = (int) Math.Floor(halfRank);
+            var halfStar = halfRank - flooredHalfRank > 0 ? "+" : string.Empty;
+            var rank = $"{new string('★', flooredHalfRank)}{halfStar}";
+            return rank;
         }
 
         public abstract string GetDescription();

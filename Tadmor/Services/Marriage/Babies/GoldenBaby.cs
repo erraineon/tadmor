@@ -15,7 +15,7 @@ namespace Tadmor.Services.Marriage.Babies
 
         public override Task Release(MarriedCouple marriage)
         {
-            marriage.Kisses += 20;
+            marriage.Kisses += 10 * Rank;
             return Task.CompletedTask;
         }
 

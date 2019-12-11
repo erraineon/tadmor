@@ -10,17 +10,17 @@ namespace Tadmor.Services.Marriage.Babies
         public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
             IList<IKissIncrementAffector> kissAffectors, ILogger logger)
         {
-            return Task.FromResult((int) marriage.Kisses % 10 == 7 ? currentIncrement + 3 : currentIncrement);
+            return Task.FromResult((int) marriage.Kisses % 10 == 7 ? currentIncrement + Rank * .75f : currentIncrement);
         }
 
         public override string GetDescription()
         {
-            return "if the last digit of your kisses is 7, add 3 extra kisses";
+            return "if the last digit of your kisses is 7, add extra kisses";
         }
 
         public override Task Release(MarriedCouple marriage)
         {
-            marriage.Kisses += 7;
+            marriage.Kisses += Rank * 1.75f;
             return Task.CompletedTask;
         }
     }

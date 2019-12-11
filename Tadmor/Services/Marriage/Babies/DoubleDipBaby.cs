@@ -18,7 +18,7 @@ namespace Tadmor.Services.Marriage.Babies
 
         public override Task Release(MarriedCouple marriage)
         {
-            marriage.Kisses += 6;
+            marriage.Kisses += Rank * 2;
             marriage.KissCooldown = TimeSpan.Zero;
             return Task.CompletedTask;
         }
@@ -26,7 +26,8 @@ namespace Tadmor.Services.Marriage.Babies
         public Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown, MarriedCouple marriage, 
             IList<IKissCooldownAffector> cooldownAffectors, ILogger logger)
         {
-            var proc = _random.NextDouble() < 0.1;
+            var procChance = Rank * 0.025;
+            var proc = _random.NextDouble() < procChance;
             if (proc)
             {
                 logger.LogInformation($"{Name} nullified your cooldown");
