@@ -321,8 +321,14 @@ namespace Tadmor.Services.Marriage
                 .OrderByDescending(b => b.Rank)
                 .GroupBy(
                     b => $"{b.GetType().Name.Humanize()}: {b.GetDescription()}",
-                    b => $"{Environment.NewLine}{b.Name} {b.GetStarRank()}",
-                    (description, names) => $"**{description}**{string.Concat(names)}")
+                    (description, babies) =>
+                    {
+                        var babiesByRank = babies.GroupBy(
+                            b => b.GetStarRank(),
+                            b => b.Name,
+                            (rank, names) => $"{Environment.NewLine}{rank}: {string.Join(", ", names)}");
+                        return $"**{description}**{string.Concat(babiesByRank)}";
+                    })
                 .ToList();
             var result = babyStrings.Any() ? string.Join(Environment.NewLine, babyStrings) : "you have no babies";
             return result;
