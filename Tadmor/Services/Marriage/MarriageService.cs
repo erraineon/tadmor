@@ -318,6 +318,7 @@ namespace Tadmor.Services.Marriage
         {
             var marriage = await GetMarriage(partner1, partner2, dbContext);
 
+            var nl = Environment.NewLine;
             var babyStrings = marriage.Babies
                 .OrderByDescending(b => b.Rank)
                 .GroupBy(
@@ -327,11 +328,14 @@ namespace Tadmor.Services.Marriage
                         var babiesByRank = babies.GroupBy(
                             b => b.GetStarRank(),
                             b => b.Name,
-                            (rank, names) => $"{Environment.NewLine}{rank}: {string.Join(", ", names)}");
+                            (rank, names) => $"{nl}{rank}: {string.Join(", ", names)}");
                         return $"**{description}**{string.Concat(babiesByRank)}";
                     })
                 .ToList();
-            var result = babyStrings.Any() ? string.Join(Environment.NewLine, babyStrings) : "you have no babies";
+            var maxBabies = await CalculateMaxBabiesCount(marriage, new StringBuilderLogger());
+            var result = babyStrings.Any()
+                ? $"babies: {marriage.Babies.Count}/{maxBabies}{nl}{string.Join(nl, babyStrings)}"
+                : "you have no babies";
             return result;
         }
 
