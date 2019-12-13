@@ -15,7 +15,7 @@ namespace Tadmor.Services.Marriage.Babies
             var babiesCount = (float)speedyBabies.Count;
             var babiesRank = speedyBabies.Sum(b => b.Rank / 2f);
             // parabola with asymptote at y = .66
-            var reduction = .66 * babiesRank / ((babiesRank + 10) * babiesCount);
+            var reduction = .66 * babiesRank / (babiesRank + 10) / babiesCount;
             return Task.FromResult(currentCooldown - baseCooldown * reduction);
         }
 

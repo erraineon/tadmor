@@ -80,7 +80,7 @@ namespace Tadmor.Services.Marriage
             if (babyCost - marriage.Kisses is var missingKisses && missingKisses > 0) 
                 throw new Exception($"you need {Math.Ceiling(missingKisses)} more kisses to make a baby");
             var maxBabiesCount = await CalculateMaxBabiesCount(marriage, logger);
-            if (marriage.Babies.Count > maxBabiesCount)
+            if (marriage.Babies.Count >= maxBabiesCount)
                 throw new Exception($"you can have at most {maxBabiesCount} babies");
             var baby = CreateRandomBaby();
             baby.Name = babyName;
@@ -107,7 +107,7 @@ namespace Tadmor.Services.Marriage
             var baby = CreateRandomBaby();
             baby.Name = newBabyName;
             baby.BirthDate = DateTime.Now;
-            var minRank = (int)Math.Floor((baby1.Rank + baby2.Rank)/2f);
+            var minRank = (int)Math.Round((baby1.Rank + baby2.Rank)/2f, MidpointRounding.ToPositiveInfinity);
             baby.Rank = await CalculateBabyRank(marriage, logger, minRank);
             marriage.Babies.Add(baby);
             marriage.Babies.Remove(baby1);
@@ -332,9 +332,9 @@ namespace Tadmor.Services.Marriage
                         return $"**{description}**{string.Concat(babiesByRank)}";
                     })
                 .ToList();
-            var maxBabies = await CalculateMaxBabiesCount(marriage, new StringBuilderLogger());
+            var maxBabiesCount = await CalculateMaxBabiesCount(marriage, new StringBuilderLogger());
             var result = babyStrings.Any()
-                ? $"babies: {marriage.Babies.Count}/{maxBabies}{nl}{string.Join(nl, babyStrings)}"
+                ? $"babies: {marriage.Babies.Count}/{maxBabiesCount}{nl}{string.Join(nl, babyStrings)}"
                 : "you have no babies";
             return result;
         }
