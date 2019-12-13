@@ -65,7 +65,8 @@ namespace Tadmor.Services.Marriage
                 Partner1Id = partner1.Id,
                 Partner2Id = partner2.Id,
                 TimeStamp = DateTime.Now,
-                GuildId = partner2.GuildId
+                GuildId = partner2.GuildId,
+                Kisses = 10
             });
             await dbContext.SaveChangesAsync();
         }
