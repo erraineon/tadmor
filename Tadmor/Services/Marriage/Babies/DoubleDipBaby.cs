@@ -1,13 +1,11 @@
-﻿using System    ;
-using System.Collections.Generic;
+﻿using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
-namespace Tadmor.Services.Marriage.Babies
+namespace Tadmor.Services.Marriage
 {
-    [BabyEffectOrder(int.MaxValue)]
+    [EffectorOrder(int.MaxValue)]
     [BabyFrequency(0.2f)]
-    public class DoubleDipBaby : Baby, IKissCooldownAffector
+    public class DoubleDipBaby : Baby
     {
         readonly Random _random = new Random();
 
@@ -21,20 +19,6 @@ namespace Tadmor.Services.Marriage.Babies
             marriage.Kisses += Rank * 2;
             marriage.KissCooldown = TimeSpan.Zero;
             return Task.CompletedTask;
-        }
-
-        public Task<TimeSpan> GetNewCooldown(TimeSpan currentCooldown, TimeSpan baseCooldown, MarriedCouple marriage, 
-            IList<IKissCooldownAffector> cooldownAffectors, ILogger logger)
-        {
-            var procChance = Rank * 0.025;
-            var proc = _random.NextDouble() < procChance;
-            if (proc)
-            {
-                logger.LogInformation($"{Name} nullified your cooldown");
-                return Task.FromResult(TimeSpan.Zero);
-            }
-
-            return Task.FromResult(currentCooldown);
         }
     }
 }

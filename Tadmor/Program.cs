@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -7,9 +9,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Tadmor.Adapters.Telegram;
 using Tadmor.Extensions;
+using Tadmor.Logging;
 using Tadmor.Services;
 using Tadmor.Services.Data;
-using Tadmor.Services.Marriage.Babies;
+using Tadmor.Services.Marriage;
 
 namespace Tadmor
 {
@@ -39,12 +42,17 @@ namespace Tadmor
                     .AddSingleton(new TelegramClientConfig { MessageCacheSize = 100 })
                     .AddSingleton<DiscordSocketClient>()
                     .AddSingleton<TelegramClient>()
+                    .AddScoped<StringLogger>()
+                    .AddScoped<CommandContextResolver>()
+                    .AddScoped(p => p.GetService<CommandContextResolver>().GetCommandContext()
+                    )
                     .Scan(scan => scan
                         .FromEntryAssembly()
                         .AddClasses(classes => classes.WithAttribute<TransientServiceAttribute>())
                         .AsSelfWithInterfaces()
+                        .WithTransientLifetime()
                         .FromEntryAssembly()
-                        .AddClasses(classes => classes.Where(t => typeof(Baby).IsAssignableFrom(t)))
+                        .AddClasses(classes => classes.Where(t => typeof(MarriageEffector).IsAssignableFrom(t)))
                         .AsSelfWithInterfaces()
                         .WithTransientLifetime()
                         .AddClasses(classes => classes.WithAttribute<ScopedServiceAttribute>())
@@ -58,6 +66,15 @@ namespace Tadmor
                 .UseConsoleLifetime()
                 .Build();
             return host;
+        }
+    }
+
+    public class CommandContextResolver
+    {
+        public ICommandContext? CurrentCommandContext { get; set; }
+        public ICommandContext? GetCommandContext()
+        {
+            return CurrentCommandContext;
         }
     }
 }

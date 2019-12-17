@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Tadmor.Services.Marriage.Babies
+namespace Tadmor.Services.Marriage
 {
     internal class BabyFrequencyAttribute : Attribute
     {

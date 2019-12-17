@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using System.Threading.Tasks;
 
-namespace Tadmor.Services.Marriage.Babies
+namespace Tadmor.Services.Marriage
 {
-    public class AffectionateBaby : Baby, IKissIncrementAffector
+    public class AffectionateBaby : Baby
     {
         public override string GetDescription()
         {
@@ -17,17 +14,6 @@ namespace Tadmor.Services.Marriage.Babies
             var halfRank = Rank / 2f;
             marriage.Kisses += (int) halfRank * halfRank;
             return Task.CompletedTask;
-        }
-
-        public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
-            IList<IKissIncrementAffector> kissAffectors, ILogger logger)
-        {
-            var hoursWaited = (int)(DateTime.Now - marriage.LastKissed).TotalHours;
-            var extraKisses = hoursWaited * Rank / 12;
-            if (extraKisses > 0)
-                logger.LogInformation($"{Name} gave you {extraKisses} extra " +
-                                      $"kisses for having waited {hoursWaited} hours");
-            return Task.FromResult(currentIncrement + extraKisses);
         }
     }
 }

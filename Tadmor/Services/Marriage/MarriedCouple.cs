@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using Tadmor.Services.Marriage.Babies;
 
 namespace Tadmor.Services.Marriage
 {
@@ -18,7 +17,7 @@ namespace Tadmor.Services.Marriage
         public int KissesLegacy { get; set; }
         public DateTime LastKissed { get; set; }
         public ulong GuildId { get; set; }
-        public IList<Baby> Babies { get; set; }
+        public IList<Baby> Babies { get; set; } = null!;
         public TimeSpan KissCooldown { get; set; }
     }
 }

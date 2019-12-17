@@ -458,7 +458,7 @@ namespace Tadmor.Adapters.Telegram
             throw new NotImplementedException();
         }
 
-        async Task<IUser> IChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions? options)
+        async Task<IUser?> IChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions? options)
         {
             return await GetUserAsync(id, mode, options);
         }

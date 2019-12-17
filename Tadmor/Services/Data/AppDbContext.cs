@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tadmor.Services.Marriage;
-using Tadmor.Services.Marriage.Babies;
 using Tadmor.Services.Twitter;
 
 namespace Tadmor.Services.Data
@@ -12,8 +11,8 @@ namespace Tadmor.Services.Data
     public class AppDbContext : DbContext
     {
         public DbSet<TwitterMedia> TwitterMedia { get; set; } = null!;
-        public DbSet<MarriedCouple> MarriedCouples { get; set; }
-        public DbSet<Baby> Babies { get; set; }
+        public DbSet<MarriedCouple> MarriedCouples { get; set; } = null!;
+        public DbSet<Baby> Babies { get; set; } = null!;
 
         public AppDbContext(DbContextOptions options) : base(options)
         {

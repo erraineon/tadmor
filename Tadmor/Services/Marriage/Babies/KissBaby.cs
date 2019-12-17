@@ -1,18 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using System.Threading.Tasks;
 
-namespace Tadmor.Services.Marriage.Babies
+namespace Tadmor.Services.Marriage
 {
-    public class KissBaby : Baby, IKissIncrementAffector
+    public class KissBaby : Baby
     {
-        public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement,
-            MarriedCouple marriage,
-            IList<IKissIncrementAffector> kissAffectors, ILogger logger)
-        {
-            return Task.FromResult(currentIncrement + baseKissIncrement * (Rank / 8f));
-        }
-
         public override string GetDescription()
         {
             return "increases kisses";

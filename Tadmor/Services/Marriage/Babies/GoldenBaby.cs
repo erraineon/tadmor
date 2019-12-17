@@ -1,12 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using System.Threading.Tasks;
 
-namespace Tadmor.Services.Marriage.Babies
+namespace Tadmor.Services.Marriage
 {
-    [BabyEffectOrder(int.MaxValue)]
     [BabyFrequency(0.07f)]
-    public class GoldenBaby : Baby, IKissIncrementAffector
+    public class GoldenBaby : Baby
     {
         public override string GetDescription()
         {
@@ -17,12 +14,6 @@ namespace Tadmor.Services.Marriage.Babies
         {
             marriage.Kisses += 10 * Rank;
             return Task.CompletedTask;
-        }
-
-        public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
-            IList<IKissIncrementAffector> kissAffectors, ILogger logger)
-        {
-            return Task.FromResult(currentIncrement*2);
         }
     }
 }

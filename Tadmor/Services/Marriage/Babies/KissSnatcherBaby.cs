@@ -1,29 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
-namespace Tadmor.Services.Marriage.Babies
+namespace Tadmor.Services.Marriage
 {
-    [BabyEffectOrder(int.MaxValue)]
     [BabyFrequency(0.2f)]
-    public class KissSnatcherBaby : Baby, IKissIncrementAffector
+    public class KissSnatcherBaby : Baby
     {
-        readonly Random _random = new Random();
-
-        public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
-            IList<IKissIncrementAffector> kissAffectors, ILogger logger)
-        {
-            var proc = _random.NextDouble() < 0.1;
-            if (proc)
-            {
-                logger.LogInformation($"{Name} nullified your kiss gain");
-                return Task.FromResult(0f);
-            }
-
-            return Task.FromResult(currentIncrement);
-        }
-
         public override string GetDescription()
         {
             return "has a chance of not letting you get any kisses";
@@ -38,7 +20,7 @@ namespace Tadmor.Services.Marriage.Babies
             return Task.CompletedTask;
         }
 
-        public override Task Combine(MarriedCouple marriage)
+        public override Task ExecuteCombinePrecondition(MarriedCouple marriage)
         {
             const float combineRate = 15;
             if (marriage.Kisses < combineRate)

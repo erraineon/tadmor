@@ -72,6 +72,8 @@ namespace Tadmor.Services.Commands
         public async Task ExecuteCommand(ICommandContext context, string prefix)
         {
             var scope = _services.CreateScope();
+            var commandScope = scope.ServiceProvider.GetService<CommandContextResolver>();
+            commandScope.CurrentCommandContext = context;
             var result = await _commands.ExecuteAsync(context, prefix.Length, scope.ServiceProvider);
 
             _commands.CommandExecuted += DisposeScope;

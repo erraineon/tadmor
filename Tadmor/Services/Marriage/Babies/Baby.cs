@@ -2,16 +2,16 @@
 using System.Threading.Tasks;
 using Humanizer;
 
-namespace Tadmor.Services.Marriage.Babies
+namespace Tadmor.Services.Marriage
 {
     public abstract class Baby
     {
         public Guid Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public DateTime BirthDate { get; set; }
         public int Rank { get; set; }
 
-        public virtual Task Combine(MarriedCouple marriage)
+        public virtual Task ExecuteCombinePrecondition(MarriedCouple marriage)
         {
             return Task.CompletedTask;
         }
@@ -23,9 +23,8 @@ namespace Tadmor.Services.Marriage.Babies
 
         public string GetStarRank()
         {
-            var halfRank = Rank / 2f;
-            var flooredHalfRank = (int) Math.Floor(halfRank);
-            var halfStar = halfRank - flooredHalfRank > 0 ? "+" : string.Empty;
+            var flooredHalfRank = (int) Math.Floor(Rank / 2f);
+            var halfStar = Rank % 0 == 0 ? string.Empty : "+";
             var rank = $"{new string('★', flooredHalfRank)}{halfStar}";
             return rank;
         }

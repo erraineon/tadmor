@@ -1,18 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using System.Threading.Tasks;
 
-namespace Tadmor.Services.Marriage.Babies
+namespace Tadmor.Services.Marriage
 {
     [BabyFrequency(0.2f)]
-    public class LuckyBaby : Baby, IKissIncrementAffector
+    public class LuckyBaby : Baby
     {
-        public Task<float> GetNewIncrement(float currentIncrement, float baseKissIncrement, MarriedCouple marriage,
-            IList<IKissIncrementAffector> kissAffectors, ILogger logger)
-        {
-            return Task.FromResult((int) marriage.Kisses % 10 == 7 ? currentIncrement + Rank * .75f : currentIncrement);
-        }
-
         public override string GetDescription()
         {
             return "if the last digit of your kisses is 7, add extra kisses";

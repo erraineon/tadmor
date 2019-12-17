@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -6,6 +7,7 @@ using Discord.Commands;
 using Humanizer;
 using Tadmor.Services.Data;
 using Tadmor.Services.Marriage;
+using Tadmor.Utils;
 
 namespace Tadmor.Modules
 {
@@ -26,7 +28,7 @@ namespace Tadmor.Modules
         [RequireOwner]
         public async Task AdminMarry(IGuildUser user)
         {
-            await _marriageService.Marry(Context.User, user, _dbContext);
+            await _marriageService.Marry(Context.User, user);
             await ReplyAsync("ok");
         }
 
@@ -35,7 +37,7 @@ namespace Tadmor.Modules
         [RequireOwner]
         public async Task AdminKisses(IGuildUser user, int kisses)
         {
-            await _marriageService.SetKisses(Context.User, user, kisses, _dbContext);
+            await _marriageService.SetKisses(Context.User, user, kisses);
             await ReplyAsync("ok");
         }
 
@@ -44,7 +46,7 @@ namespace Tadmor.Modules
         [RequireOwner]
         public async Task AdminKisses(IGuildUser user)
         {
-            await _marriageService.ResetCooldown(Context.User, user, _dbContext);
+            await _marriageService.ResetCooldown(Context.User, user);
             await ReplyAsync("ok");
         }
 
@@ -55,7 +57,7 @@ namespace Tadmor.Modules
             try
             {
                 if (user.Id == Context.Client.CurrentUser.Id) throw new Exception("😳");
-                await _marriageService.DoWedding(Context.User, user, Context.Channel, _dbContext);
+                await _marriageService.DoWedding(Context.User, user);
                 await ReplyAsync("now kiss plz");
             }
             catch (AlreadyMarriedException e)
@@ -70,7 +72,7 @@ namespace Tadmor.Modules
         [Command("marriages")]
         public async Task Marriages()
         {
-            var marriages = await _marriageService.GetMarriages(Context.Guild, _dbContext);
+            var marriages = await _marriageService.GetMarriages(Context.Guild);
             var marriageStrings = await Task.WhenAll(marriages
                 .OrderByDescending(m => m.Kisses)
                 .Select(GetStringDescription));
@@ -81,10 +83,18 @@ namespace Tadmor.Modules
 
         [Summary("shows you your marriage")]
         [Command("marriage")]
-        public async Task Marriage(IGuildUser user)
+        public async Task Marriage([ShowAsOptional] IGuildUser? user)
         {
-            var marriage = await _marriageService.GetMarriage(Context.User, user, _dbContext);
+            var marriage = await _marriageService.GetMarriage(Context.User, user);
             await ReplyAsync(await GetStringDescription(marriage));
+        }
+
+        [Summary("shows you your marriage")]
+        [Command("marriage")]
+        [Browsable(false)]
+        public async Task Marriage()
+        {
+            await Marriage(default);
         }
 
         [Summary("divorces the sender with another user")]
@@ -105,34 +115,69 @@ namespace Tadmor.Modules
 
         [Summary("makes a baby with another user")]
         [Command("baby")]
-        public async Task CreateBaby(IGuildUser user, [Remainder]string babyName)
+        [Priority(1)]
+        public async Task CreateBaby([ShowAsOptional] IGuildUser? user, [Remainder]string babyName)
         {
-            var babyLog = await _marriageService.CreateBaby(Context.User, user, babyName, _dbContext);
+            var babyLog = await _marriageService.CreateBaby(Context.User, user, babyName);
             await ReplyAsync(babyLog);
+        }
+
+        [Summary("makes a baby with another user")]
+        [Command("baby")]
+        [Browsable(false)]
+        public async Task CreateBaby([Remainder]string babyName)
+        {
+            await CreateBaby(default, babyName);
         }
 
         [Summary("get a list of babies")]
         [Command("babies")]
-        public async Task Babies(IGuildUser user)
+        public async Task Babies([ShowAsOptional] IGuildUser? user)
         {
-            var babiesInfo = await _marriageService.GetBabiesInfo(Context.User, user, _dbContext);
+            var babiesInfo = await _marriageService.GetMarriageInfo(Context.User, user);
             await ReplyAsync(babiesInfo);
+        }
+
+        [Summary("get a list of babies")]
+        [Command("babies")]
+        [Browsable(false)]
+        public async Task Babies()
+        {
+            await Babies(null);
         }
 
         [Summary("releases a baby")]
         [Command("release")]
-        public async Task ReleaseBaby(IGuildUser user, [Remainder]string babyName)
+        [Priority(1)]
+        public async Task ReleaseBaby([ShowAsOptional] IGuildUser? user, [Remainder]string babyName)
         {
-            await _marriageService.ReleaseBaby(Context.User, user, babyName, _dbContext);
+            await _marriageService.ReleaseBaby(Context.User, user, babyName);
             await ReplyAsync($"bye bye {babyName}!");
+        }
+
+        [Summary("releases a baby")]
+        [Command("release")]
+        [Browsable(false)]
+        public async Task ReleaseBaby([Remainder]string babyName)
+        {
+            await ReleaseBaby(default, babyName);
         }
 
         [Summary("combines two babies")]
         [Command("combine")]
-        public async Task CombineBabies(IGuildUser user, string babyName1, string babyName2, [Remainder] string newBabyName)
+        [Priority(1)]
+        public async Task CombineBabies([ShowAsOptional] IGuildUser? user, string babyName1, string babyName2, [Remainder] string newBabyName)
         {
-            var combineLog = await _marriageService.CombineBabies(Context.User, user, babyName1, babyName2, newBabyName, _dbContext);
+            var combineLog = await _marriageService.CombineBabies(Context.User, user, babyName1, babyName2, newBabyName);
             await ReplyAsync(combineLog);
+        }
+
+        [Summary("combines two babies")]
+        [Command("combine")]
+        [Browsable(false)]
+        public async Task CombineBabies(string babyName1, string babyName2, [Remainder] string newBabyName)
+        {
+            await CombineBabies(default, babyName1, babyName2, newBabyName);
         }
 
         private async Task<string> GetStringDescription(MarriedCouple marriage)

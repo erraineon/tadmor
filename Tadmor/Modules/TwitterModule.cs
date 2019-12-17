@@ -100,7 +100,7 @@ namespace Tadmor.Modules
             await ReplyAsync(tweetUrl);
         }
 
-        private async Task<byte[]> Imitate(Image image, IGuildUser user, string? text)
+        private async Task<byte[]> Imitate(Image? image, IGuildUser user, string? text)
         {
             var imageData = image != null ? await image.GetDataAsync() : null;
             var avatar = await user.GetAvatarAsync() ?? throw new Exception($"{user.Mention}'s avatar cannot be retrieved");

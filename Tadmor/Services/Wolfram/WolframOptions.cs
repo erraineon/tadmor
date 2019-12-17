@@ -3,6 +3,6 @@
     [Options]
     public class WolframOptions
     {
-        public string AppId { get; set; }
+        public string? AppId { get; set; }
     }
 }
