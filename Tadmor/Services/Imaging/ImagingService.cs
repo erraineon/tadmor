@@ -17,6 +17,8 @@ namespace Tadmor.Services.Imaging
         private const string GothamRoundedLightFont = ResourcesPath + "GothamRoundedLight.ttf";
         private const string HelveticaNeueFont = ResourcesPath + "HelveticaNeue.ttf";
         private const string HelveticaNeueMediumFont = ResourcesPath + "HelveticaNeueMedium.ttf";
+        private const string NotoSansFont = ResourcesPath + "NotoSans-Regular.ttf";
+        private const string NotoSansMediumFont = ResourcesPath + "NotoSans-Medium.ttf";
 
         public byte[] AlignmentChart(
             IEnumerable<RngImage> rngAvatars,
@@ -56,7 +58,7 @@ namespace Tadmor.Services.Imaging
                     .Rectangle(panelRect.Left, panelRect.Top, panelRect.Right, panelRect.Bottom);
                 if (avatars.Any())
                 {
-                    var stackedAvatars = StackHorizontally(avatars, panelRect.Size);
+                    var stackedAvatars = StackHorizontally(avatars, 0, 0, panelRect.Size);
                     var averageColor = GetAverageColor(stackedAvatars);
                     drawables
                         .FillColor(averageColor)
@@ -109,7 +111,7 @@ namespace Tadmor.Services.Imaging
                 {
                     var avatarsRect = new Rectangle(headerSize.Width, rowY, valueSize.Width, valueSize.Height);
                     avatarsRect.Inflate(valuesPadding * -1);
-                    var stackedAvatars = StackHorizontally(avatars, avatarsRect.Size);
+                    var stackedAvatars = StackHorizontally(avatars, 0, 0, avatarsRect.Size);
                     drawables.Composite(stackedAvatars, avatarsRect, Gravity.West);
                 }
             }
@@ -308,8 +310,8 @@ namespace Tadmor.Services.Imaging
             var nameColor = MagickColors.DarkRed;
             var textColor = MagickColors.Black;
             var fontSize = 28;
-            var font = HelveticaNeueFont;
-            var nameFont = HelveticaNeueMediumFont;
+            var font = NotoSansFont;
+            var nameFont = NotoSansMediumFont;
             var bubbleContentW = bubbleW - bubblePadding * 2;
             using var textImage = text != null
                 ? ImageMagickExtensions.GetCaption(text, new Size(bubbleContentW, 0), font, Gravity.Northwest, fontSize, textColor,
@@ -374,20 +376,52 @@ namespace Tadmor.Services.Imaging
             return averageColor;
         }
 
-        private static MagickImage StackHorizontally(IReadOnlyCollection<MagickImage> images, Size maxSize)
+        private static MagickImage StackHorizontally(ICollection<MagickImage> images, int margin, int padding, Size maxSize)
         {
             var panel = new MagickImage(MagickColors.Transparent,
-                images.Sum(a => a.Width),
-                images.Max(a => a.Height));
+                images.Sum(i => i.Width) + margin * 2 + padding * (images.Count - 1),
+                images.Max(i => i.Height) + margin * 2);
 
-            var avatarX = 0;
-            foreach (var avatar in images)
+            var x = 0;
+            foreach (var image in images)
             {
-                panel.Composite(avatar, avatarX, 0, CompositeOperator.Over);
-                avatarX += avatar.Width;
+                panel.Composite(image, x, margin, CompositeOperator.Over);
+                x += image.Width + padding;
             }
 
-            if (panel.Width > maxSize.Width || panel.Height > maxSize.Height)
+            ShrinkIfLarger(panel, maxSize);
+            return panel;
+        }
+
+        private static void ShrinkIfLarger(MagickImage panel, Size maxSize)
+        {
+            if (maxSize != default && (panel.Width > maxSize.Width || panel.Height > maxSize.Height))
+            {
+                panel.Resize(maxSize.Width, maxSize.Height);
+            }
+        }
+
+        public byte[] StackVertically(IEnumerable<byte[]> images, int margin, int padding, Size maxSize)
+        {
+            var magickImages = images.Select(i => new MagickImage(i)).ToList();
+            return StackVertically(magickImages, margin, padding, maxSize).ToByteArray(MagickFormat.Png);
+        }
+
+        private static MagickImage StackVertically(ICollection<MagickImage> images, int margin, int padding, Size maxSize)
+        {
+            var panel = new MagickImage(MagickColors.Transparent,
+                images.Max(i => i.Width) + margin * 2,
+                images.Sum(i => i.Height) + margin * 2 + padding * (images.Count - 1)
+            );
+
+            var y = 0;
+            foreach (var image in images)
+            {
+                panel.Composite(image, margin, y, CompositeOperator.Over);
+                y += image.Height + padding;
+            }
+
+            if (maxSize != default && (panel.Width > maxSize.Width || panel.Height > maxSize.Height))
             {
                 panel.Resize(maxSize.Width, maxSize.Height);
             }

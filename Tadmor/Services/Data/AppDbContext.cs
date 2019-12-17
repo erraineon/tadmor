@@ -37,7 +37,8 @@ namespace Tadmor.Services.Data
                 .HasValue<AffectionateBaby>("AffectionateBaby")
                 .HasValue<GoldenBaby>("GoldenBaby")
                 .HasValue<CockBlockBaby>("CockBlockBaby")
-                .HasValue<QualityControlBaby>("QualityControlBaby");
+                .HasValue<QualityControlBaby>("QualityControlBaby")
+                .HasValue<SiameseBaby>("SiameseBaby");
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>

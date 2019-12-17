@@ -4,11 +4,11 @@ namespace Tadmor.Services.Marriage
 {
     internal class BabyFrequencyAttribute : Attribute
     {
-        public BabyFrequencyAttribute(float weight)
+        public BabyFrequencyAttribute(double weight)
         {
             Weight = weight;
         }
 
-        public float Weight { get; }
+        public double Weight { get; }
     }
 }

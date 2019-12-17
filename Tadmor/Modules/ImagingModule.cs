@@ -18,11 +18,9 @@ namespace Tadmor.Modules
     {
         private readonly ActivityMonitorService _activityMonitor;
         private readonly ImagingService _imaging;
-        private readonly ImagingServiceLegacy _imagingLegacy;
 
-        public ImagingModule(ImagingServiceLegacy imagingLegacy, ActivityMonitorService activityMonitor, ImagingService imaging)
+        public ImagingModule(ActivityMonitorService activityMonitor, ImagingService imaging)
         {
-            _imagingLegacy = imagingLegacy;
             _activityMonitor = activityMonitor;
             _imaging = imaging;
         }

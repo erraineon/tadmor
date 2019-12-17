@@ -19,7 +19,7 @@ namespace Tadmor.Services.Marriage
             if (bonus > 0)
             {
                 var names = GetBabyNames(babies);
-                Logger.Log($"{names} gave you {bonus} KP for having waited {hoursWaited:0} hours");
+                Logger.Log($"{names} gave you {bonus} kisses for having waited {hoursWaited:0} hours");
             }
 
             return current + bonus;

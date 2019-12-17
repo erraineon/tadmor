@@ -19,9 +19,9 @@ namespace Tadmor.Modules
     public class TwitterModule : ModuleBase<ICommandContext>
     {
         private readonly TwitterService _twitter;
-        private readonly ImagingServiceLegacy _imaging;
+        private readonly ImagingService _imaging;
 
-        public TwitterModule(TwitterService twitter, ImagingServiceLegacy imaging)
+        public TwitterModule(TwitterService twitter, ImagingService imaging)
         {
             _twitter = twitter;
             _imaging = imaging;
@@ -80,7 +80,7 @@ namespace Tadmor.Modules
                 var text = message.Resolve();
                 return await Imitate(image, (IGuildUser) messageAuthor, text);
             }));
-            var stackedImages = _imaging.Stack(images.Reverse(), 5, 10).ToArray();
+            var stackedImages = _imaging.StackVertically(images.Reverse(), 5, 10, default);
             await Tweet(stackedImages);
         }
 

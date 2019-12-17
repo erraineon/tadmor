@@ -65,7 +65,7 @@ namespace Tadmor.Services.Options
                 IUser _ => CommandUsagePermissionScopeType.User,
                 IGuild _ => CommandUsagePermissionScopeType.Guild,
                 IChannel _ => CommandUsagePermissionScopeType.Channel,
-                _ => throw new NotSupportedException($"only users, channels and guilds are supported")
+                _ => throw new NotSupportedException("only users, channels and guilds are supported")
             };
             var permission = GetPermissions(commandName, options.Value)
                 .FirstOrDefault(p => p.ScopeId == entity.Id && p.ScopeType == scopeType);

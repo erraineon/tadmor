@@ -148,10 +148,9 @@ namespace Tadmor.Services.Marriage
                 .Where(type => typeof(Baby).IsAssignableFrom(type) && !type.IsAbstract)
                 .ToList();
             var babyType = babyTypes
-                .Random(t => t.GetCustomAttribute<BabyFrequencyAttribute>()?.Weight ?? 1, rng);
+                .Random(t => (float) (t.GetCustomAttribute<BabyFrequencyAttribute>()?.Weight ?? 1), rng);
             return Activator.CreateInstance(babyType) as Baby ?? throw new Exception($"unable to create {babyType.Name}");
         }
-
         
         private async Task AssertNotMarried(IUser partner, ulong guildId)
         {
