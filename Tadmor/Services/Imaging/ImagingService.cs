@@ -313,12 +313,12 @@ namespace Tadmor.Services.Imaging
             var font = NotoSansFont;
             var nameFont = NotoSansMediumFont;
             var bubbleContentW = bubbleW - bubblePadding * 2;
-            var textImage = text != null
+            using var textImage = !string.IsNullOrEmpty(text)
                 ? ImageMagickExtensions.GetCaption(text, new Size(bubbleContentW, 0), font, Gravity.Northwest, fontSize, textColor,
                     null) : null;
 
             var textHeight = textImage != null ? textImage.Height : 0;
-            var image = imageData != null ? new MagickImage(imageData) : null;
+            using var image = imageData != null ? new MagickImage(imageData) : null;
             if (image?.Width > bubbleContentW) image.Resize(bubbleContentW, image.Height);
             var imageHeight = image?.Height ?? 0;
             var marginUnderImage = image != null ? marginUnderName : 0;
