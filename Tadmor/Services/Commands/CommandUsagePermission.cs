@@ -2,17 +2,10 @@
 {
     public class CommandUsagePermission
     {
-        public CommandUsagePermission(ulong scopeId, CommandUsagePermissionScopeType scopeType, string commandName)
-        {
-            ScopeId = scopeId;
-            ScopeType = scopeType;
-            CommandName = commandName;
-        }
-
-        public ulong ScopeId { get; }
-        public CommandUsagePermissionScopeType ScopeType { get; }
+        public ulong ScopeId { get; set; }
+        public CommandUsagePermissionScopeType ScopeType { get; set; }
         public PermissionType PermissionType { get; set; }
-        public string CommandName { get; }
+        public string CommandName { get; set; }
 
         public override string ToString()
         {

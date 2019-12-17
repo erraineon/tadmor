@@ -71,7 +71,12 @@ namespace Tadmor.Services.Options
                 .FirstOrDefault(p => p.ScopeId == entity.Id && p.ScopeType == scopeType);
             if (permission == null)
             {
-                permission = new CommandUsagePermission(entity.Id, scopeType, commandName);
+                permission = new CommandUsagePermission
+                {
+                    CommandName = commandName,
+                    ScopeId = entity.Id,
+                    ScopeType = scopeType
+                };
                 options.Value.CommandUsagePermissions.Add(permission);
             }
             else if (permissionType == PermissionType.None)
