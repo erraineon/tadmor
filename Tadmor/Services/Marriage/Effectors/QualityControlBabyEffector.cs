@@ -13,7 +13,7 @@ namespace Tadmor.Services.Marriage
         {
             var qualityControlBabies = couple.Babies.OfType<QualityControlBaby>().ToList();
             var totalRank = qualityControlBabies.Sum(b => b.Rank);
-            var extraBonus = .1 * (totalRank / (totalRank + 10.0));
+            var extraBonus = .8 * (totalRank / (totalRank + 30.0));
             if (qualityControlBabies.Any())
             {
                 Logger.Log($"{GetBabyNames(qualityControlBabies)} gave you a {extraBonus:P0} quality bonus");

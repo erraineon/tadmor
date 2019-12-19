@@ -284,11 +284,15 @@ namespace Tadmor.Services.Marriage
         private int CalculateBabyRank(MarriedCouple marriage, int minRank = 2)
         {
             var random = new Random();
+            const int maxRank = 10;
             // a rank bonus of 1 ensures that the rank is always 10
             var rankBonus = Aggregate<IBabyRankBonusEffector, double>(marriage, 0);
-            var roll = random.NextDouble();
+            var roll = random.NextDouble()-1;
+            var d = (double)maxRank - minRank + 1;
             // logarithmic curve mapping 0..1 to 2..10
-            return (int)Math.Round(-((10 - minRank) / 4f) * Math.Log(Math.Max(80 * (-roll + 1 - rankBonus), 1), 3) + 10);
+            var baseBias = 2;
+            var bias = Math.Max(1.2, baseBias - rankBonus);
+            return (int) Math.Round(-Math.Log(Math.Pow(bias, d) * -roll + bias * (roll + 1), bias) + maxRank + 1);
         }
 
         private TimeSpan CalculateCooldown(MarriedCouple marriage)
