@@ -286,9 +286,9 @@ namespace Tadmor.Services.Marriage
             var random = new Random();
             // a rank bonus of 1 ensures that the rank is always 10
             var rankBonus = Aggregate<IBabyRankBonusEffector, double>(marriage, 0);
-            var roll = Math.Max(random.NextDouble(), 1-rankBonus);
+            var roll = random.NextDouble();
             // logarithmic curve mapping 0..1 to 2..10
-            return (int)Math.Round(-((10 - minRank) / 4f) * Math.Log(Math.Max(80 * (-roll + 1 - rankBonus) + 1, 1), 3) + 10);
+            return (int)Math.Round(-((10 - minRank) / 4f) * Math.Log(Math.Max(80 * (-roll + 1 - rankBonus), 1), 3) + 10);
         }
 
         private TimeSpan CalculateCooldown(MarriedCouple marriage)
