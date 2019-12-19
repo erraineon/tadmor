@@ -16,7 +16,7 @@ namespace Tadmor.Services.Marriage
             var extraBonus = .1 * (totalRank / (totalRank + 10.0));
             if (qualityControlBabies.Any())
             {
-                Logger.Log($"{GetBabyNames(qualityControlBabies)} gave you a {extraBonus:P} quality bonus");
+                Logger.Log($"{GetBabyNames(qualityControlBabies)} gave you a {extraBonus:P0} quality bonus");
             }
             return extraBonus;
         }
