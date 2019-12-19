@@ -11,6 +11,8 @@ using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using MoreLinq;
 using Tadmor.Extensions;
 using Tadmor.Logging;
 using Tadmor.Services.Abstractions;
@@ -25,23 +27,26 @@ namespace Tadmor.Services.Marriage
         private readonly IServiceProvider _serviceProvider;
         private readonly IMemoryCache _memoryCache;
         private readonly AppDbContext _dbContext;
-        private readonly StringLogger _logger;
+        private readonly StringLogger _stringLogger;
         private readonly ICommandContext _commandContext;
+        private readonly ILogger _logger;
 
         public MarriageService(
             ChatService chatService, 
             IServiceProvider serviceProvider, 
             IMemoryCache memoryCache, 
             AppDbContext dbContext, 
-            StringLogger logger,
-            ICommandContext commandContext)
+            StringLogger stringLogger,
+            ICommandContext commandContext,
+            ILogger<MarriageService> logger)
         {
             _chatService = chatService;
             _serviceProvider = serviceProvider;
             _memoryCache = memoryCache;
             _dbContext = dbContext;
-            _logger = logger;
+            _stringLogger = stringLogger;
             _commandContext = commandContext;
+            _logger = logger;
         }
 
         public async Task DoWedding(IUser partner1, IUser partner2)
@@ -51,9 +56,7 @@ namespace Tadmor.Services.Marriage
             if (_memoryCache.TryGetValue(cacheKey, out _)) 
                 throw new Exception("someone's already getting married");
             if (partner1.Id == partner2.Id) throw new Exception("you cant marry yourself");
-            var guildId = _commandContext.Guild.Id;
-            await AssertNotMarried(partner2, guildId);
-            await AssertNotMarried(partner1, guildId);
+            if (await GetMarriageOrNull(partner1, partner2) is {} existingCouple) throw new AlreadyMarriedException(existingCouple);
             try
             {
                 _memoryCache.CreateEntry(cacheKey);
@@ -89,48 +92,69 @@ namespace Tadmor.Services.Marriage
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<string> CreateBaby(IUser partner1, IUser? partner2, string babyName)
+        public Baby AddBabyToCouple(MarriedCouple couple, string babyName, Type babyType, int babyRank)
         {
-            var marriage = await GetMarriage(partner1, partner2);
-            SanitizeBabyName(ref babyName);
-            var babyCost = Aggregate<IBabyCostEffector, double>(marriage, 10.0);
-            if (babyCost - marriage.Kisses is var missingKisses && missingKisses > 0) 
-                throw new Exception($"you need {Math.Ceiling(missingKisses)} more kisses to make a baby");
-            babyCost = Aggregate<ILateBabyCostEffector, double>(marriage, babyCost);
-            var maxBabiesCount = CalculateMaxBabiesCount(marriage);
-            if (marriage.Babies.Count >= maxBabiesCount)
-                throw new Exception($"you can have at most {maxBabiesCount} babies");
-            var baby = CreateRandomBaby();
+            var baby = Activator.CreateInstance(babyType) as Baby ?? throw new Exception($"unable to create {babyType.Name}");
             baby.Name = babyName;
             baby.BirthDate = DateTime.Now;
-            baby.Rank = CalculateBabyRank(marriage);
-            marriage.Babies.Add(baby);
-            marriage.Kisses -= (float)babyCost;
+            baby.Rank = babyRank;
+            couple.Babies.Add(baby);
+            return baby;
+        }
+
+        public async Task<string> AdminCreateBaby(IUser partner1, IUser? partner2, string babyName, string babyTypeName, int babyRank)
+        {
+            var couple = await GetMarriage(partner1, partner2);
+            var babyType = GetBabyTypes().SingleOrDefault(
+                               b => string.Equals(b.Name, babyTypeName, StringComparison.OrdinalIgnoreCase)) ??
+                           throw new Exception($"there is no baby with type {babyTypeName}");
+            var baby = AddBabyToCouple(couple, babyName, babyType, babyRank);
+            _dbContext.Babies.Add(baby);
             await _dbContext.SaveChangesAsync();
-            _logger.Log($"you made {baby}");
-            return _logger.ToString();
+            _stringLogger.Log($"you made {baby}");
+            return _stringLogger.ToString();
+        }
+
+        public async Task<string> CreateBaby(IUser partner1, IUser? partner2, string babyName)
+        {
+            var couple = await GetMarriage(partner1, partner2);
+            SanitizeBabyName(ref babyName);
+            var babyCost = Aggregate<IBabyCostEffector, double>(couple, 10.0);
+            if (babyCost - couple.Kisses is var missingKisses && missingKisses > 0) 
+                throw new Exception($"you need {Math.Ceiling(missingKisses)} more kisses to make a baby");
+            babyCost = Aggregate<ILateBabyCostEffector, double>(couple, babyCost);
+            var maxBabiesCount = CalculateMaxBabiesCount(couple);
+            if (couple.Babies.Count >= maxBabiesCount)
+                throw new Exception($"you can have at most {maxBabiesCount} babies");
+            var babyType = GetRandomBabyType();
+            var babyRank = CalculateBabyRank(couple);
+            var baby = AddBabyToCouple(couple, babyName, babyType, babyRank);
+            couple.Kisses -= (float)babyCost;
+            await _dbContext.SaveChangesAsync();
+            _stringLogger.Log($"you made {baby}");
+            return _stringLogger.ToString();
         }
 
         public async Task<string> CombineBabies(IUser partner1, IUser? partner2, string babyName1, string babyName2,
             string newBabyName)
         {
-            var marriage = await GetMarriage(partner1, partner2);
-            var baby1 = GetBaby(babyName1, marriage);
-            var baby2 = GetBaby(babyName2, marriage);
-            await baby1.ExecuteCombinePrecondition(marriage);
-            await baby2.ExecuteCombinePrecondition(marriage);
+            var couple = await GetMarriage(partner1, partner2);
+            var baby1 = GetBaby(babyName1, couple);
+            var baby2 = GetBaby(babyName2, couple);
+            await baby1.ExecuteCombinePrecondition(couple);
+            await baby2.ExecuteCombinePrecondition(couple);
             SanitizeBabyName(ref newBabyName);
-            var baby = CreateRandomBaby();
-            baby.Name = newBabyName;
-            baby.BirthDate = DateTime.Now;
-            var minRank = (int)Math.Round((baby1.Rank + baby2.Rank)/2f, MidpointRounding.ToPositiveInfinity);
-            baby.Rank = CalculateBabyRank(marriage, minRank);
-            marriage.Babies.Add(baby);
-            marriage.Babies.Remove(baby1);
-            marriage.Babies.Remove(baby2);
-            _logger.Log($"{baby1.Name} and {baby2.Name} were combined to create {baby}");
+            var minimumCombinedRank = 3;
+            var averageRank = (int) Math.Round((baby1.Rank + baby2.Rank) / 2f, MidpointRounding.ToPositiveInfinity);
+            var minRank = Math.Max(averageRank, minimumCombinedRank);
+            var babyRank = CalculateBabyRank(couple, minRank);
+            var babyType = GetRandomBabyType();
+            var baby = AddBabyToCouple(couple, newBabyName, babyType, babyRank);
+            couple.Babies.Remove(baby1);
+            couple.Babies.Remove(baby2);
+            _stringLogger.Log($"{baby1.Name} and {baby2.Name} were combined to create {baby}");
             await _dbContext.SaveChangesAsync();
-            return _logger.ToString();
+            return _stringLogger.ToString();
         }
 
         private static void SanitizeBabyName(ref string babyName)
@@ -141,17 +165,23 @@ namespace Tadmor.Services.Marriage
                 throw new Exception($"baby names can't exceed {maxBabyNameLength} characters");
         }
 
-        private Baby CreateRandomBaby()
+        private Type GetRandomBabyType()
         {
             var rng = new Random();
+            var babyTypes = GetBabyTypes();
+            var babyType = babyTypes
+                .Random(t => (float) (t.GetCustomAttribute<BabyFrequencyAttribute>()?.Weight ?? 1), rng);
+            return babyType;
+        }
+
+        private static List<Type> GetBabyTypes()
+        {
             var babyTypes = Assembly.GetExecutingAssembly().ExportedTypes
                 .Where(type => typeof(Baby).IsAssignableFrom(type) && !type.IsAbstract)
                 .ToList();
-            var babyType = babyTypes
-                .Random(t => (float) (t.GetCustomAttribute<BabyFrequencyAttribute>()?.Weight ?? 1), rng);
-            return Activator.CreateInstance(babyType) as Baby ?? throw new Exception($"unable to create {babyType.Name}");
+            return babyTypes;
         }
-        
+
         private async Task AssertNotMarried(IUser partner, ulong guildId)
         {
             var existingMarriage = await _dbContext.MarriedCouples
@@ -203,18 +233,30 @@ namespace Tadmor.Services.Marriage
         {
             var marriage = await GetMarriageOrNull(partner1, partner2);
             if (marriage == null) throw new Exception($"you can only kiss your partner");
-            var now = DateTime.Now;
-            if (now - marriage.LastKissed is var timeSinceLastKiss && 
-                marriage.KissCooldown - timeSinceLastKiss is var timeRemaining && 
-                timeRemaining > TimeSpan.Zero) 
-                throw new Exception($"you can kiss again in {timeRemaining.Humanize()}");
-            marriage.Kisses = (float)CalculateKisses(marriage);
-            marriage.KissCooldown = CalculateCooldown(marriage);
-            marriage.LastKissed = now;
-            await dbContext.SaveChangesAsync();
-            _logger.Log($"you have kissed your partner {Math.Floor(marriage.Kisses)} time(s) and " +
-                                   $"you can again in {marriage.KissCooldown.Humanize()}");
-            return _logger.ToString();
+            try
+            {
+                var now = DateTime.Now;
+                if (now - marriage.LastKissed is var timeSinceLastKiss &&
+                    marriage.KissCooldown - timeSinceLastKiss is var timeRemaining &&
+                    timeRemaining > TimeSpan.Zero)
+                    throw new KissOnCooldownException($"you can kiss again in {timeRemaining.Humanize()}");
+                marriage.Kisses = (float) CalculateKisses(marriage);
+                marriage.KissCooldown = CalculateCooldown(marriage);
+                marriage.LastKissed = now;
+                _stringLogger.Log($"you have kissed your partner {Math.Floor(marriage.Kisses)} time(s) and " +
+                            $"you can again in {marriage.KissCooldown.Humanize()}");
+            }
+            catch (KissOnCooldownException e)
+            {
+                Execute<IAttemptedKissOnCooldownAffector>(marriage);
+                _stringLogger.Log(e.Message);
+            }
+            finally
+            {
+                await dbContext.SaveChangesAsync();
+            }
+
+            return _stringLogger.ToString();
         }
 
         public async Task SetKisses(IUser partner1, IUser partner2, int kisses)
@@ -259,13 +301,23 @@ namespace Tadmor.Services.Marriage
             return marriage.Kisses + increment;
         }
 
+        private IOrderedEnumerable<TEffector> GetOrderedEffectors<TEffector>()
+        {
+            return _serviceProvider.GetServices<TEffector>()
+                .OrderBy(b => b!.GetType().GetCustomAttribute<EffectorOrderAttribute>()?.Order ?? 0);
+        }
+
         private TValue Aggregate<TEffector, TValue>(
             MarriedCouple couple,
             TValue seed) where TEffector: IMarriageEffector<TValue>
         {
-            return _serviceProvider.GetServices<TEffector>()
-                .OrderBy(b => b!.GetType().GetCustomAttribute<EffectorOrderAttribute>()?.Order ?? 0)
+            return GetOrderedEffectors<TEffector>()
                 .Aggregate(seed, (current, affector) => affector.GetNewValue(current, seed, couple));
+        }
+
+        private void Execute<TEffector>(MarriedCouple couple) where TEffector: IMarriageEffector
+        {
+            GetOrderedEffectors<TEffector>().ForEach(effector => effector.Execute(couple));
         }
 
         private async Task<MarriedCouple?> GetMarriageOrNull(IUser partner1, IUser? partner2)

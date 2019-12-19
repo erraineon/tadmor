@@ -12,7 +12,7 @@ namespace Tadmor.Services.Marriage
 
         public TimeSpan GetNewValue(TimeSpan current, TimeSpan seed, MarriedCouple couple)
         {
-            var totalRank = couple.Babies.OfType<QualityControlBaby>().Sum(b => b.Rank);
+            var totalRank = couple.Babies.OfType<SpeedyBaby>().Sum(b => b.Rank);
             var reduction = .66 * (totalRank / (totalRank + 10.0));
             return current - seed * reduction;
         }

@@ -23,6 +23,15 @@ namespace Tadmor.Modules
             _dbContext = dbContext;
         }
 
+        [Summary("admin baby")]
+        [Command("adminbaby")]
+        [RequireOwner]
+        public async Task AdminMarry(IGuildUser user, string babyType, int babyRank, string babyName)
+        {
+            var babyLog = await _marriageService.AdminCreateBaby(Context.User, user, babyName, babyType, babyRank);
+            await ReplyAsync(babyLog);
+        }
+
         [Summary("admin marry")]
         [Command("adminmarry")]
         [RequireOwner]

@@ -4,4 +4,9 @@
     {
         TValue GetNewValue(TValue current, TValue seed, MarriedCouple couple);
     }
+
+    public interface IMarriageEffector
+    {
+        void Execute(MarriedCouple couple);
+    }
 }

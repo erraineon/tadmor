@@ -44,8 +44,7 @@ namespace Tadmor
                     .AddSingleton<TelegramClient>()
                     .AddScoped<StringLogger>()
                     .AddScoped<CommandContextResolver>()
-                    .AddScoped(p => p.GetService<CommandContextResolver>().GetCommandContext()
-                    )
+                    .AddScoped(p => p.GetService<CommandContextResolver>().GetCommandContext())
                     .Scan(scan => scan
                         .FromEntryAssembly()
                         .AddClasses(classes => classes.WithAttribute<TransientServiceAttribute>())
@@ -62,7 +61,9 @@ namespace Tadmor
                         .AsSelfWithInterfaces()
                         .WithSingletonLifetime())
                 )
-                .ConfigureLogging(configLogging => configLogging.AddConsole())
+                .ConfigureLogging(configLogging => configLogging
+                    .AddConsole()
+                    .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.None))
                 .UseConsoleLifetime()
                 .Build();
             return host;

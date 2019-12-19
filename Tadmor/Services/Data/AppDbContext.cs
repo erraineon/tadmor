@@ -25,6 +25,10 @@ namespace Tadmor.Services.Data
             modelBuilder.Entity<MarriedCouple>()
                 .HasIndex(couple => new {couple.Partner1Id, couple.Partner2Id, couple.GuildId})
                 .IsUnique();
+            modelBuilder.Entity<MarriedCouple>()
+                .HasMany(c => c.Babies)
+                .WithOne()
+                .IsRequired();
             modelBuilder.Entity<Baby>()
                 .ToTable(nameof(Babies))
                 .HasDiscriminator()
@@ -38,7 +42,8 @@ namespace Tadmor.Services.Data
                 .HasValue<GoldenBaby>("GoldenBaby")
                 .HasValue<CockBlockBaby>("CockBlockBaby")
                 .HasValue<QualityControlBaby>("QualityControlBaby")
-                .HasValue<SiameseBaby>("SiameseBaby");
+                .HasValue<SiameseBaby>("SiameseBaby")
+                .HasValue<PatientBaby>("PatientBaby");
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
