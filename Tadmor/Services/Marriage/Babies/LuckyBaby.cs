@@ -2,7 +2,7 @@
 
 namespace Tadmor.Services.Marriage
 {
-    [BabyFrequency(0.2f)]
+    [BabyFrequency(0.6f)]
     public class LuckyBaby : Baby
     {
         public override string GetDescription()

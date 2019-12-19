@@ -11,8 +11,17 @@ namespace Tadmor.Services.Marriage
 
         public double GetNewValue(double current, double seed, MarriedCouple couple)
         {
-            var totalRank = couple.Babies.OfType<LuckyBaby>().Sum(b => b.Rank);
-            return (int)couple.Kisses % 10 == 7 ? current + totalRank * .75 : current;
+            var luckyBabies = couple.Babies.OfType<LuckyBaby>().ToList();
+            var totalRank = luckyBabies.Sum(b => b.Rank);
+            var currentKisses = couple.Kisses;
+            if ((int) currentKisses % 10 == 7)
+            {
+                var extraKisses = totalRank * .75;
+                Logger.Log($"{GetBabyNames(luckyBabies)} gave you {extraKisses} extra kisses for having {currentKisses} kisses");
+                return current + extraKisses;
+            }
+            return current;
+
         }
     }
 }

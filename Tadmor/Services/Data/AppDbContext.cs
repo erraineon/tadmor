@@ -28,7 +28,8 @@ namespace Tadmor.Services.Data
             modelBuilder.Entity<MarriedCouple>()
                 .HasMany(c => c.Babies)
                 .WithOne()
-                .IsRequired();
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<Baby>()
                 .ToTable(nameof(Babies))
                 .HasDiscriminator()

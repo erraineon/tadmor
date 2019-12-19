@@ -12,17 +12,31 @@ namespace Tadmor.Services.Marriage
 
         public double GetNewValue(double current, double seed, MarriedCouple couple)
         {
-            var gainMultiplier = couple.Babies.OfType<SiameseBaby>()
+            var (matched, unmatched) = couple.Babies.OfType<SiameseBaby>()
                 .Batch(2, babies =>
                 {
                     var enumeratedBabies = babies.ToList();
                     var first = enumeratedBabies.First();
                     var second = enumeratedBabies.Last();
                     var isMatched = first != second;
-                    return isMatched ? (first.Rank + second.Rank) / 2.8 : -first.Rank / 8.0;
+                    return (first, second, isMatched);
+                    //return isMatched ? (first.Rank + second.Rank) / 2.8 : -first.Rank / 8.0;
                 })
-                .Sum();
-            return current + seed * gainMultiplier;
+                .Partition(t => t.isMatched, (m, u) => (m.ToList(), u.ToList()));
+            var extraKisses = matched.Sum(t => seed * ((t.first.Rank + t.second.Rank) / 2.8));
+            var lostKisses = unmatched.Sum(t => seed * (-t.first.Rank / 8.0));
+            if (matched.Any())
+            {
+                var allMatchedBabies = matched.SelectMany(t => new []{t.first, t.second});
+                Logger.Log($"{GetBabyNames(allMatchedBabies)} gave you {extraKisses} extra kisses for being matched");
+            }
+
+            if (unmatched.Any())
+            {
+                var allUnmatchedBabies = unmatched.SelectMany(t => new[] { t.first, t.second });
+                Logger.Log($"{GetBabyNames(allUnmatchedBabies)} stole {lostKisses} extra kisses for being unmatched");
+            }
+            return current + extraKisses - lostKisses;
         }
     }
 }

@@ -298,7 +298,7 @@ namespace Tadmor.Services.Marriage
         {
             const float baseKissIncrement = 1f;
             var increment = Aggregate<IKissGainEffector, double>(marriage, baseKissIncrement);
-            return marriage.Kisses + increment;
+            return Math.Max(0, marriage.Kisses + increment);
         }
 
         private IOrderedEnumerable<TEffector> GetOrderedEffectors<TEffector>()
