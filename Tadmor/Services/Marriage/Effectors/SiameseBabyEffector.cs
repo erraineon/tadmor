@@ -24,7 +24,7 @@ namespace Tadmor.Services.Marriage
                 .Partition(t => t.isMatched, (m, u) => (m.ToList(), u.ToList()));
             var extraKisses = matched.Sum(t => seed * ((t.first.Rank + t.second.Rank) / 2.8));
             var lostKisses = unmatched.Sum(t => seed * (t.first.Rank / 8.0));
-            if (matched.Any())
+            if (extraKisses >= 1)
             {
                 var allMatchedBabies = matched.SelectMany(t => new []{t.first, t.second});
                 Logger.Log($"{GetBabyNames(allMatchedBabies)} gave you {extraKisses:0} extra kisses for being matched");
@@ -33,7 +33,7 @@ namespace Tadmor.Services.Marriage
             if (unmatched.Any())
             {
                 var allUnmatchedBabies = unmatched.Select(t => t.first);
-                Logger.Log($"{GetBabyNames(allUnmatchedBabies)} stole {lostKisses:0} kisses for being unmatched");
+                Logger.Log($"{GetBabyNames(allUnmatchedBabies)} stole {lostKisses:0.0} kisses for being unmatched");
             }
             return current + extraKisses - lostKisses;
         }

@@ -14,9 +14,9 @@ namespace Tadmor.Services.Marriage
             var luckyBabies = couple.Babies.OfType<LuckyBaby>().ToList();
             var totalRank = luckyBabies.Sum(b => b.Rank);
             var currentKisses = couple.Kisses;
-            if ((int) currentKisses % 10 == 7)
+            var extraKisses = totalRank * .75;
+            if ((int) currentKisses % 10 == 7 && extraKisses >= 1)
             {
-                var extraKisses = totalRank * .75;
                 Logger.Log($"{GetBabyNames(luckyBabies)} gave you {extraKisses:0} extra kisses for having {currentKisses:0} kisses");
                 return current + extraKisses;
             }

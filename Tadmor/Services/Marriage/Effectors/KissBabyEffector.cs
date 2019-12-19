@@ -14,7 +14,7 @@ namespace Tadmor.Services.Marriage
             var kissBabies = couple.Babies.OfType<KissBaby>().ToList();
             var multiplier = couple.Babies.OfType<KissBaby>().Sum(b => b.Rank) / 8.0;
             var extraKisses = seed * multiplier;
-            if (kissBabies.Any())
+            if (extraKisses >= 1)
             {
                 Logger.Log($"{GetBabyNames(kissBabies)} gave you {extraKisses:0} extra kisses");
             }
