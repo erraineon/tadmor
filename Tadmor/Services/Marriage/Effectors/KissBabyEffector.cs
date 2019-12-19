@@ -16,7 +16,7 @@ namespace Tadmor.Services.Marriage
             var extraKisses = seed * multiplier;
             if (kissBabies.Any())
             {
-                Logger.Log($"{GetBabyNames(kissBabies)} gave you {extraKisses} extra kisses");
+                Logger.Log($"{GetBabyNames(kissBabies)} gave you {extraKisses:0} extra kisses");
             }
 
             return current + extraKisses;

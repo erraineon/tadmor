@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Humanizer;
 using Tadmor.Logging;
 
 namespace Tadmor.Services.Marriage
@@ -12,9 +13,16 @@ namespace Tadmor.Services.Marriage
 
         public TimeSpan GetNewValue(TimeSpan current, TimeSpan seed, MarriedCouple couple)
         {
-            var totalRank = couple.Babies.OfType<SpeedyBaby>().Sum(b => b.Rank);
-            var reduction = .66 * (totalRank / (totalRank + 10.0));
-            return current - seed * reduction;
+            var speedyBabies = couple.Babies.OfType<SpeedyBaby>().ToList();
+            var totalRank = speedyBabies.Sum(b => b.Rank);
+            var multiplier = .66 * (totalRank / (totalRank + 10.0));
+            var reduction = seed * multiplier;
+            if (speedyBabies.Any())
+            {
+                Logger.Log($"{GetBabyNames(speedyBabies)} reduced your cooldown by {reduction.Humanize()}");
+            }
+
+            return current - reduction;
         }
     }
 }

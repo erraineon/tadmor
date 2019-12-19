@@ -17,7 +17,7 @@ namespace Tadmor.Services.Marriage
             if ((int) currentKisses % 10 == 7)
             {
                 var extraKisses = totalRank * .75;
-                Logger.Log($"{GetBabyNames(luckyBabies)} gave you {extraKisses} extra kisses for having {currentKisses} kisses");
+                Logger.Log($"{GetBabyNames(luckyBabies)} gave you {extraKisses:0} extra kisses for having {currentKisses:0} kisses");
                 return current + extraKisses;
             }
             return current;

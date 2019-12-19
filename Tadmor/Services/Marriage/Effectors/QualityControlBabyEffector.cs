@@ -11,8 +11,13 @@ namespace Tadmor.Services.Marriage
 
         public double GetNewValue(double current, double seed, MarriedCouple couple)
         {
-            var totalRank = couple.Babies.OfType<QualityControlBaby>().Sum(b => b.Rank);
+            var qualityControlBabies = couple.Babies.OfType<QualityControlBaby>().ToList();
+            var totalRank = qualityControlBabies.Sum(b => b.Rank);
             var extraBonus = .1 * (totalRank / (totalRank + 10.0));
+            if (qualityControlBabies.Any())
+            {
+                Logger.Log($"{GetBabyNames(qualityControlBabies)} gave you a {extraBonus:P} quality bonus");
+            }
             return extraBonus;
         }
     }
