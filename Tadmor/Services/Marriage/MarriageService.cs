@@ -225,7 +225,10 @@ namespace Tadmor.Services.Marriage
         public async Task<MarriedCouple> GetMarriage(IUser partner1, IUser? partner2)
         {
             var marriage = await GetMarriageOrNull(partner1, partner2);
-            if (marriage == null) throw new Exception($"{partner1.Username} is not married to {partner2!.Username}");
+            if (marriage == null)
+                throw new Exception(partner2 == null
+                    ? $"{partner1.Username} is not married"
+                    : $"{partner1.Username} is not married to {partner2!.Username}");
             return marriage;
         }
 
@@ -283,8 +286,9 @@ namespace Tadmor.Services.Marriage
             var random = new Random();
             // a rank bonus of 1 ensures that the rank is always 10
             var rankBonus = Aggregate<IBabyRankBonusEffector, double>(marriage, 0);
+            var roll = Math.Max(random.NextDouble(), 1-rankBonus);
             // logarithmic curve mapping 0..1 to 2..10
-            return (int)Math.Round(-((10 - minRank) / 4f) * Math.Log(-80 * (random.NextDouble() - 1 + rankBonus) + 1, 3) + 10);
+            return (int)Math.Round(-((10 - minRank) / 4f) * Math.Log(Math.Max(80 * (-roll + 1 - rankBonus) + 1, 1), 3) + 10);
         }
 
         private TimeSpan CalculateCooldown(MarriedCouple marriage)
