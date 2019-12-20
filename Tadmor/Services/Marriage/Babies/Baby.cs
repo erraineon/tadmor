@@ -24,7 +24,7 @@ namespace Tadmor.Services.Marriage
         public string GetStarRank()
         {
             var flooredHalfRank = (int) Math.Floor(Rank / 2f);
-            var halfStar = flooredHalfRank % 1 == 0 ? string.Empty : "🟉";
+            var halfStar = Rank % 2 == 0 ? string.Empty : "+";
             var rank = $"{new string('★', flooredHalfRank)}{halfStar}";
             return rank;
         }
