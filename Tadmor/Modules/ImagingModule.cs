@@ -141,9 +141,9 @@ namespace Tadmor.Modules
         [Summary("mimics someone else's message after running a replacement on the text")]
         [Command("replace")]
         [Browsable(false)]
-        public async Task MimicReplace(string pattern, [Remainder] string replacement)
+        public async Task MimicReplace(string pattern, [Remainder] string? replacement = default)
         {
-            await MimicReplace(default, pattern, replacement);
+            await MimicReplace(default, pattern, replacement ?? string.Empty);
         }
 
         [Summary("fake sms with the specified text")]
