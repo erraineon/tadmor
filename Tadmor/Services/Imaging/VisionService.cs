@@ -39,21 +39,19 @@ namespace Tadmor.Services.Imaging
         private List<List<Point2f>> DetectFaces(FrontalFaceDetector detector, ShapePredictor predictor, Mat mat)
         {
             var thresholds = new[] {0, -0.5, -1.0};
-            using (var image = ToArray(mat))
-            {
-                var points = thresholds
-                    .Select(threshold => detector.Operator(image, threshold)
-                        .Select(rectangle => predictor.Detect(image, rectangle))
-                        .Where(shape => shape.Parts > 2)
-                        .Select(shape => Enumerable.Range(0, (int) shape.Parts)
-                            .Select(i => shape.GetPart((uint) i))
-                            .Select((p, i) => new Point2f(p.X, p.Y))
-                            .ToList())
-                        .ToList())
-                    .FirstOrDefault(facesForThreshold => facesForThreshold.Any()) ?? new List<List<Point2f>>();
+            using var image = ToArray(mat);
+            var points = thresholds
+                             .Select(threshold => detector.Operator(image, threshold)
+                                 .Select(rectangle => predictor.Detect(image, rectangle))
+                                 .Where(shape => shape.Parts > 2)
+                                 .Select(shape => Enumerable.Range(0, (int) shape.Parts)
+                                     .Select(i => shape.GetPart((uint) i))
+                                     .Select((p, i) => new Point2f(p.X, p.Y))
+                                     .ToList())
+                                 .ToList())
+                             .FirstOrDefault(facesForThreshold => facesForThreshold.Any()) ?? new List<List<Point2f>>();
 
-                return points;
-            }
+            return points;
         }
 
         public async Task<MemoryStream> Morph(byte[] source, byte[] dest)
