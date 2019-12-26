@@ -121,8 +121,8 @@ namespace Tadmor.Modules
             var kissLog = await _marriageService.Kiss(Context.User, user, _dbContext);
             var reply = await ReplyAsync(kissLog);
             await Task.Delay(TimeSpan.FromSeconds(30));
-            await Context.Message.DeleteAsync();
-            await reply.DeleteAsync();
+            await Context.Channel.DeleteMessageAsync(Context.Message);
+            await Context.Channel.DeleteMessageAsync(reply);
         }
 
         [Summary("makes a baby with another user")]
@@ -133,8 +133,8 @@ namespace Tadmor.Modules
             var babyLog = await _marriageService.CreateBaby(Context.User, user, babyName);
             var reply = await ReplyAsync(babyLog);
             await Task.Delay(TimeSpan.FromSeconds(30));
-            await Context.Message.DeleteAsync();
-            await reply.DeleteAsync();
+            await Context.Channel.DeleteMessageAsync(Context.Message);
+            await Context.Channel.DeleteMessageAsync(reply);
         }
 
         [Summary("makes a baby with another user")]
@@ -186,8 +186,8 @@ namespace Tadmor.Modules
             var combineLog = await _marriageService.CombineBabies(Context.User, user, babyName1, babyName2, newBabyName);
             var reply = await ReplyAsync(combineLog);
             await Task.Delay(TimeSpan.FromSeconds(30));
-            await Context.Message.DeleteAsync();
-            await reply.DeleteAsync();
+            await Context.Channel.DeleteMessageAsync(Context.Message);
+            await Context.Channel.DeleteMessageAsync(reply);
         }
 
         [Summary("combines two babies")]
