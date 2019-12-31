@@ -141,6 +141,7 @@ namespace Tadmor.Services.Marriage
             var couple = await GetMarriage(partner1, partner2);
             var baby1 = GetBaby(babyName1, couple);
             var baby2 = GetBaby(babyName2, couple);
+            if (baby1.Id == baby2.Id) throw new Exception("you can't combine a baby with itself");
             await baby1.ExecuteCombinePrecondition(couple);
             await baby2.ExecuteCombinePrecondition(couple);
             SanitizeBabyName(ref newBabyName);
