@@ -18,6 +18,14 @@ namespace Tadmor.Adapters.Telegram
             {
                 if (apiMessage.Photo is { } photos)
                     yield return new TelegramAttachment(photos.Last());
+                if (apiMessage.Sticker is { } sticker)
+                    yield return new TelegramAttachment(new PhotoSize
+                    {
+                        FileId = sticker.FileId, 
+                        FileSize = sticker.FileSize, 
+                        Width = sticker.Width,
+                        Height = sticker.Height
+                    });
             }
 
             _apiMessage = apiMessage;
