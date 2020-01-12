@@ -12,7 +12,6 @@ using Tadmor.Extensions;
 using Tadmor.Logging;
 using Tadmor.Services;
 using Tadmor.Services.Data;
-using Tadmor.Services.Marriage;
 
 namespace Tadmor
 {
@@ -48,10 +47,6 @@ namespace Tadmor
                     .Scan(scan => scan
                         .FromEntryAssembly()
                         .AddClasses(classes => classes.WithAttribute<TransientServiceAttribute>())
-                        .AsSelfWithInterfaces()
-                        .WithTransientLifetime()
-                        .FromEntryAssembly()
-                        .AddClasses(classes => classes.Where(t => typeof(MarriageEffector).IsAssignableFrom(t)))
                         .AsSelfWithInterfaces()
                         .WithTransientLifetime()
                         .AddClasses(classes => classes.WithAttribute<ScopedServiceAttribute>())

@@ -68,7 +68,7 @@
   <ItemGroup>
     <PackageReference Include="CodeHollow.FeedReader" Version="1.2.1" />
     <PackageReference Include="CronExpressionDescriptor" Version="2.13.0" />
-    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191109.4" />
+    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191226.1" />
     <PackageReference Include="DlibDotNet" Version="19.18.0.20190928" />
     <PackageReference Include="E621Client" Version="0.0.1" />
     <PackageReference Include="FChan.Library" Version="2.0.1" />

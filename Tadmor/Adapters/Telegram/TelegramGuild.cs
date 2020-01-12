@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Audio;
 using Microsoft.Extensions.Caching.Memory;
-using MoreLinq;
 using Tadmor.Extensions;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -223,6 +222,12 @@ namespace Tadmor.Adapters.Telegram
         public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null,
             bool isHoisted = false,
             RequestOptions? options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false,
+            bool isMentionable = false, RequestOptions options = null)
         {
             throw new NotImplementedException();
         }
