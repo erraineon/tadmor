@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Humanizer;
 using Tadmor.Preconditions;
 
@@ -11,6 +12,16 @@ namespace Tadmor.Modules
     [Summary("utilities")]
     public class DevModule : ModuleBase<ICommandContext>
     {
+        [RequireBotPermission(GuildPermission.ChangeNickname)]
+        [RequireWhitelist]
+        [Command("nick")]
+        public async Task ChangeNickname(IGuildUser user, string nickname)
+        {
+            if (user.Id == Context.User.Id) throw new Exception("you can't change your own nickname");
+            await user.ModifyAsync(gup => gup.Nickname = nickname);
+            await ReplyAsync($"{user.Username}'s nickname has been changed to {user.Nickname}");
+        }
+
         [RequireOwner]
         [Command("ping")]
         public Task Ping()
