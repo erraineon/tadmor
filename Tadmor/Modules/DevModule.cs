@@ -15,7 +15,7 @@ namespace Tadmor.Modules
         [RequireBotPermission(GuildPermission.ChangeNickname)]
         [RequireWhitelist]
         [Command("nick")]
-        public async Task ChangeNickname(IGuildUser user, string nickname)
+        public async Task ChangeNickname(IGuildUser user, [Remainder] string nickname)
         {
             if (user.Id == Context.User.Id) throw new Exception("you can't change your own nickname");
             await user.ModifyAsync(gup => gup.Nickname = nickname);
