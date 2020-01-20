@@ -69,13 +69,6 @@ namespace Tadmor.Modules
             return PostRandomTumblrPicture("someoneatethis");
         }
 
-        [Summary("post a random bad fursuit")]
-        [Command("fursuit")]
-        public Task Fursuit()
-        {
-            return PostRandomTumblrPicture("horrificfursuits");
-        }
-
         [Summary("post a random image from the specified tumblr")]
         [Command("tumblr")]
         private async Task PostRandomTumblrPicture(string blogName)
