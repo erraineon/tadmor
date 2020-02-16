@@ -18,6 +18,8 @@ namespace Tadmor.Modules
         public async Task ChangeNickname(IGuildUser user, [Remainder] string nickname)
         {
             if (user.Id == Context.User.Id) throw new Exception("you can't change your own nickname");
+            if (string.Equals(user.Username, nickname, StringComparison.OrdinalIgnoreCase))
+                throw new Exception("you can't reset people's nicknames");
             await user.ModifyAsync(gup => gup.Nickname = nickname);
             await ReplyAsync($"{user.Username}'s nickname has been changed to {user.Nickname}");
         }
