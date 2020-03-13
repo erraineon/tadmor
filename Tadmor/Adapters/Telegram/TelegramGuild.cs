@@ -577,9 +577,9 @@ namespace Tadmor.Adapters.Telegram
             bool isTts = false, Embed? embed = null,
             RequestOptions? options = null, bool isSpoiler = false) 
         {
-            var videoExtensions = new[] {".gif", ".mp4"};
+            var videoExtensions = new[] {".gif"};
             var message = videoExtensions.Any(filename.EndsWith)
-                ? await _api.SendVideoAsync(_chat.Id, new InputOnlineFile(stream), caption: text)
+                ? await _api.SendAnimationAsync(_chat.Id, new InputOnlineFile(stream, filename), caption: text)
                 : await _api.SendPhotoAsync(_chat.Id, new InputOnlineFile(stream), text);
             return await ProcessInboundMessage(message);
         }
