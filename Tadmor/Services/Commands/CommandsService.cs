@@ -64,7 +64,7 @@ namespace Tadmor.Services.Commands
                 else
                 {
                     _logger.LogError(ToShortString(e));
-                    await commandException.Context.Channel.SendMessageAsync("crap");
+                    await commandException.Context.Channel.SendMessageAsync("https://i.imgur.com/5DODrAB.png");
                 }
             }
         }
