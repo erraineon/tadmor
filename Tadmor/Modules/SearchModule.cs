@@ -31,7 +31,7 @@ namespace Tadmor.Modules
         [Command("gi")]
         public async Task SearchImage([Remainder] string query)
         {
-            await ReplyAsync(await Search(query, true));
+            await ReplyAsync(await Search($"{query} -site:me.me", true));
         }
     }
 }
