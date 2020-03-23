@@ -27,7 +27,7 @@ namespace Tadmor.Services.Textgen
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 Arguments =
-                    $"\"{_textgenOptions.GeneratorPath}\" {temperature}{(prompt != null ? $" {prompt}" : default)}",
+                    $"\"{_textgenOptions.GeneratorPath}\" {temperature}{(prompt != null ? $" \"{prompt}\"" : default)}",
                 WorkingDirectory = Path.GetDirectoryName(_textgenOptions.GeneratorPath),
                 CreateNoWindow = true,
             };

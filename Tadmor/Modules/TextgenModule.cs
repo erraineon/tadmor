@@ -21,7 +21,7 @@ namespace Tadmor.Modules
         [RequireWhitelist]
         [Summary("generates text based on a trained model")]
         [Command("gen")]
-        public async Task Generate(string? prompt = null)
+        public async Task Generate([Remainder] string? prompt = null)
         {
             var text = await _textgen.Generate(Random.NextDouble() / 10 * 8 + .2, prompt);
             await Context.Channel.SendMessageAsync(text);
