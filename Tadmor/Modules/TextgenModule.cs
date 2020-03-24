@@ -23,7 +23,10 @@ namespace Tadmor.Modules
         [Command("gen")]
         public async Task Generate([Remainder] string? prompt = null)
         {
-            var text = await _textgen.Generate(Random.NextDouble() / 10 * 8 + .2, prompt);
+            var temperature = Random.NextDouble() / 10 * 8 + .2;
+            var text = await _textgen.Generate(temperature, prompt);
+            if (text.Equals(prompt, StringComparison.OrdinalIgnoreCase))
+                text = await _textgen.Generate(temperature);
             await Context.Channel.SendMessageAsync(text);
         }
     }

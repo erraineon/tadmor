@@ -35,6 +35,7 @@ namespace Tadmor.Services.Textgen
             var error = await process.StandardError.ReadToEndAsync();
             var output = await process.StandardOutput.ReadToEndAsync();
             var result = output.Trim('\r', '\n', ' ');
+            if (string.IsNullOrEmpty(result)) throw new InvalidOperationException(error);
             return result;
         }
     }
