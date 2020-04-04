@@ -22,7 +22,7 @@ namespace Tadmor.Services.Data
             modelBuilder.Entity<TwitterMedia>()
                 .HasKey(media => new {media.TweetId, media.MediaId, media.Username});
             modelBuilder.Entity<Upvote>()
-                .HasKey(media => new {media.GuildId, media.UserId});
+                .HasKey(upvote => new {upvote.GuildId, upvote.TargetUserId, upvote.MessageId, upvote.VoterId});
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>

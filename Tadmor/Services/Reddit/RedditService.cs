@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -17,25 +18,45 @@ namespace Tadmor.Services.Reddit
             _context = context;
         }
 
-        public async Task<int> Upvote(IGuildUser user)
+        public async Task<int> Upvote(IMessage message, IGuildUser targetUser, IUser voter)
         {
             var upvote = await _context.Upvotes
                 .AsQueryable()
-                .SingleOrDefaultAsync(u => u.GuildId == user.GuildId && u.UserId == user.Id);
-            if (upvote == null)
+                .SingleOrDefaultAsync(u => u.GuildId == targetUser.GuildId && 
+                                           u.TargetUserId == targetUser.Id && 
+                                           u.MessageId == message.Id &&
+                                           u.VoterId == voter.Id);
+            if (upvote != null) throw new Exception($"you already upvoted {targetUser.Nickname}'s message");
+            upvote = new Upvote
             {
-                upvote = new Upvote { GuildId = user.GuildId, UserId = user.Id };
-                _context.Upvotes.Add(upvote);
-            }
+                GuildId = targetUser.GuildId,
+                TargetUserId = targetUser.Id,
+                MessageId = message.Id,
+                VoterId = voter.Id
+            };
+            _context.Upvotes.Add(upvote);
 
-            upvote.UpvotesCount++;
             await _context.SaveChangesAsync();
-            return upvote.UpvotesCount;
+
+            var userUpvotes = (await GetUpvotes(targetUser.GuildId, targetUser.Id)).Count;
+            return userUpvotes;
         }
 
-        public async Task<IList<Upvote>> GetUpvotes(ulong guildId)
+        public async Task<Dictionary<ulong, int>> GetUpvoteCounts(ulong guildId)
         {
-            return await _context.Upvotes.AsQueryable().Where(u => u.GuildId == guildId).ToListAsync();
+            return await _context.Upvotes
+                .AsQueryable()
+                .Where(u => u.GuildId == guildId)
+                .GroupBy(u => u.TargetUserId)
+                .ToDictionaryAsync(g => g.Key, g => g.Count());
+        }
+
+        public async Task<IList<Upvote>> GetUpvotes(ulong guildId, ulong userId)
+        {
+            return await _context.Upvotes
+                .AsQueryable()
+                .Where(u =>  u.GuildId == guildId && u.TargetUserId == userId)
+                .ToListAsync();
         }
     }
 }

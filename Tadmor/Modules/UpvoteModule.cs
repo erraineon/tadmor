@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -23,34 +24,36 @@ namespace Tadmor.Modules
         {
             var currentUserId = Context.User.Id;
             if (user?.Id == currentUserId) throw new Exception("you can't upvote yourself");
-            var target = await Context.Channel.GetMessagesAsync()
+            var message = await Context.Channel.GetMessagesAsync()
                 .Flatten()
                 .Where(m => m.Id != Context.Message.Id &&
                             (user == null || m.Author.Id == user.Id && m.Author.Id != currentUserId))
-                .Select(m => m.Author)
-                .FirstOrDefaultAsync() as IGuildUser;
-            if (target == null) throw new Exception($"{user?.Nickname} hasn't posted recently");
-            var totalUpvotes = await _reddit.Upvote(target);
+                .FirstOrDefaultAsync();
+            if (message == null) throw new Exception($"{user?.Nickname} hasn't posted recently");
+            var targetUser = message.Author as IGuildUser ??
+                             throw new Exception("the message's author could not be retrieved");
+            var totalUpvotes = await _reddit.Upvote(message, targetUser, Context.User);
             await ReplyAsync(
-                $"you upvoted {target.Nickname}'s post. they have received a total of {totalUpvotes} upvotes");
+                $"you upvoted {targetUser.Nickname}'s post. they have received a total of {totalUpvotes} upvotes");
         }
+
         [Summary("shows upvotes on the current guild")]
         [Command("upvotes")]
         public async Task Upvotes()
         {
-            var upvotes = await _reddit.GetUpvotes(Context.Guild.Id);
+            var upvotes = await _reddit.GetUpvoteCounts(Context.Guild.Id);
             var upvoteStrings = await Task.WhenAll(upvotes
-                .OrderByDescending(m => m.UpvotesCount)
+                .OrderByDescending(kvp => kvp.Value)
                 .Select(GetStringDescription));
             await ReplyAsync(upvoteStrings.Any()
                 ? string.Join(Environment.NewLine, upvoteStrings)
                 : "no upvotes were given");
         }
 
-        private async Task<string> GetStringDescription(Upvote upvote)
+        private async Task<string> GetStringDescription(KeyValuePair<ulong, int> upvoteCount)
         {
-            var user = await Context.Guild.GetUserAsync(upvote.UserId);
-            return $"{user.Nickname} has {upvote.UpvotesCount} upvotes";
+            var user = await Context.Guild.GetUserAsync(upvoteCount.Key);
+            return $"{user.Nickname} has {upvoteCount.Value} upvotes";
         }
     }
 }

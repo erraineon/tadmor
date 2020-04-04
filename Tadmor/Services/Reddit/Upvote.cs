@@ -2,8 +2,9 @@
 {
     public class Upvote
     {
-        public ulong UserId { get; set; }
+        public ulong TargetUserId { get; set; }
         public ulong GuildId { get; set; }
-        public int UpvotesCount { get; set; }
+        public ulong MessageId { get; set; }
+        public ulong VoterId { get; set; }
     }
 }
