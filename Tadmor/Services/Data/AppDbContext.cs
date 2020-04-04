@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Tadmor.Services.Reddit;
 using Tadmor.Services.Twitter;
 
 namespace Tadmor.Services.Data
@@ -10,6 +11,7 @@ namespace Tadmor.Services.Data
     public class AppDbContext : DbContext
     {
         public DbSet<TwitterMedia> TwitterMedia { get; set; } = null!;
+        public DbSet<Upvote> Upvotes { get; set; } = null!;
 
         public AppDbContext(DbContextOptions options) : base(options)
         {
@@ -19,6 +21,8 @@ namespace Tadmor.Services.Data
         {
             modelBuilder.Entity<TwitterMedia>()
                 .HasKey(media => new {media.TweetId, media.MediaId, media.Username});
+            modelBuilder.Entity<Upvote>()
+                .HasKey(media => new {media.GuildId, media.UserId});
         }
 
         public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
