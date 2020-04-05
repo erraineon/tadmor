@@ -48,7 +48,8 @@ namespace Tadmor.Services.Reddit
                 .AsQueryable()
                 .Where(u => u.GuildId == guildId)
                 .GroupBy(u => u.TargetUserId)
-                .ToDictionaryAsync(g => g.Key, g => g.Count());
+                .Select(g => new {id = g.Key, count = g.Count()})
+                .ToDictionaryAsync(o => o.id, g => g.count);
         }
 
         public async Task<IList<Upvote>> GetUpvotes(ulong guildId, ulong userId)
