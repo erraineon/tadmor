@@ -21,12 +21,10 @@ namespace Tadmor.Modules
         [RequireWhitelist]
         [Summary("generates text based on a trained model")]
         [Command("gen")]
-        public async Task Generate([Remainder] string? prompt = null)
+        public async Task Generate([Remainder] double? temperature = null)
         {
-            var temperature = Random.NextDouble() / 10 * 8 + .2;
-            var text = await _textgen.Generate(temperature, prompt);
-            if (text.Equals(prompt, StringComparison.OrdinalIgnoreCase))
-                text = await _textgen.Generate(temperature);
+            var nonNullTemperature = temperature ?? Random.NextDouble() / 10 * 8 + .2;
+            var text = await _textgen.Generate(nonNullTemperature);
             await Context.Channel.SendMessageAsync(text);
         }
     }
