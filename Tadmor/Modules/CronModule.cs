@@ -42,6 +42,8 @@ namespace Tadmor.Modules
         }
 
         [Summary("executes the command after the specified amount of time")]
+        [RequireOwner(Group = "admin")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "admin")]
         [Command("in")]
         public async Task Once(TimeSpan delay, [Remainder] string command)
         {
