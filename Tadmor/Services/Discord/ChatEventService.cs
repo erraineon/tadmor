@@ -93,7 +93,7 @@ namespace Tadmor.Services.Discord
             {
                 ["{{user}}"] = author.Mention,
                 ["{{time}}"] = DateTime.Now.ToString("g"),
-                ["{{random}}"] = new Random().Next(10000).ToString(),
+                ["{{random}}"] = (new Random().Next(100) + 1).ToString(),
                 ["{{input}}"] = input
             };
             if (guildEvent.TriggerType == GuildEventTriggerType.RegexMatch)
