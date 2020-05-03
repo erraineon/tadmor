@@ -24,7 +24,8 @@ namespace Tadmor.Modules
         public async Task Generate([Remainder] double? temperature = null)
         {
             var nonNullTemperature = temperature ?? Random.NextDouble() / 10 * 8 + .2;
-            var text = await _textgen.Generate(nonNullTemperature);
+            var clampedTemperature = Math.Clamp(0.1, nonNullTemperature, 1);
+            var text = await _textgen.Generate(clampedTemperature);
             await Context.Channel.SendMessageAsync(text);
         }
     }

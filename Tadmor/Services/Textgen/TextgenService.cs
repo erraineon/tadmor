@@ -27,16 +27,24 @@ namespace Tadmor.Services.Textgen
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 Arguments =
-                    $"\"{_textgenOptions.GeneratorPath}\" {temperature}{(prompt != null ? $" \"{prompt}\"" : default)}",
+                    $"\"{_textgenOptions.GeneratorPath}\" --temperature {temperature:0.00} --model_name logs",
                 WorkingDirectory = Path.GetDirectoryName(_textgenOptions.GeneratorPath),
                 CreateNoWindow = true,
             };
             using var process = Process.Start(processInfo);
-            var error = await process.StandardError.ReadToEndAsync();
-            var output = await process.StandardOutput.ReadToEndAsync();
-            var result = output.Trim('\r', '\n', ' ');
-            if (string.IsNullOrEmpty(result)) throw new InvalidOperationException(error);
-            return result;
+            var tasks = await Task.WhenAll(
+                process.StandardError.ReadToEndAsync(), 
+                process.StandardOutput.ReadToEndAsync());
+            var error = tasks[0];
+            var output = tasks[1];
+            process.Kill();
+            const string endOftextDelimiter = "<|endoftext|>";
+            if (output.StartsWith(endOftextDelimiter)) output = output.Substring(endOftextDelimiter.Length);
+            var firstEndOfText = output.IndexOf(endOftextDelimiter);
+            if (firstEndOfText >= 0) output = output.Substring(0, firstEndOfText);
+            output = output.Trim('\r', '\n', ' ');
+            if (string.IsNullOrEmpty(output)) throw new InvalidOperationException(error);
+            return output;
         }
     }
 }
