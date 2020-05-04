@@ -26,8 +26,7 @@ namespace Tadmor.Services.Textgen
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
-                Arguments =
-                    $"\"{_textgenOptions.GeneratorPath}\" --temperature {temperature:0.00} --model_name logs",
+                Arguments = $"\"{_textgenOptions.GeneratorPath}\" --temperature {temperature:0.00} --model_name logs",
                 WorkingDirectory = Path.GetDirectoryName(_textgenOptions.GeneratorPath),
                 CreateNoWindow = true,
                 StandardOutputEncoding = Encoding.UTF8
