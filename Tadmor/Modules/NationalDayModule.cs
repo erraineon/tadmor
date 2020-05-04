@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Tadmor.Services.NationalDay;
 
@@ -22,9 +23,14 @@ namespace Tadmor.Modules
         {
             var holidays = await _nationalDay.GetTodaysHolidays();
             if (!holidays.Any()) throw new Exception("no national holidays for today");
-            var holidayStrings = holidays.Select(h => $"**{h.Name}** - {h.Url}");
-            var result = string.Join(Environment.NewLine, holidayStrings);
-            await ReplyAsync(result);
+            var embedBuilder = new EmbedBuilder();
+            embedBuilder.Fields.AddRange(holidays
+                .Select(h => new EmbedFieldBuilder()
+                    .WithIsInline(true)
+                    .WithName("\u200b")
+                    .WithValue($"[{h.Name}]({h.Url})")));
+            var embed = embedBuilder.Build();
+            await ReplyAsync(string.Empty, embed: embed);
         }
     }
 }
