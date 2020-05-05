@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using MoreLinq;
@@ -15,7 +16,7 @@ namespace Tadmor.Services.Textgen
     {
         private readonly TextgenOptions _textgenOptions;
         private readonly Queue<string> _queuedEntries = new Queue<string>();
-        private bool _isGenerating;
+        private readonly SemaphoreSlim _generationSemaphore = new SemaphoreSlim(1, 1);
 
         public TextgenService(IOptionsSnapshot<TextgenOptions> textgenOptions)
         {
@@ -30,50 +31,55 @@ namespace Tadmor.Services.Textgen
             }
             var entry = _queuedEntries.Dequeue();
             // if the buffer is starting to get small, refill it asynchronously
-            if (_queuedEntries.Count < 16 && !_isGenerating) GenerateEntries(temperature);
+#pragma warning disable 4014
+            GenerateEntries(temperature);
+#pragma warning restore 4014
             return entry;
         }
 
         private async Task GenerateEntries(double temperature)
         {
+            await _generationSemaphore.WaitAsync();
             try
             {
-                _isGenerating = true;
-                var processInfo = new ProcessStartInfo
+                if (_queuedEntries.Count < 64)
                 {
-                    FileName = "py",
-                    RedirectStandardError = true,
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    Arguments = $"\"{_textgenOptions.GeneratorPath}\" --temperature {temperature:0.00} --model_name logs",
-                    WorkingDirectory = Path.GetDirectoryName(_textgenOptions.GeneratorPath),
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = Encoding.UTF8
-                };
-                using var process = Process.Start(processInfo);
-                var tasks = await Task.WhenAll(
-                    process.StandardError.ReadToEndAsync(),
-                    process.StandardOutput.ReadToEndAsync());
-                var error = tasks[0];
-                var output = tasks[1];
-                process.Kill();
-                if (string.IsNullOrEmpty(output)) throw new InvalidOperationException(error);
-                const string endOftextDelimiter = "<|endoftext|>";
-                var entriesStartIndex = Math.Max(0, output.IndexOf(endOftextDelimiter));
-                var entries = output
-                    .Substring(entriesStartIndex)
-                    .Split(endOftextDelimiter, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(e => e.Trim('\r', '\n', ' '))
-                    .Shuffle()
-                    .ToList();
-                foreach (var entry in entries)
-                {
-                    _queuedEntries.Enqueue(entry);
+                    var processInfo = new ProcessStartInfo
+                    {
+                        FileName = "py",
+                        RedirectStandardError = true,
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        Arguments = $"\"{_textgenOptions.GeneratorPath}\" --temperature {temperature:0.00} --model_name logs",
+                        WorkingDirectory = Path.GetDirectoryName(_textgenOptions.GeneratorPath),
+                        CreateNoWindow = true,
+                        StandardOutputEncoding = Encoding.UTF8
+                    };
+                    using var process = Process.Start(processInfo);
+                    var tasks = await Task.WhenAll(
+                        process.StandardError.ReadToEndAsync(),
+                        process.StandardOutput.ReadToEndAsync());
+                    var error = tasks[0];
+                    var output = tasks[1];
+                    process.Kill();
+                    if (string.IsNullOrEmpty(output)) throw new InvalidOperationException(error);
+                    const string endOftextDelimiter = "<|endoftext|>";
+                    var entriesStartIndex = Math.Max(0, output.IndexOf(endOftextDelimiter));
+                    var entries = output
+                        .Substring(entriesStartIndex)
+                        .Split(endOftextDelimiter, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(e => e.Trim('\r', '\n', ' '))
+                        .Shuffle()
+                        .ToList();
+                    foreach (var entry in entries)
+                    {
+                        _queuedEntries.Enqueue(entry);
+                    }
                 }
             }
             finally
             {
-                _isGenerating = false;
+                _generationSemaphore.Release();
             }
         }
     }
