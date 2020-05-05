@@ -69,6 +69,7 @@ namespace Tadmor.Services.Textgen
                         .Substring(entriesStartIndex)
                         .Split(endOftextDelimiter, StringSplitOptions.RemoveEmptyEntries)
                         .Select(e => e.Trim('\r', '\n', ' '))
+                        .Distinct()
                         .Shuffle()
                         .ToList();
                     foreach (var entry in entries)

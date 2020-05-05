@@ -11,7 +11,6 @@ namespace Tadmor.Modules
     public class TextgenModule : ModuleBase<ICommandContext>
     {
         private readonly TextgenService _textgen;
-        private static readonly Random Random = new Random();
 
         public TextgenModule(TextgenService textgen)
         {
@@ -23,9 +22,7 @@ namespace Tadmor.Modules
         [Command("gen")]
         public async Task Generate([Remainder] double? temperature = null)
         {
-            var nonNullTemperature = temperature ?? Random.NextDouble() / 10 * 8 + .2;
-            var clampedTemperature = Math.Clamp(0, nonNullTemperature, 1);
-            var text = await _textgen.Generate(clampedTemperature);
+            var text = await _textgen.Generate(1);
             await Context.Channel.SendMessageAsync(text);
         }
     }
