@@ -42,7 +42,7 @@ namespace Tadmor.Services.Textgen
             await _generationSemaphore.WaitAsync();
             try
             {
-                if (_queuedEntries.Count < 64)
+                if (_queuedEntries.Count < 256)
                 {
                     var processInfo = new ProcessStartInfo
                     {
