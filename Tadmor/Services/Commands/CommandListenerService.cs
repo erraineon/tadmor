@@ -1,8 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Tadmor.Services.Abstractions;
 using Tadmor.Services.Options;
+using Tadmor.Utils;
 
 namespace Tadmor.Services.Commands
 {
@@ -22,12 +24,20 @@ namespace Tadmor.Services.Commands
         {
             if (message.Channel is IGuildChannel channel &&
                 message is IUserMessage userMessage &&
-                !userMessage.Author.IsBot &&
-                _chatOptions.GetCommandsPrefix(channel.Guild) is var commandPrefix &&
-                userMessage.Content.StartsWith(commandPrefix))
+                !userMessage.Author.IsBot)
             {
                 var context = new CommandContext(client, userMessage);
-                await _commands.ExecuteCommand(context, commandPrefix);
+                if (_chatOptions.GetCommandsPrefix(channel.Guild) is var commandPrefix &&
+                    userMessage.Content.StartsWith(commandPrefix))
+                {
+                    await _commands.ExecuteCommand(context, commandPrefix);
+                }
+                else if (Regex.IsMatch(userMessage.Content, @"^Tad(?:mor|dy),?", RegexOptions.IgnoreCase) && 
+                         await _commands.IsCommandAvailableAsync(context, "gen"))
+                {
+                    var serviceContext = new CommandContext(context.Client, new ServiceUserMessage(context.Channel, context.User, ".gen"));
+                    await _commands.ExecuteCommand(serviceContext, commandPrefix);
+                }
             }
         }
     }

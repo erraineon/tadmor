@@ -111,5 +111,13 @@ namespace Tadmor.Services.Commands
                     return module;
                 }, t => t.command);
         }
+
+        public async Task<bool> IsCommandAvailableAsync(ICommandContext context, string commandName)
+        {
+            return await _commands.Commands
+                .ToAsyncEnumerable()
+                .AnyAwaitAsync(async c => string.Equals(c.Name, commandName, StringComparison.OrdinalIgnoreCase) &&
+                                          (await c.CheckPreconditionsAsync(context, _services)).IsSuccess);
+        }
     }
 }
