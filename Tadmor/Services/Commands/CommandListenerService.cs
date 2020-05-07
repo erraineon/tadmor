@@ -32,7 +32,7 @@ namespace Tadmor.Services.Commands
                 {
                     await _commands.ExecuteCommand(context, commandPrefix);
                 }
-                else if (Regex.IsMatch(userMessage.Content, @"^Tad(?:mor|dy),?", RegexOptions.IgnoreCase) && 
+                else if (Regex.IsMatch(userMessage.Content, @"Tad(?:mor|dy)", RegexOptions.IgnoreCase) && 
                          await _commands.IsCommandAvailableAsync(context, "gen"))
                 {
                     var serviceContext = new CommandContext(context.Client, new ServiceUserMessage(context.Channel, context.User, ".gen"));
