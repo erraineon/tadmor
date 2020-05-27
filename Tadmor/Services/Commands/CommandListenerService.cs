@@ -32,13 +32,24 @@ namespace Tadmor.Services.Commands
                 {
                     await _commands.ExecuteCommand(context, commandPrefix);
                 }
-                else if (Regex.IsMatch(userMessage.Content, @"Tad(?:mor|dy)", RegexOptions.IgnoreCase) && 
+                else if ((await IsReplyToBot(client, userMessage) || ContainsBotName(userMessage)) && 
                          await _commands.IsCommandAvailableAsync(context, "gen"))
                 {
                     var serviceContext = new CommandContext(context.Client, new ServiceUserMessage(context.Channel, context.User, ".gen"));
                     await _commands.ExecuteCommand(serviceContext, commandPrefix);
                 }
             }
+        }
+
+        private static bool ContainsBotName(IUserMessage userMessage)
+        {
+            return Regex.IsMatch(userMessage.Content, @"Tad(?:mor|dy)", RegexOptions.IgnoreCase);
+        }
+
+        private static async Task<bool> IsReplyToBot(IDiscordClient client, IUserMessage userMessage)
+        {
+            return userMessage is IReplyMessage replyMessage &&
+                (await replyMessage.GetQuotedMessageAsync())?.Author.Id == client.CurrentUser.Id;
         }
     }
 }
