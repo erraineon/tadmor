@@ -77,6 +77,11 @@ namespace Tadmor.Utils
             throw new NotImplementedException();
         }
 
+        public Task CrosspostAsync(RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task AddReactionAsync(IEmote emote, RequestOptions? options = null)
         {
             throw new NotImplementedException();

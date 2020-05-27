@@ -57,6 +57,17 @@ namespace Tadmor.Modules
         }
 
         [RequireWhitelist]
+        [Summary("tweets the quoted message")]
+        [Command("tweet")]
+        [RequireReply]
+        [Priority(1)]
+        public async Task Tweet()
+        {
+            var message = await Context.GetQuotedMessageAsync();
+            await Tweet(new[] {(IUserMessage) message});
+        }
+
+        [RequireWhitelist]
         [Summary("tweets the specified amount of messages ending with the last user's message")]
         [Command("tweet")]
         [Priority(1)]
@@ -73,15 +84,7 @@ namespace Tadmor.Modules
                 throw new Exception(user != null
                     ? $"{user.Mention} hasn't talked"
                     : "there's no messages in this chat");
-            var images = await Task.WhenAll(messages.Select(async message =>
-            {
-                var image = await message.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
-                var messageAuthor = message.Author;
-                var text = message.Resolve();
-                return await Imitate(image, (IGuildUser) messageAuthor, text);
-            }));
-            var stackedImages = _imaging.StackVertically(images.Reverse(), 5, 10, default);
-            await Tweet(stackedImages);
+            await Tweet(messages);
         }
 
         [RequireWhitelist]
@@ -92,6 +95,38 @@ namespace Tadmor.Modules
         public async Task Tweet(int messagesCount)
         {
             await Tweet(null, messagesCount);
+        }
+
+        [RequireWhitelist]
+        [Summary("tweets the specified amount of messages ending with the last user's message")]
+        [Command("tweet")]
+        [Priority(2)]
+        [Browsable(false)]
+        [RequireReply]
+        public async Task TweetQuoted(int messagesCount)
+        {
+            if (messagesCount > 16) throw new Exception("please no");
+            var quotedMessage = await Context.GetQuotedMessageAsync();
+            var messages = await Context.Channel.GetMessagesAsync()
+                .Flatten()
+                .OfType<IUserMessage>()
+                .SkipWhile(m => m.Id != quotedMessage.Id)
+                .Take(messagesCount)
+                .ToListAsync();
+            await Tweet(messages);
+        }
+
+        private async Task Tweet(IEnumerable<IUserMessage> messages)
+        {
+            var images = await Task.WhenAll(messages.Select(async message =>
+            {
+                var image = await message.GetAllImagesAsync(Context.Client, new List<string>()).FirstOrDefaultAsync();
+                var messageAuthor = message.Author;
+                var text = message.Resolve();
+                return await Imitate(image, (IGuildUser)messageAuthor, text);
+            }));
+            var stackedImages = _imaging.StackVertically(images.Reverse(), 5, 10, default);
+            await Tweet(stackedImages);
         }
 
         private async Task Tweet(byte[] image)

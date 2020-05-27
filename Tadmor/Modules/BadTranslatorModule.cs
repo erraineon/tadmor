@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Tadmor.Extensions;
+using Tadmor.Preconditions;
 using Tadmor.Services.Yandex;
 
 namespace Tadmor.Modules
@@ -22,6 +24,15 @@ namespace Tadmor.Modules
             if (input.Length > 1000) throw new Exception("no more than 1000 characters");
             var badTranslation = await _yandex.BadTranslate(input);
             await ReplyAsync(badTranslation);
+        }
+
+        [Summary("gives a bad translation of a message")]
+        [Command("tr")]
+        [RequireReply]
+        public async Task BadTranslate()
+        {
+            var input = await Context.GetQuotedContentAsync();
+            await BadTranslate(input);
         }
     }
 }

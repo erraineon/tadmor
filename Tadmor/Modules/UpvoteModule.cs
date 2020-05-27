@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Tadmor.Extensions;
+using Tadmor.Preconditions;
 using Tadmor.Services.Reddit;
 
 namespace Tadmor.Modules
@@ -30,8 +32,24 @@ namespace Tadmor.Modules
                             (user == null || m.Author.Id == user.Id && m.Author.Id != currentUserId))
                 .FirstOrDefaultAsync();
             if (message == null) throw new Exception($"{user?.Nickname} hasn't posted recently");
+            await Upvote(message);
+        }
+
+        [Summary("upvotes a user's message")]
+        [Command("upvote")]
+        [RequireReply]
+        [Priority(1)]
+        public async Task Upvote()
+        {
+            var quotedMessage = await Context.GetQuotedMessageAsync();
+            if (quotedMessage.Author.Id == Context.User.Id) throw new Exception("you can't upvote yourself");
+            await Upvote(quotedMessage);
+        }
+
+        private async Task Upvote(IMessage message)
+        {
             var targetUser = message.Author as IGuildUser ??
-                             throw new Exception("the message's author could not be retrieved");
+                throw new Exception("the message's author could not be retrieved");
             var totalUpvotes = await _reddit.Upvote(message, targetUser, Context.User);
             await ReplyAsync(
                 $"you upvoted {targetUser.Nickname}'s post. they have received a total of {totalUpvotes} upvotes");

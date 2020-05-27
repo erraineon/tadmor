@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Tadmor.Utils;
 using Telegram.Bot.Types;
 
 namespace Tadmor.Adapters.Telegram
 {
-    public class TelegramUserMessage : IUserMessage
+    public class TelegramUserMessage : IUserMessage, IReplyMessage
     {
         private readonly Message _apiMessage;
 
@@ -62,6 +63,12 @@ namespace Tadmor.Adapters.Telegram
         public MessageApplication Application => throw new NotImplementedException();
         public MessageReference Reference => throw new NotImplementedException();
         public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
+        public async Task<IMessage?> GetQuotedMessageAsync()
+        {
+            return _apiMessage.ReplyToMessage != null
+                ? await Channel.GetMessageAsync((ulong) _apiMessage.ReplyToMessage.MessageId)
+                : null;
+        }
 
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions? options = null)
         {
@@ -79,6 +86,11 @@ namespace Tadmor.Adapters.Telegram
         }
 
         public Task UnpinAsync(RequestOptions? options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CrosspostAsync(RequestOptions options = null)
         {
             throw new NotImplementedException();
         }
@@ -116,6 +128,5 @@ namespace Tadmor.Adapters.Telegram
         {
             return Content;
         }
-
     }
 }

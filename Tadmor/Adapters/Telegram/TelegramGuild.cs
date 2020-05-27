@@ -514,8 +514,28 @@ namespace Tadmor.Adapters.Telegram
 
         public int SlowModeInterval => throw new NotImplementedException();
 
+        private static string ToText(IEmbed embed)
+        {
+            var builder = new StringBuilder();
+            if (embed.Image != null) builder.AppendLine(embed.Image.Value.Url);
+            if (embed.Author != null) builder.AppendLine($"**{embed.Author.Value.Name.TrimEnd('#')}**");
+            if (embed.Title is { } title)
+            {
+                if (embed.Url is { } url) title = $"[{title}]({url})";
+                builder.AppendLine(title);
+            }
+            builder.AppendLine(embed.Description);
+            foreach (var embedField in embed.Fields)
+            {
+                builder.AppendLine($"**{embedField.Name}**");
+                builder.AppendLine(embedField.Value);
+            }
+
+            return builder.ToString();
+        }
+
         public async Task<IUserMessage> SendMessageAsync(string? text = null, bool isTts = false, Embed? embed = null,
-            RequestOptions? options = null)
+            RequestOptions? options = null, AllowedMentions? allowedMentions = null)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -546,26 +566,6 @@ namespace Tadmor.Adapters.Telegram
             return await ProcessInboundMessage(message);
         }
 
-        private static string ToText(IEmbed embed)
-        {
-            var builder = new StringBuilder();
-            if (embed.Image != null) builder.AppendLine(embed.Image.Value.Url);
-            if (embed.Author != null) builder.AppendLine($"**{embed.Author.Value.Name.TrimEnd('#')}**");
-            if (embed.Title is { } title)
-            {
-                if (embed.Url is { } url) title = $"[{title}]({url})";
-                builder.AppendLine(title);
-            }
-            builder.AppendLine(embed.Description);
-            foreach (var embedField in embed.Fields)
-            {
-                builder.AppendLine($"**{embedField.Name}**");
-                builder.AppendLine(embedField.Value);
-            }
-
-            return builder.ToString();
-        }
-
         public Task<IUserMessage> SendFileAsync(string filePath, string? text = null, bool isTts = false,
             Embed? embed = null,
             RequestOptions? options = null, bool isSpoiler = false)
@@ -587,7 +587,8 @@ namespace Tadmor.Adapters.Telegram
         public Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
-            throw new NotImplementedException();
+            var message = _messageCache.FirstOrDefault(m => m.Id == id);
+            return Task.FromResult(message);
         }
 
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100,

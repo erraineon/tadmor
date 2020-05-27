@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Tadmor.Extensions;
+using Tadmor.Preconditions;
 using Tadmor.Services.Imaging;
 using Tadmor.Utils;
 
@@ -124,7 +125,7 @@ namespace Tadmor.Modules
 
         [Summary("mimics someone else's message after running a replacement on the text")]
         [Command("replace")]
-        [Priority(1)]
+        [Priority(2)]
         public async Task MimicReplace([ShowAsOptional] IGuildUser? user, string pattern, [Remainder] string replacement)
         {
             var regex = new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
@@ -144,6 +145,19 @@ namespace Tadmor.Modules
         public async Task MimicReplace(string pattern, [Remainder] string? replacement = default)
         {
             await MimicReplace(default, pattern, replacement ?? string.Empty);
+        }
+
+        [Summary("mimics someone else's message after running a replacement on the text")]
+        [Command("replace")]
+        [Browsable(false)]
+        [RequireReply]
+        [Priority(2)]
+        public async Task MimicReplaceQuoted(string pattern, [Remainder] string? replacement = default)
+        {
+            var message = await Context.GetQuotedMessageAsync();
+            var regex = new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
+            var replaced = regex.Replace(message.Content, replacement);
+            await Mimic((IGuildUser)message.Author, replaced);
         }
 
         [Summary("fake sms with the specified text")]
