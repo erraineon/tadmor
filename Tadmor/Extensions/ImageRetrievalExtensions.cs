@@ -35,7 +35,7 @@ namespace Tadmor.Extensions
 
 
         // obtain the url of the image after discord uploads it to its proxy to avoid leaking bot ip info
-        static async ValueTask<string?> GetProxyImageUrl(IUserMessage userMessage, DiscordSocketClient client, string linkedUrl)
+        private static async ValueTask<string?> GetProxyImageUrl(IUserMessage userMessage, DiscordSocketClient client, string linkedUrl)
         {
             bool TryGetProxyUrl(IMessage message, out string? url)
             {

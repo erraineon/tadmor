@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Tadmor.Extensions;
 using Tadmor.Services.Abstractions;
 using Tadmor.Services.Options;
 using Tadmor.Utils;
@@ -41,15 +42,14 @@ namespace Tadmor.Services.Commands
             }
         }
 
-        private static bool ContainsBotName(IUserMessage userMessage)
+        private static bool ContainsBotName(IMessage userMessage)
         {
             return Regex.IsMatch(userMessage.Content, @"Tad(?:mor|dy)", RegexOptions.IgnoreCase);
         }
 
-        private static async Task<bool> IsReplyToBot(IDiscordClient client, IUserMessage userMessage)
+        private static async Task<bool> IsReplyToBot(IDiscordClient client, IMessage userMessage)
         {
-            return userMessage is IReplyMessage replyMessage &&
-                (await replyMessage.GetQuotedMessageAsync())?.Author.Id == client.CurrentUser.Id;
+            return (await userMessage.GetQuoteAsync())?.Author.Id == client.CurrentUser.Id;
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Discord.Commands;
-using Tadmor.Utils;
+using Tadmor.Extensions;
 
 namespace Tadmor.Preconditions
 {
@@ -10,7 +10,7 @@ namespace Tadmor.Preconditions
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command,
             IServiceProvider services)
         {
-            var result = context.Message is IReplyMessage rm && await rm.GetQuotedMessageAsync() != null
+            var result = await context.Message.IsReplyAsync()
                 ? PreconditionResult.FromSuccess()
                 : PreconditionResult.FromError("not a reply message");
             return result;

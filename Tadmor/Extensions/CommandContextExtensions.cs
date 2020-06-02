@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Tadmor.Utils;
@@ -9,7 +10,8 @@ namespace Tadmor.Extensions
     {
         public static async Task<IMessage> GetQuotedMessageAsync(this ICommandContext commandContext)
         {
-            var quotedMessage = await ((IReplyMessage)commandContext.Message).GetQuotedMessageAsync();
+            var quotedMessage = await commandContext.Message.GetQuoteAsync() ??
+                throw new Exception("the specified message is not a reply");
             return quotedMessage;
         } 
 

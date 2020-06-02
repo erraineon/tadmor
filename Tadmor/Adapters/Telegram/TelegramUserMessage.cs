@@ -8,7 +8,7 @@ using Telegram.Bot.Types;
 
 namespace Tadmor.Adapters.Telegram
 {
-    public class TelegramUserMessage : IUserMessage, IReplyMessage
+    public class TelegramUserMessage : IUserMessage
     {
         private readonly Message _apiMessage;
 
