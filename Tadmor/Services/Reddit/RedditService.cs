@@ -18,7 +18,7 @@ namespace Tadmor.Services.Reddit
             _context = context;
         }
 
-        public async Task<int> Upvote(IMessage message, IGuildUser targetUser, IUser voter)
+        public async Task<int> Vote(IMessage message, IGuildUser targetUser, IUser voter, VoteType voteType)
         {
             var upvote = await _context.Upvotes
                 .AsQueryable()
@@ -32,24 +32,31 @@ namespace Tadmor.Services.Reddit
                 GuildId = targetUser.GuildId,
                 TargetUserId = targetUser.Id,
                 MessageId = message.Id,
-                VoterId = voter.Id
+                VoterId = voter.Id,
+                VoteType = voteType
             };
-            _context.Upvotes.Add(upvote);
-
+            await _context.Upvotes.AddAsync(upvote);
             await _context.SaveChangesAsync();
 
-            var userUpvotes = (await GetUpvotes(targetUser.GuildId, targetUser.Id)).Count;
-            return userUpvotes;
+            var userScore = (await GetUpvotes(targetUser.GuildId, targetUser.Id))
+                .Sum(u => u.VoteType == VoteType.Downvote ? -1 : 1);
+            return userScore;
         }
 
-        public async Task<Dictionary<ulong, int>> GetUpvoteCounts(ulong guildId)
+        public async Task<Dictionary<ulong, (int upvoteCount, int downvoteCount)>> GetUpvoteCounts(ulong guildId)
         {
-            return await _context.Upvotes
-                .AsQueryable()
-                .Where(u => u.GuildId == guildId)
+            return (await _context.Upvotes
+                    .AsQueryable()
+                    .Where(u => u.GuildId == guildId)
+                    .ToListAsync())
                 .GroupBy(u => u.TargetUserId)
-                .Select(g => new {id = g.Key, count = g.Count()})
-                .ToDictionaryAsync(o => o.id, g => g.count);
+                .Select(g => new
+                {
+                    id = g.Key,
+                    upvoteCount = g.Count(u => u.VoteType == VoteType.Upvote),
+                    downvoteCount = g.Count(u => u.VoteType == VoteType.Downvote)
+                })
+                .ToDictionary(o => o.id, g => (g.upvoteCount, g.downvoteCount));
         }
 
         public async Task<IList<Upvote>> GetUpvotes(ulong guildId, ulong userId)

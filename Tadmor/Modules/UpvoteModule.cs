@@ -24,15 +24,8 @@ namespace Tadmor.Modules
         [Command("upvote")]
         public async Task Upvote(IGuildUser? user = null)
         {
-            var currentUserId = Context.User.Id;
-            if (user?.Id == currentUserId) throw new Exception("you can't upvote yourself");
-            var message = await Context.Channel.GetMessagesAsync()
-                .Flatten()
-                .Where(m => m.Id != Context.Message.Id &&
-                            (user == null || m.Author.Id == user.Id && m.Author.Id != currentUserId))
-                .FirstOrDefaultAsync();
-            if (message == null) throw new Exception($"{user?.Nickname} hasn't posted recently");
-            await Upvote(message);
+            var message = await GetVotedMessage(user);
+            await Vote(message, VoteType.Upvote);
         }
 
         [Summary("upvotes a user's message")]
@@ -41,18 +34,43 @@ namespace Tadmor.Modules
         [Priority(1)]
         public async Task Upvote()
         {
-            var quotedMessage = await Context.GetQuotedMessageAsync();
-            if (quotedMessage.Author.Id == Context.User.Id) throw new Exception("you can't upvote yourself");
-            await Upvote(quotedMessage);
+            var quotedMessage = await GetVotedMessage();
+            await Vote(quotedMessage, VoteType.Upvote);
         }
 
-        private async Task Upvote(IMessage message)
+
+        [Summary("downvotes a user's message")]
+        [Command("downvote")]
+        public async Task Downvote(IGuildUser? user = null)
+        {
+            var message = await GetVotedMessage(user);
+            await Vote(message, VoteType.Downvote);
+        }
+
+        [Summary("downvotes a user's message")]
+        [Command("downvote")]
+        [RequireReply]
+        [Priority(1)]
+        public async Task Downvote()
+        {
+            var quotedMessage = await GetVotedMessage();
+            await Vote(quotedMessage, VoteType.Downvote);
+        }
+
+        private async Task<IMessage> GetVotedMessage()
+        {
+            var quotedMessage = await Context.GetQuotedMessageAsync();
+            if (quotedMessage.Author.Id == Context.User.Id) throw new Exception("you can't upvote yourself");
+            return quotedMessage;
+        }
+
+        private async Task Vote(IMessage message, VoteType voteType)
         {
             var targetUser = message.Author as IGuildUser ??
                 throw new Exception("the message's author could not be retrieved");
-            var totalUpvotes = await _reddit.Upvote(message, targetUser, Context.User);
-            await ReplyAsync(
-                $"you upvoted {targetUser.Nickname}'s post. they have received a total of {totalUpvotes} upvotes");
+            var totalUpvotes = await _reddit.Vote(message, targetUser, Context.User, voteType);
+            var verb = voteType == VoteType.Upvote ? "upvoted" : "downvoted";
+            await ReplyAsync($"you {verb} {targetUser.Nickname}'s post. they have a user score of {totalUpvotes}");
         }
 
         [Summary("shows upvotes on the current guild")]
@@ -68,10 +86,25 @@ namespace Tadmor.Modules
                 : "no upvotes were given");
         }
 
-        private async Task<string> GetStringDescription(KeyValuePair<ulong, int> upvoteCount)
+        private async Task<string> GetStringDescription(KeyValuePair<ulong, (int upvoteCount, int downvoteCount)> voteCount)
         {
-            var user = await Context.Guild.GetUserAsync(upvoteCount.Key);
-            return $"{user.Nickname} has {upvoteCount.Value} upvotes";
+            var (upvoteCount, downvoteCount) = voteCount.Value;
+            var userScore = upvoteCount - downvoteCount;
+            var user = await Context.Guild.GetUserAsync(voteCount.Key);
+            return $"{user.Nickname} has score {userScore} with {upvoteCount} upvotes and {downvoteCount} downvotes";
+        }
+
+        private async Task<IMessage> GetVotedMessage(IGuildUser? user)
+        {
+            var currentUserId = Context.User.Id;
+            if (user?.Id == currentUserId) throw new Exception("you can't upvote yourself");
+            var message = await Context.Channel.GetMessagesAsync()
+                .Flatten()
+                .Where(m => m.Id != Context.Message.Id &&
+                    (user == null || m.Author.Id == user.Id && m.Author.Id != currentUserId))
+                .FirstOrDefaultAsync();
+            if (message == null) throw new Exception($"{user?.Nickname} hasn't posted recently");
+            return message;
         }
     }
 }
