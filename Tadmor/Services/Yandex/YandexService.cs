@@ -50,11 +50,14 @@ namespace Tadmor.Services.Yandex
                 .Concat(new[] {"en"})
                 .Pairwise((currentLanguage, nextLanguage) => $"{currentLanguage}-{nextLanguage}")
                 .ToAsyncEnumerable()
-                .AggregateAwaitAsync(
-                    input,
-                    (value, direction) => new ValueTask<string>(_yandex.TranslateText(value, direction)));
+                .AggregateAwaitAsync(input, Translate);
 
             return translation;
+        }
+
+        public ValueTask<string> Translate(string text, string direction)
+        {
+            return new ValueTask<string>(_yandex.TranslateText(text, direction));
         }
     }
 }

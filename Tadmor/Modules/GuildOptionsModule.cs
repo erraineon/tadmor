@@ -41,6 +41,17 @@ namespace Tadmor.Modules
             await ReplyAsync($"good boy mode is {(options.GoodBoyMode ? "on" : "off")}");
         }
 
+        [Summary("sets an auto-translation language")]
+        [Command("translatemode")]
+        public async Task AutoTranslate([Remainder]string? language = null)
+        {
+            using var writableOptions = _chatOptions.GetOptions();
+            var options = _chatOptions.GetGuildOptions(Context.Guild.Id, writableOptions.Value);
+            var turnOff = string.IsNullOrWhiteSpace(language);
+            options.AutoTranslateLanguage = turnOff ? null : language;
+            await ReplyAsync($"auto translation set to {(turnOff ? "none" : language)}");
+        }
+
         [RequireOwner]
         [Group("perms")]
         public class PermissionsModule : ModuleBase<ICommandContext>

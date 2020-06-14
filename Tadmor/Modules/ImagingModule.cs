@@ -126,13 +126,13 @@ namespace Tadmor.Modules
         [Summary("mimics someone else's message after running a replacement on the text")]
         [Command("replace")]
         [Priority(2)]
-        public async Task MimicReplace([ShowAsOptional] IGuildUser? user, string pattern, [Remainder] string replacement)
+        public async Task MimicReplace([ShowAsOptional] IGuildUser? user, string pattern, [Remainder] string? replacement)
         {
             var regex = new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
             var (author, text) = await Context.Channel.GetMessagesAsync()
                 .Flatten()
                 .Where(m => m.Id != Context.Message.Id && (user == null || m.Author.Id == user.Id))
-                .Select(m => (message: m, newValue: regex.Replace(m.Content, replacement)))
+                .Select(m => (message: m, newValue: Replace(regex, m, replacement)))
                 .Where(t => t.message.Content != t.newValue)
                 .Select(t => (t.message.Author, t.newValue))
                 .FirstAsync();
@@ -156,8 +156,14 @@ namespace Tadmor.Modules
         {
             var message = await Context.GetQuotedMessageAsync();
             var regex = new Regex(pattern, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
-            var replaced = regex.Replace(message.Content, replacement);
+            var replaced = Replace(regex, message, replacement);
             await Mimic((IGuildUser)message.Author, replaced);
+        }
+
+        private static string Replace(Regex regex, IMessage message, string? replacement)
+        {
+            replacement = (replacement ?? string.Empty).Trim('"');
+            return regex.Replace(message.Content, replacement);
         }
 
         [Summary("fake sms with the specified text")]

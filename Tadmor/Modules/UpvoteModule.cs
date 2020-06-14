@@ -60,7 +60,7 @@ namespace Tadmor.Modules
         private async Task<IMessage> GetVotedMessage()
         {
             var quotedMessage = await Context.GetQuotedMessageAsync();
-            if (quotedMessage.Author.Id == Context.User.Id) throw new Exception("you can't upvote yourself");
+            if (quotedMessage.Author.Id == Context.User.Id) throw new Exception("you can't vote yourself");
             return quotedMessage;
         }
 
@@ -79,7 +79,7 @@ namespace Tadmor.Modules
         {
             var upvotes = await _reddit.GetUpvoteCounts(Context.Guild.Id);
             var upvoteStrings = await Task.WhenAll(upvotes
-                .OrderByDescending(kvp => kvp.Value)
+                .OrderByDescending(kvp => kvp.Value.upvoteCount - kvp.Value.downvoteCount)
                 .Select(GetStringDescription));
             await ReplyAsync(upvoteStrings.Any()
                 ? string.Join(Environment.NewLine, upvoteStrings)
@@ -91,13 +91,13 @@ namespace Tadmor.Modules
             var (upvoteCount, downvoteCount) = voteCount.Value;
             var userScore = upvoteCount - downvoteCount;
             var user = await Context.Guild.GetUserAsync(voteCount.Key);
-            return $"{user.Nickname} has score {userScore} with {upvoteCount} upvotes and {downvoteCount} downvotes";
+            return $"{user.Nickname} has {upvoteCount} upvotes and {downvoteCount} downvotes for a score of {userScore}";
         }
 
         private async Task<IMessage> GetVotedMessage(IGuildUser? user)
         {
             var currentUserId = Context.User.Id;
-            if (user?.Id == currentUserId) throw new Exception("you can't upvote yourself");
+            if (user?.Id == currentUserId) throw new Exception("you can't vote yourself");
             var message = await Context.Channel.GetMessagesAsync()
                 .Flatten()
                 .Where(m => m.Id != Context.Message.Id &&

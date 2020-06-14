@@ -12,6 +12,6 @@ namespace Tadmor.Services.Options
         public string? CommandPrefix { get; set; }
         public List<GuildEvent> Events { get; set; } = new List<GuildEvent>();
         public bool GoodBoyMode { get; set; }
-
+        public string? AutoTranslateLanguage { get; set; }
     }
 }
