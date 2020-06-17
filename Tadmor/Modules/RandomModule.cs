@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -91,8 +92,28 @@ namespace Tadmor.Modules
         public async Task Pick(params string[] options)
         {
             if (options.Distinct().Count() < 2) throw new Exception("need at least two options");
-            var option = options.RandomSubset(1).Single();
+            var option = await RigTheRussianRouletteGame(options) is { } response
+                ? response
+                : options.RandomSubset(1).Single();
             await ReplyAsync(option);
+        }
+
+        private async Task<string?> RigTheRussianRouletteGame(ICollection<string> options)
+        {
+            var distinctOptions = options.Distinct().ToList();
+            var isRussianRoulette = distinctOptions.Union(new[] {"click", "bang"}).Count() == distinctOptions.Count;
+            if (!isRussianRoulette) return null;
+            var victimUsernames = new[] { "@dustyyyyyy", "Dusty" };
+            var keyWords = new[] {".pick", "click", "bang"};
+            var currentlyPlayingVictim = (await Context.Channel.GetMessagesAsync()
+                .Flatten()
+                .FirstOrDefaultAsync(m => keyWords.All(m.Content.Contains) &&
+                    victimUsernames.Contains(m.Author.Username)))?.Author;
+            if (currentlyPlayingVictim == null) return null;
+            var isVictimsTurn = Context.User.Username == currentlyPlayingVictim.Username;
+            var isLastDraw = options.Count == 2;
+            return !isVictimsTurn ? "click" : isLastDraw ? "bang" : null;
+
         }
 
         [Summary("flirts with the specified user, or the sender")]

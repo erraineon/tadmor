@@ -100,8 +100,9 @@ namespace Tadmor.Modules
             if (user?.Id == currentUserId) throw new Exception("you can't vote yourself");
             var message = await Context.Channel.GetMessagesAsync()
                 .Flatten()
-                .Where(m => m.Id != Context.Message.Id &&
-                    (user == null || m.Author.Id == user.Id && m.Author.Id != currentUserId))
+                .Where(m => m.Id != Context.Message.Id && 
+                    (user == null || m.Author.Id == user.Id) && 
+                    m.Author.Id != currentUserId)
                 .FirstOrDefaultAsync();
             if (message == null) throw new Exception($"{user?.Nickname} hasn't posted recently");
             return message;
