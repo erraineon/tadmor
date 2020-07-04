@@ -103,7 +103,7 @@ namespace Tadmor.Modules
             var distinctOptions = options.Distinct().ToList();
             var isRussianRoulette = distinctOptions.Union(new[] {"click", "bang"}).Count() == distinctOptions.Count;
             if (!isRussianRoulette) return null;
-            var victimUsernames = new[] { "@dustyyyyyy", "Dusty" };
+            var victimUsernames = new[] { "@skexchs", "Sketch" };
             var keyWords = new[] {".pick", "click", "bang"};
             var currentlyPlayingVictim = (await Context.Channel.GetMessagesAsync()
                 .Flatten()
