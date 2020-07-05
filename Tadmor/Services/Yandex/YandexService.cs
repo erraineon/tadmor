@@ -59,5 +59,12 @@ namespace Tadmor.Services.Yandex
         {
             return new ValueTask<string>(_yandex.TranslateText(text, direction));
         }
+
+        public async Task<string> DetectAndTranslate(string text, string destinationLanguage)
+        {
+            var sourceLanguage = await _yandex.DetectLanguage(text);
+            var translation = await Translate(text, $"{sourceLanguage}-{destinationLanguage}");
+            return translation;
+        }
     }
 }
