@@ -22,7 +22,7 @@ namespace Tadmor.Modules
         public async Task SearchRandom([Remainder] string tags)
         {
             var post = await _e621.SearchRandom(tags);
-            await ReplyAsync(post.FileUrl);
+            await ReplyAsync(post.File.Url);
         }
     }
 }

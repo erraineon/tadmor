@@ -23,7 +23,6 @@ namespace Tadmor.Services.E621
             {
                 Limit = 1,
                 Tags = $"{tags} order:random",
-                TypedTags = true
             };
             var posts = await _client.Search(options);
             return posts.FirstOrDefault() ?? throw new Exception("no results");
@@ -34,7 +33,6 @@ namespace Tadmor.Services.E621
             var searchOptions = new E621SearchOptions
             {
                 Tags = tags,
-                TypedTags = true
             };
             var posts = await _client.Search(searchOptions);
             var newPosts = posts
