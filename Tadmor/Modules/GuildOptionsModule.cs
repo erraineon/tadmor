@@ -81,6 +81,13 @@ namespace Tadmor.Modules
                 _chatOptions.AddOrUpdatePermissions(commandName, Context.Guild, permissionType);
                 await ReplyAsync("ok");
             }
+
+            [Command]
+            public async Task SetPermission(string commandName, IGuildUser user, PermissionType permissionType)
+            {
+                _chatOptions.AddOrUpdatePermissions(commandName, user, permissionType);
+                await ReplyAsync("ok");
+            }
         }
 
         [RequireOwner(Group = "admin")]
