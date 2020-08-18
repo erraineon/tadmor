@@ -44,7 +44,7 @@ namespace Tadmor.Adapters.Telegram
 
         public Task StopAsync()
         {
-            Api.StartReceiving();
+            Api.StopReceiving();
             return Task.CompletedTask;
         }
 

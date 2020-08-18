@@ -5,7 +5,7 @@ using Tadmor.Extensions;
 using Tadmor.Preconditions;
 using Tadmor.Services.Options;
 using Tadmor.Services.Textgen;
-using Tadmor.Services.Yandex;
+using Tadmor.Services.Translation;
 
 namespace Tadmor.Modules
 {
@@ -14,13 +14,13 @@ namespace Tadmor.Modules
     {
         private readonly TextgenService _textgen;
         private readonly ChatOptionsService _chatOptions;
-        private readonly YandexService _yandex;
+        private readonly NoopTranslationService _translationService;
 
-        public TextgenModule(TextgenService textgen, ChatOptionsService chatOptions, YandexService yandex)
+        public TextgenModule(TextgenService textgen, ChatOptionsService chatOptions, NoopTranslationService translationService)
         {
             _textgen = textgen;
             _chatOptions = chatOptions;
-            _yandex = yandex;
+            _translationService = translationService;
         }
 
         [RequireWhitelist]
@@ -33,7 +33,7 @@ namespace Tadmor.Modules
             var guildOptions = _chatOptions.GetGuildOptions(Context.Guild.Id, options.Value);
             if (!string.IsNullOrEmpty(guildOptions.AutoTranslateLanguage))
             {
-                text = await _yandex.Translate(text, $"en-{guildOptions.AutoTranslateLanguage}");
+                text = await _translationService.Translate(text, $"en-{guildOptions.AutoTranslateLanguage}");
             }
             await Context.Channel.SendMessageAsync(text);
         }
