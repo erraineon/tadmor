@@ -19,6 +19,7 @@ namespace Tadmor.Services.Commands
             _services = services;
             _chatOptions = chatOptions;
         }
+
         public async Task<bool> CanExecute(ICommandContext context, CommandInfo command)
         {
             var passesPreconditions = await command.CheckPreconditionsAsync(context, _services);
@@ -26,15 +27,14 @@ namespace Tadmor.Services.Commands
             {
                 var commandName = command.Name;
                 var permissions = _chatOptions.GetPermissions(commandName);
-                var whitelisted = permissions
-                    .Where(p => p.PermissionType != PermissionType.None)
-                    .Any(p => p.ScopeType switch
+                var isAllowed = permissions
+                    .All(p => p.ScopeType switch
                     {
                         CommandUsagePermissionScopeType.User => context.User.Id == p.ScopeId,
                         CommandUsagePermissionScopeType.Channel => context.Channel.Id == p.ScopeId,
                         CommandUsagePermissionScopeType.Guild => context.Guild.Id == p.ScopeId,
                         _ => false
-                    });
+                    } == (p.PermissionType == PermissionType.Whitelist));
             }
             return true;
         }
