@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 using Tadmor.Extensions;
-using Tadmor.Preconditions;
+using Tadmor.Services.Commands;
 using Tadmor.Services.Options;
 using Tadmor.Services.Textgen;
 using Tadmor.Services.Translation;

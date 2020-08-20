@@ -8,6 +8,7 @@ using Discord;
 using Discord.Commands;
 using Tadmor.Extensions;
 using Tadmor.Preconditions;
+using Tadmor.Services.Commands;
 using Tadmor.Services.Imaging;
 using Tadmor.Services.Twitter;
 using Tadmor.Utils;

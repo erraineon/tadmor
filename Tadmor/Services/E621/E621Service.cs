@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using E621;
 using Microsoft.Extensions.Options;
+using MoreLinq;
+using Tadmor.Extensions;
 
 namespace Tadmor.Services.E621
 {
@@ -21,11 +23,10 @@ namespace Tadmor.Services.E621
         {
             var options = new E621SearchOptions
             {
-                Limit = 1,
                 Tags = $"{tags} order:random",
             };
             var posts = await _client.Search(options);
-            return posts.FirstOrDefault() ?? throw new Exception("no results");
+            return posts.Any() ? posts.RandomSubset(1).Single() : throw new Exception("no results");
         }
 
         public async Task<(List<E621Post>, long)> SearchAfter(string tags, long afterId)
