@@ -1,18 +1,17 @@
-﻿using Discord.Commands;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Discord.Commands;
 using Tadmor.Services.Options;
 
 namespace Tadmor.Services.Commands
 {
-    [ScopedService]
+    [SingletonService]
     public class CommandPermissionService
     {
-        private readonly IServiceProvider _services;
         private readonly ChatOptionsService _chatOptions;
+        private readonly IServiceProvider _services;
 
         public CommandPermissionService(IServiceProvider services, ChatOptionsService chatOptions)
         {
@@ -20,23 +19,48 @@ namespace Tadmor.Services.Commands
             _chatOptions = chatOptions;
         }
 
-        public async Task<bool> CanExecute(ICommandContext context, CommandInfo command)
+        public async Task<bool> PassesLists(ICommandContext context, CommandInfo command)
         {
-            var passesPreconditions = await command.CheckPreconditionsAsync(context, _services);
-            if (passesPreconditions.IsSuccess)
+            var canExecute = PassesWhitelist(context, command) && PassesBlacklist(context, command);
+            return canExecute;
+        }
+
+        private bool PassesWhitelist(ICommandContext context, CommandInfo command)
+        {
+            var isAllowed = !command.Attributes.Any(c => c is RequireWhitelistAttribute) ||
+                GetPermissionsForCommandAndWildcard(command, PermissionType.Whitelist)
+                    .Any(p => ContextMatchesPermission(context, p));
+            return isAllowed;
+        }
+
+        private bool PassesBlacklist(ICommandContext context, CommandInfo command)
+        {
+            var permissions = GetPermissionsForCommandAndWildcard(command, PermissionType.Blacklist);
+            var isAllowed = permissions
+                .All(p => !ContextMatchesPermission(context, p));
+            return isAllowed;
+        }
+
+        private IEnumerable<CommandUsagePermission> GetPermissionsForCommandAndWildcard(
+            CommandInfo command,
+            PermissionType permissionType)
+        {
+            var permissions = _chatOptions.GetPermissions(command.Name)
+                .Concat(_chatOptions.GetPermissions("*"))
+                .Where(p => p.PermissionType == permissionType);
+            return permissions;
+        }
+
+        private static bool ContextMatchesPermission(ICommandContext context, CommandUsagePermission p)
+        {
+            var contextMatchesPermission = p.ScopeType switch
             {
-                var commandName = command.Name;
-                var permissions = _chatOptions.GetPermissions(commandName);
-                var isAllowed = permissions
-                    .All(p => p.ScopeType switch
-                    {
-                        CommandUsagePermissionScopeType.User => context.User.Id == p.ScopeId,
-                        CommandUsagePermissionScopeType.Channel => context.Channel.Id == p.ScopeId,
-                        CommandUsagePermissionScopeType.Guild => context.Guild.Id == p.ScopeId,
-                        _ => false
-                    } == (p.PermissionType == PermissionType.Whitelist));
-            }
-            return true;
+                CommandUsagePermissionScopeType.User => context.User.Id == p.ScopeId,
+                CommandUsagePermissionScopeType.Channel => context.Channel.Id == p.ScopeId,
+                CommandUsagePermissionScopeType.Guild => context.Guild.Id == p.ScopeId,
+                _ => false
+            };
+            return contextMatchesPermission;
         }
     }
 }

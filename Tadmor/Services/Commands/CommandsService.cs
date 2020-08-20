@@ -22,11 +22,13 @@ namespace Tadmor.Services.Commands
         private readonly CommandService _commands;
         private readonly IServiceProvider _services;
         private readonly ILogger _logger;
+        private readonly CommandPermissionService _commandPermissionService;
 
-        public CommandsService(IServiceProvider services, ILogger<CommandService> logger)
+        public CommandsService(IServiceProvider services, ILogger<CommandService> logger, CommandPermissionService commandPermissionService)
         {
             _services = services;
             _logger = logger;
+            _commandPermissionService = commandPermissionService;
             _commands = new CommandService(new CommandServiceConfig {DefaultRunMode = RunMode.Async});
         }
 
@@ -71,6 +73,19 @@ namespace Tadmor.Services.Commands
 
         public async Task ExecuteCommand(ICommandContext context, string prefix)
         {
+            var commandIndex = prefix.Length;
+            var commandsSearch = _commands.Search(context, commandIndex);
+            if (commandsSearch.IsSuccess && 
+                (!await _commandPermissionService.PassesLists(context, commandsSearch.Commands.First().Command) ||
+                await ExecuteCommandNoPermissionsCheck(context, prefix) is var result &&
+                result.Error == CommandError.UnmetPrecondition))
+            {
+                await context.Channel.SendMessageAsync("no");
+            }
+        }
+
+        private async Task<IResult> ExecuteCommandNoPermissionsCheck(ICommandContext context, string prefix)
+        {
             var scope = _services.CreateScope();
             var commandScope = scope.ServiceProvider.GetService<CommandContextResolver>();
             commandScope.CurrentCommandContext = context;
@@ -89,7 +104,7 @@ namespace Tadmor.Services.Commands
                 return Task.CompletedTask;
             }
 
-            if (result.Error == CommandError.UnmetPrecondition) await context.Channel.SendMessageAsync("no");
+            return result;
         }
 
         public IAsyncEnumerable<IAsyncGrouping<ModuleInfo, CommandInfo>> GetAvailableCommandsAsync(

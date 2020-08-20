@@ -6,6 +6,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Humanizer;
 using Tadmor.Preconditions;
+using Tadmor.Services.Commands;
 
 namespace Tadmor.Modules
 {
