@@ -70,7 +70,7 @@
     <PackageReference Include="CronExpressionDescriptor" Version="2.13.0" />
     <PackageReference Include="Discord.Net" Version="2.3.0-dev-20200525.6" />
     <PackageReference Include="DlibDotNet" Version="19.18.0.20190928" />
-    <PackageReference Include="E621Client" Version="0.0.2" />
+    <PackageReference Include="E621Client" Version="0.0.3" />
     <PackageReference Include="FChan.Library" Version="2.0.1" />
     <PackageReference Include="Google.Apis.Customsearch.v1" Version="1.42.0.1369" />
     <PackageReference Include="Hangfire" Version="1.7.7" />
@@ -103,7 +103,6 @@
     <PackageReference Include="System.Runtime.Caching" Version="4.6.0" />
     <PackageReference Include="Telegram.Bot" Version="15.4.0" />
     <PackageReference Include="WolframAlphaNET" Version="2.0.0" />
-    <PackageReference Include="YandexTranslateCoreSdk" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3,18 +3,18 @@ using System.Threading.Tasks;
 using Discord.Commands;
 using Tadmor.Extensions;
 using Tadmor.Preconditions;
-using Tadmor.Services.Yandex;
+using Tadmor.Services.Translation;
 
 namespace Tadmor.Modules
 {
     [Summary("translator")]
     public class TranslatorModule : ModuleBase<ICommandContext>
     {
-        private readonly YandexService _yandex;
+        private readonly NoopTranslationService _translationService;
 
-        public TranslatorModule(YandexService yandex)
+        public TranslatorModule(NoopTranslationService translationService)
         {
-            _yandex = yandex;
+            _translationService = translationService;
         }
 
         [Summary("gives a bad translation of a message")]
@@ -22,7 +22,7 @@ namespace Tadmor.Modules
         public async Task BadTranslate([Remainder]string input)
         {
             if (input.Length > 1000) throw new Exception("no more than 1000 characters");
-            var badTranslation = await _yandex.BadTranslate(input);
+            var badTranslation = await _translationService.BadTranslate(input);
             await ReplyAsync(badTranslation);
         }
 
@@ -40,7 +40,7 @@ namespace Tadmor.Modules
         public async Task Translate(string language, [Remainder]string input)
         {
             if (input.Length > 1000) throw new Exception("no more than 1000 characters");
-            var translation = await _yandex.DetectAndTranslate(input, language);
+            var translation = await _translationService.DetectAndTranslate(input, language);
             await ReplyAsync(translation);
         }
 
