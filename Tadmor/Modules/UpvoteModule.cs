@@ -70,7 +70,10 @@ namespace Tadmor.Modules
                 throw new Exception("the message's author could not be retrieved");
             var totalUpvotes = await _reddit.Vote(message, targetUser, Context.User, voteType);
             var verb = voteType == VoteType.Upvote ? "upvoted" : "downvoted";
-            await ReplyAsync($"you {verb} {targetUser.Nickname}'s post. they have a user score of {totalUpvotes}");
+            var reply = targetUser.Id == Context.Client.CurrentUser.Id
+                ? "😳"
+                : $"you {verb} {targetUser.Nickname ?? targetUser.Username}'s post. they have a user score of {totalUpvotes}";
+            await ReplyAsync(reply);
         }
 
         [Summary("shows upvotes on the current guild")]
@@ -80,18 +83,21 @@ namespace Tadmor.Modules
             var upvotes = await _reddit.GetUpvoteCounts(Context.Guild.Id);
             var upvoteStrings = await Task.WhenAll(upvotes
                 .OrderByDescending(kvp => kvp.Value.upvoteCount - kvp.Value.downvoteCount)
-                .Select(GetStringDescription));
+                .Select(GetStringDescription)
+                .Where(s => s != null));
             await ReplyAsync(upvoteStrings.Any()
                 ? string.Join(Environment.NewLine, upvoteStrings)
                 : "no upvotes were given");
         }
 
-        private async Task<string> GetStringDescription(KeyValuePair<ulong, (int upvoteCount, int downvoteCount)> voteCount)
+        private async Task<string?> GetStringDescription(KeyValuePair<ulong, (int upvoteCount, int downvoteCount)> voteCount)
         {
             var (upvoteCount, downvoteCount) = voteCount.Value;
             var userScore = upvoteCount - downvoteCount;
             var user = await Context.Guild.GetUserAsync(voteCount.Key);
-            return $"{user.Nickname} has {upvoteCount} upvotes and {downvoteCount} downvotes for a score of {userScore}";
+            return user == null
+                ? null
+                : $"{user.Nickname} has {upvoteCount} upvotes and {downvoteCount} downvotes for a score of {userScore}";
         }
 
         private async Task<IMessage> GetVotedMessage(IGuildUser? user)
