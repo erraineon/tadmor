@@ -42,7 +42,7 @@ namespace Tadmor.Modules
         [RequireWhitelist]
         public async Task PokemonGame()
         {
-            await _e621.ToggleSession(Context.Channel);
+            await _e621.ToggleSession(Context.User.Id, Context.Channel);
         }
     }
 }

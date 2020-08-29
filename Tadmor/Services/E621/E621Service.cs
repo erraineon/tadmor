@@ -62,18 +62,22 @@ namespace Tadmor.Services.E621
             return (newPosts, newLastId);
         }
 
-        public async Task ToggleSession(IMessageChannel channel)
+        public async Task ToggleSession(ulong userId, IMessageChannel channel)
         {
             var channelId = channel.Id;
-            if (!_pokemonGameSession.ContainsKey(channelId))
+            if (!_pokemonGameSession.TryGetValue(channelId, out var existingSession))
             {
-                var session = new PokemonGameSession("pokemon -young -gore -scat");
+                var session = new PokemonGameSession(userId, "pokemon -young -gore -scat");
                 _pokemonGameSession[channelId] = session;
                 RunSession(session, channel);
             }
-            else
+            else if (existingSession.GameStartingUserId == userId)
             {
                 await StopSession(channel);
+            }
+            else
+            {
+                await channel.SendMessageAsync("only the user who started the game may end it");
             }
         }
 
@@ -86,14 +90,6 @@ namespace Tadmor.Services.E621
 
         private async void RunSession(PokemonGameSession session, IMessageChannel channel)
         {
-            void IncreaseScore(IMessage guessingMessage)
-            {
-                var guesserId = guessingMessage.Author.Id;
-                session.GuildUserScores[guesserId] =
-                    session.GuildUserScores.TryGetValue(guesserId, out var currentScore)
-                        ? currentScore + 1
-                        : 1;
-            }
 
             static string PickRandomTag(E621Post post)
             {
@@ -130,9 +126,18 @@ namespace Tadmor.Services.E621
                             new[] { tag.Humanize(), tag }.Any(s =>
                                   um.Content.Equals(s, StringComparison.OrdinalIgnoreCase));
 
+                        async Task IncreaseScore(IMessage message)
+                        {
+                            var guesserId = message.Author.Id;
+                            session.GuildUserScores[guesserId] =
+                                session.GuildUserScores.TryGetValue(guesserId, out var currentScore)
+                                    ? currentScore += 1
+                                    : 1;
+                            await channel.SendMessageAsync($"the correct answer was {tag.Humanize()}. {message.Author.Username} has {currentScore} points");
+                        }
+
                         var guessingMessage = await _chatService.Next(MatchesSelectedTag, linkedSource.Token);
-                        IncreaseScore(guessingMessage);
-                        await channel.SendMessageAsync($"the correct answer was {tag.Humanize()}");
+                        await IncreaseScore(guessingMessage);
                     }
                     catch (Exception e) when (!(e is TaskCanceledException))
                     {

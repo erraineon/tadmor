@@ -6,11 +6,13 @@ namespace Tadmor.Services.E621
 {
     public class PokemonGameSession
     {
-        public PokemonGameSession(string tags)
+        public PokemonGameSession(ulong gameStartingUserId, string tags)
         {
+            GameStartingUserId = gameStartingUserId;
             Tags = tags;
         }
 
+        public ulong GameStartingUserId { get; }
         public IDictionary<ulong, int> GuildUserScores { get; } = new ConcurrentDictionary<ulong, int>();
         public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
         public string Tags { get; }
