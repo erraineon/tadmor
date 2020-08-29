@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Discord;
 using E621;
 using Microsoft.Extensions.Options;
 using MoreLinq;
@@ -13,6 +16,7 @@ namespace Tadmor.Services.E621
     public class E621Service
     {
         private readonly E621Client _client;
+        private readonly IDictionary<ulong, PokemonGameSession> _pokemonGameSession = new ConcurrentDictionary<ulong, PokemonGameSession>();
 
         public E621Service(IOptions<E621Options> options)
         {
@@ -43,5 +47,31 @@ namespace Tadmor.Services.E621
             var newLastId = posts.Max(post => post.Id);
             return (newPosts, newLastId);
         }
+
+        public PokemonGameSession CreateSession(ulong channelId, string tags)
+        {
+            if (GetSession(channelId) != default)
+                throw new Exception($"there is already a session for {channelId}");
+            var session = new PokemonGameSession(tags);
+            _pokemonGameSession[channelId] = session;
+            return session;
+        }
+
+        public PokemonGameSession? GetSession(ulong channelId)
+        {
+            return _pokemonGameSession.TryGetValue(channelId, out var session) ? session : default;
+        }
+    }
+
+    public class PokemonGameSession
+    {
+        public PokemonGameSession(string tags)
+        {
+            Tags = tags;
+        }
+
+        public IDictionary<ulong, int> GuildUserScores { get; } = new ConcurrentDictionary<ulong, int>();
+        public CancellationTokenSource CancellationTokenSource { get; } = new CancellationTokenSource();
+        public string Tags { get; }
     }
 }
