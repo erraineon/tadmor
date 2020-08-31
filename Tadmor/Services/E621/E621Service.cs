@@ -111,33 +111,40 @@ namespace Tadmor.Services.E621
             {
                 while (!session.CancellationTokenSource.IsCancellationRequested)
                 {
-                    var timeoutSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
                     try
                     {
                         var post = await GetRandomPostUntilNotNull(session.Tags);
                         await channel.SendMessageAsync(post.File.Url);
                         var tag = PickRandomTag(post);
-                        var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
-                            timeoutSource.Token,
-                            session.CancellationTokenSource.Token);
+                        var humanizedTag = tag.Humanize();
+
 
                         bool MatchesSelectedTag(IUserMessage um) => um.Content != null &&
                             um.Channel.Id == channel.Id &&
-                            new[] { tag.Humanize(), tag }.Any(s =>
+                            new[] { humanizedTag, tag }.Any(s =>
                                   um.Content.Equals(s, StringComparison.OrdinalIgnoreCase));
+
+                        bool SkipsTurn(IUserMessage um) =>
+                            um.Content?.Equals("skip", StringComparison.OrdinalIgnoreCase) == true &&
+                            um.Channel.Id == channel.Id &&
+                            um.Author.Id == session.GameStartingUserId;
 
                         async Task IncreaseScore(IMessage message)
                         {
                             var guesserId = message.Author.Id;
-                            session.GuildUserScores[guesserId] =
-                                session.GuildUserScores.TryGetValue(guesserId, out var currentScore)
-                                    ? currentScore += 1
-                                    : 1;
-                            await channel.SendMessageAsync($"the correct answer was {tag.Humanize()}. {message.Author.Username} has {currentScore} points");
+                            session.GuildUserScores.TryGetValue(guesserId, out var currentScore);
+                            session.GuildUserScores[guesserId] = currentScore += 1;
+                            await channel.SendMessageAsync($"the correct answer was {humanizedTag}. {message.Author.Username} has {currentScore} points");
                         }
 
-                        var guessingMessage = await _chatService.Next(MatchesSelectedTag, linkedSource.Token);
-                        await IncreaseScore(guessingMessage);
+                        var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
+                            new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token,
+                            session.CancellationTokenSource.Token);
+                        var guessTask = _chatService.Next(MatchesSelectedTag, linkedSource.Token);
+                        var skipTask = _chatService.Next(SkipsTurn, linkedSource.Token);
+                        var resultingMessage = await await Task.WhenAny(guessTask, skipTask);
+                        if (guessTask.IsCompletedSuccessfully) await IncreaseScore(resultingMessage);
+                        else await channel.SendMessageAsync($"skipping turn. answer was {humanizedTag}");
                     }
                     catch (Exception e) when (!(e is TaskCanceledException))
                     {
