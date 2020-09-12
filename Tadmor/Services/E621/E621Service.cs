@@ -138,7 +138,7 @@ namespace Tadmor.Services.E621
                         }
 
                         var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(
-                            new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token,
+                            new CancellationTokenSource(TimeSpan.FromMinutes(5)).Token,
                             session.CancellationTokenSource.Token);
                         var guessTask = _chatService.Next(MatchesSelectedTag, linkedSource.Token);
                         var skipTask = _chatService.Next(SkipsTurn, linkedSource.Token);
