@@ -52,16 +52,4 @@ namespace Tadmor.Tests
             _serviceScope.DidNotReceive().Dispose();
         }
     }
-
-    public class TestModule3 : ModuleBase<ICommandContext>
-    {
-    }
-
-    public class TestModule2 : ModuleBase<ICommandContext>
-    {
-    }
-
-    public class TestModule1 : ModuleBase<ICommandContext>
-    {
-    }
 }

@@ -20,7 +20,7 @@ namespace Tadmor.Preference.Services
 
         public async Task<Preferences> GetContextualPreferences(IGuildChannel channel, IGuildUser user)
         {
-            var guildPreferences = await _guildPreferencesRepository.GetGuildPreferences(channel.GuildId);
+            var guildPreferences = await _guildPreferencesRepository.GetGuildPreferencesAsync(channel.GuildId);
             var orderedPreferences = FindPreferencesForContext(
                 channel, 
                 user,

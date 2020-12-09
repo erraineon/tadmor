@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Tadmor.Extensions
 {
-    internal static class ServiceCollectionExtensions
+    public static class ServiceCollectionExtensions
     {
         public static IServiceCollection BindConfigurationSection<TOptions>(
             this IServiceCollection services,
@@ -18,7 +18,6 @@ namespace Tadmor.Extensions
             services.TryAddSingleton(options);
             return services;
         }
-
 
         public static void Decorate<TInterface, TDecorator>(this IServiceCollection services)
             where TInterface : class

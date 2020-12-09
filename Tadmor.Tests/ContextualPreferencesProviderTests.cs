@@ -10,7 +10,6 @@ using Tadmor.Preference.Services;
 
 namespace Tadmor.Tests
 {
-
     [TestClass]
     public class ContextualPreferencesProviderTests
     {
@@ -120,7 +119,7 @@ namespace Tadmor.Tests
                 }
             };
             _guildPreferencesRepository
-                .GetGuildPreferences(ExistentGuildId)
+                .GetGuildPreferencesAsync(ExistentGuildId)
                 .Returns(_guildPreferences);
             _sut = new ContextualPreferencesProvider(_guildPreferencesRepository);
         }

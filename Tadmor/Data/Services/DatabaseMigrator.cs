@@ -1,15 +1,18 @@
-﻿using System.Threading;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using Tadmor.Data.Interfaces;
 
 namespace Tadmor.Data.Services
 {
+    [ExcludeFromCodeCoverage]
     public class DatabaseMigrator : IHostedService
     {
-        private readonly TadmorDbContext _dbContext;
+        private readonly ITadmorDbContext _dbContext;
 
-        public DatabaseMigrator(TadmorDbContext dbContext)
+        public DatabaseMigrator(ITadmorDbContext dbContext)
         {
             _dbContext = dbContext;
         }

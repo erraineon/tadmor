@@ -74,7 +74,7 @@ namespace Tadmor.Tests
         }
 
         [TestMethod]
-        public async Task StopAsync_GuildMemberUpdated_Works()
+        public async Task StopAsync_Log_Works()
         {
             await _sut.StartAsync(CancellationToken.None);
             await _sut.StopAsync(CancellationToken.None);
@@ -86,6 +86,33 @@ namespace Tadmor.Tests
             await _notificationPublisher
                 .Received(0)
                 .PublishAsync(Arg.Any<GuildMemberUpdatedNotification>());
+        }
+
+        [TestMethod]
+        public async Task StartAsync_Log_Works()
+        {
+            await _sut.StartAsync(CancellationToken.None);
+            var logMessage = new LogMessage();
+            _client1.Log += Raise.Event<Func<IChatClient, LogMessage, Task>>(_client1, logMessage);
+            _client2.Log += Raise.Event<Func<IChatClient, LogMessage, Task>>(_client2, logMessage);
+            _client2.Log += Raise.Event<Func<IChatClient, LogMessage, Task>>(_client2, logMessage);
+            await _notificationPublisher
+                .Received(3)
+                .PublishAsync(Arg.Any<LogNotification>());
+        }
+
+        [TestMethod]
+        public async Task StopAsync_GuildMemberUpdated_Works()
+        {
+            await _sut.StartAsync(CancellationToken.None);
+            await _sut.StopAsync(CancellationToken.None);
+            var logMessage = new LogMessage();
+            _client1.Log += Raise.Event<Func<IChatClient, LogMessage, Task>>(_client1, logMessage);
+            _client2.Log += Raise.Event<Func<IChatClient, LogMessage, Task>>(_client2, logMessage);
+            _client2.Log += Raise.Event<Func<IChatClient, LogMessage, Task>>(_client2, logMessage);
+            await _notificationPublisher
+                .Received(0)
+                .PublishAsync(Arg.Any<LogNotification>());
         }
     }
 }

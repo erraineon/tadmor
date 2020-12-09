@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using System.Diagnostics.CodeAnalysis;
+using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Tadmor.Abstractions.Services;
+using Tadmor.ChatClients.Discord.Interfaces;
 using Tadmor.ChatClients.Discord.Models;
 using Tadmor.ChatClients.Discord.Services;
 using Tadmor.ChatClients.Interfaces;
@@ -23,6 +25,7 @@ using Tadmor.Telegram;
 
 namespace Tadmor.Extensions
 {
+    [ExcludeFromCodeCoverage]
     public static class HostBuilderExtensions
     {
         public static IHostBuilder UseLogging(this IHostBuilder hostBuilder)
@@ -39,7 +42,8 @@ namespace Tadmor.Extensions
                     services.BindConfigurationSection<DiscordOptions>(hostingContext.Configuration);
                     services.TryAddSingleton<DiscordClient>();
                     services.TryAddSingleton<IChatClient>(s => s.GetRequiredService<DiscordClient>());
-                    services.TryAddSingleton<IHostedService>(s => s.GetRequiredService<DiscordClient>());
+                    services.TryAddSingleton<IDiscordChatClient>(s => s.GetRequiredService<DiscordClient>());
+                    services.TryAddSingleton<IHostedService, DiscordClientLauncher>();
                 });
         }
 
@@ -77,6 +81,9 @@ namespace Tadmor.Extensions
                     services.AddTransient<NotificationPublisherFactory, NotificationPublisherFactory>();
                     services.AddTransient<INotificationPublisher, NotificationPublisher>();
 
+                    // logging
+                    services.AddTransient<INotificationHandler<LogNotification>, ChatClientLogger>();
+                    
                     // commands
                     services.AddHostedService<CommandsModuleRegistrar>();
                     services.AddHostedService<ChatClientEventDispatcher>();
@@ -104,7 +111,7 @@ namespace Tadmor.Extensions
             return hostBuilder.ConfigureServices(UseModule<TModule>);
         }
 
-        public static void UseModule<TModule>(this IServiceCollection services) where TModule : ModuleBase<ICommandContext>
+        private static void UseModule<TModule>(this IServiceCollection services) where TModule : ModuleBase<ICommandContext>
         {
             services.TryAddSingleton<IModuleRegistration>(new ModuleRegistration(typeof(TModule)));
         }

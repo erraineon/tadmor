@@ -20,7 +20,7 @@ namespace Tadmor
         {
             var updatePreferencesScope = CreatePreferencesScope(preferencesContext);
 
-            await _guildPreferencesRepository.UpdatePreferences(
+            await _guildPreferencesRepository.UpdatePreferencesAsync(
                 p => p.CommandPrefix = newPrefix,
                 Context.Guild.Id,
                 updatePreferencesScope);

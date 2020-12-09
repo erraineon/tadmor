@@ -17,13 +17,13 @@ namespace Tadmor.Preference.Services
             _memoryCache = memoryCache;
         }
 
-        public async Task<GuildPreferences?> GetGuildPreferences(ulong guildId)
+        public async Task<GuildPreferences?> GetGuildPreferencesAsync(ulong guildId)
         {
             var cacheKey = GetCacheKey(guildId);
             var preferences = await _memoryCache.GetOrCreateAsync(cacheKey, cacheEntry =>
             {
                 cacheEntry.SlidingExpiration = TimeSpan.FromDays(1);
-                return _guildPreferencesRepository.GetGuildPreferences(guildId);
+                return _guildPreferencesRepository.GetGuildPreferencesAsync(guildId);
             });
             return preferences;
         }
@@ -31,11 +31,11 @@ namespace Tadmor.Preference.Services
         private static string GetCacheKey(ulong guildId) =>
             $"guild-{guildId}-preferences";
 
-        public async Task UpdatePreferences(Action<Preferences> updateAction,
+        public async Task UpdatePreferencesAsync(Action<Preferences> updateAction,
             ulong guildId,
             PreferencesScope preferencesScope)
         {
-            await _guildPreferencesRepository.UpdatePreferences(updateAction, guildId, preferencesScope);
+            await _guildPreferencesRepository.UpdatePreferencesAsync(updateAction, guildId, preferencesScope);
             var cacheKey = GetCacheKey(guildId);
             _memoryCache.Remove(cacheKey);
         }

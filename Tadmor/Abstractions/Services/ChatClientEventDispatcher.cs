@@ -28,6 +28,7 @@ namespace Tadmor.Abstractions.Services
             {
                 chatClient.MessageReceived += OnMessageReceived;
                 chatClient.GuildMemberUpdated += OnGuildMemberUpdated;
+                chatClient.Log += OnLog;
             }
             return Task.CompletedTask;
         }
@@ -38,8 +39,14 @@ namespace Tadmor.Abstractions.Services
             {
                 chatClient.MessageReceived -= OnMessageReceived;
                 chatClient.GuildMemberUpdated -= OnGuildMemberUpdated;
+                chatClient.Log -= OnLog;
             }
             return Task.CompletedTask;
+        }
+
+        private async Task OnLog(IChatClient chatClient, LogMessage logMessage)
+        {
+            await PublishAsync(new LogNotification(chatClient, logMessage));
         }
 
         private async Task OnGuildMemberUpdated(
@@ -47,14 +54,20 @@ namespace Tadmor.Abstractions.Services
             IGuildUser oldUser, 
             IGuildUser newUser)
         {
-            using var notificationPublisher = _notificationPublisherFactory.Create();
-            await notificationPublisher.PublishAsync(new GuildMemberUpdatedNotification(chatClient, oldUser, newUser));
+            await PublishAsync(new GuildMemberUpdatedNotification(chatClient, oldUser, newUser));
         }
 
         private async Task OnMessageReceived(IChatClient chatClient, IMessage message)
         {
+            await PublishAsync(new MessageReceivedNotification(chatClient, message));
+        }
+
+        private async Task PublishAsync<TNotification>(TNotification notification)
+        {
             using var notificationPublisher = _notificationPublisherFactory.Create();
-            await notificationPublisher.PublishAsync(new MessageReceivedNotification(chatClient, message));
+            await notificationPublisher.PublishAsync(notification);
         }
     }
+
+    public record LogNotification(IChatClient ChatClient, LogMessage LogMessage);
 }

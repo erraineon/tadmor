@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -7,6 +8,7 @@ using Tadmor.Commands.Interfaces;
 
 namespace Tadmor.Commands.Services
 {
+    [ExcludeFromCodeCoverage]
     public class CommandServiceWrapper : ICommandService
     {
         public Task<bool> RemoveModuleAsync(ModuleInfo module)

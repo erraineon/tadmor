@@ -12,7 +12,6 @@ using Tadmor.Preference.Models;
 
 namespace Tadmor.Preference.Services
 {
-    public class 
     public class CachedContextualPreferencesProviderDecorator : IContextualPreferencesProvider, INotificationHandler<GuildMemberUpdatedNotification>, INotificationHandler<GuildPreferencesUpdatedNotification>
     {
         private readonly IContextualPreferencesProvider _contextualPreferencesProvider;

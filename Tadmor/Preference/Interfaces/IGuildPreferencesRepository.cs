@@ -6,9 +6,9 @@ namespace Tadmor.Preference.Interfaces
 {
     public interface IGuildPreferencesRepository
     {
-        Task<GuildPreferences?> GetGuildPreferences(ulong guildId);
+        Task<GuildPreferences?> GetGuildPreferencesAsync(ulong guildId);
 
-        Task UpdatePreferences(Action<Preferences> updateAction,
+        Task UpdatePreferencesAsync(Action<Preferences> updateAction,
             ulong guildId,
             PreferencesScope preferencesScope);
     }

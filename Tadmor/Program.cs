@@ -2,8 +2,10 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Tadmor.Data;
+using Tadmor.Data.Interfaces;
 using Tadmor.Data.Services;
 using Tadmor.Extensions;
 
@@ -30,10 +32,7 @@ namespace Tadmor
             .ConfigureServices(s =>
             {
                 s.AddDbContext<TadmorDbContext>();
-                //s.Scan(x => x.FromExecutingAssembly()
-                //    .AddClasses(f => f.Where(t => t.GetInterfaces().Any()))
-                //    .AsImplementedInterfaces()
-                //    .WithTransientLifetime());
+                s.TryAddScoped<ITadmorDbContext, TadmorDbContext>();
             });
     }
 }

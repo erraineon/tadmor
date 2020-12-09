@@ -51,5 +51,17 @@ namespace Tadmor.Tests
             await _sut.StopAsync(CancellationToken.None);
             await _commandService.ReceivedWithAnyArgs(3).RemoveModuleAsync(default!);
         }
+
+        private class TestModule3 : ModuleBase<ICommandContext>
+        {
+        }
+
+        private class TestModule2 : ModuleBase<ICommandContext>
+        {
+        }
+
+        private class TestModule1 : ModuleBase<ICommandContext>
+        {
+        }
     }
 }
