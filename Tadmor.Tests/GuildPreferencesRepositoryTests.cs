@@ -53,10 +53,10 @@ namespace Tadmor.Tests
         [TestMethod]
         public async Task GetGuildPreferences_Works()
         {
-            var guildPreferences = await _sut.GetGuildPreferencesAsync(ExistingGuildId);
+            var guildPreferences = await _sut.GetGuildPreferencesAsyncOrNull(ExistingGuildId);
             Assert.IsNotNull(guildPreferences);
             Assert.AreEqual("!", guildPreferences.CommandPrefix);
-            var nullGuildPreferences = await _sut.GetGuildPreferencesAsync(NonExistingGuildId);
+            var nullGuildPreferences = await _sut.GetGuildPreferencesAsyncOrNull(NonExistingGuildId);
             Assert.IsNull(nullGuildPreferences);
         }
 

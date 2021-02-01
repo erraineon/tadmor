@@ -2,7 +2,6 @@
 {
     public enum CommandPermissionType
     {
-        None,
         Whitelist,
         Blacklist
     }

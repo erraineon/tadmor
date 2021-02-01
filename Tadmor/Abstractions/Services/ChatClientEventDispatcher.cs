@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 using Discord;
 using Microsoft.Extensions.Hosting;
 using Tadmor.Abstractions.Interfaces;
+using Tadmor.Abstractions.Models;
 using Tadmor.ChatClients.Interfaces;
-using Tadmor.Notifications.Models;
+using Tadmor.Notifications.Interfaces;
 
 namespace Tadmor.Abstractions.Services
 {
@@ -57,9 +58,10 @@ namespace Tadmor.Abstractions.Services
             await PublishAsync(new GuildMemberUpdatedNotification(chatClient, oldUser, newUser));
         }
 
-        private async Task OnMessageReceived(IChatClient chatClient, IMessage message)
+        private Task OnMessageReceived(IChatClient chatClient, IMessage message)
         {
-            await PublishAsync(new MessageReceivedNotification(chatClient, message));
+            _ = PublishAsync(new MessageReceivedNotification(chatClient, message));
+            return Task.CompletedTask;
         }
 
         private async Task PublishAsync<TNotification>(TNotification notification)
@@ -68,6 +70,4 @@ namespace Tadmor.Abstractions.Services
             await notificationPublisher.PublishAsync(notification);
         }
     }
-
-    public record LogNotification(IChatClient ChatClient, LogMessage LogMessage);
 }

@@ -21,6 +21,7 @@ namespace Tadmor.Tests
         private GuildPreferences _guildPreferences;
         private IGuildPreferencesRepository _guildPreferencesRepository;
         private ContextualPreferencesProvider _sut;
+        private const string CommandName = "some command";
 
         [TestInitialize]
         public void Initialize()
@@ -31,10 +32,7 @@ namespace Tadmor.Tests
                 CommandPrefix = "!",
                 CommandPermissions =
                 {
-                    new CommandPermission
-                    {
-                        CommandPermissionType = CommandPermissionType.Blacklist
-                    }
+                    new CommandPermission(CommandName, CommandPermissionType.Blacklist)
                 },
                 ChannelPreferences =
                 {
@@ -43,10 +41,7 @@ namespace Tadmor.Tests
                         CommandPrefix = "$",
                         CommandPermissions =
                         {
-                            new CommandPermission
-                            {
-                                CommandPermissionType = CommandPermissionType.Whitelist
-                            }
+                            new CommandPermission(CommandName, CommandPermissionType.Whitelist)
                         }
                     },
                     [ExistentChannelWithNestedPrefsId] = new ChannelPreferences
@@ -59,10 +54,7 @@ namespace Tadmor.Tests
                                 CommandPrefix = "@",
                                 CommandPermissions =
                                 {
-                                    new CommandPermission
-                                    {
-                                        CommandPermissionType = CommandPermissionType.Whitelist
-                                    }
+                                    new CommandPermission(CommandName, CommandPermissionType.Whitelist)
                                 }
                             }
                         },
@@ -73,19 +65,12 @@ namespace Tadmor.Tests
                                 CommandPrefix = "*",
                                 CommandPermissions =
                                 {
-                                    new CommandPermission
-                                    {
-                                        CommandPermissionType = CommandPermissionType.None
-                                    }
                                 }
                             }
                         },
                         CommandPermissions =
                         {
-                            new CommandPermission
-                            {
-                                CommandPermissionType = CommandPermissionType.Blacklist
-                            }
+                            new CommandPermission(CommandName, CommandPermissionType.Blacklist)
                         }
                     }
                 },
@@ -96,10 +81,7 @@ namespace Tadmor.Tests
                         CommandPrefix = "#",
                         CommandPermissions =
                         {
-                            new CommandPermission
-                            {
-                                CommandPermissionType = CommandPermissionType.Whitelist
-                            }
+                            new CommandPermission(CommandName, CommandPermissionType.Whitelist)
                         }
                     }
                 },
@@ -110,16 +92,12 @@ namespace Tadmor.Tests
                         CommandPrefix = "%",
                         CommandPermissions =
                         {
-                            new CommandPermission
-                            {
-                                CommandPermissionType = CommandPermissionType.None
-                            }
                         }
                     }
                 }
             };
             _guildPreferencesRepository
-                .GetGuildPreferencesAsync(ExistentGuildId)
+                .GetGuildPreferencesAsyncOrNull(ExistentGuildId)
                 .Returns(_guildPreferences);
             _sut = new ContextualPreferencesProvider(_guildPreferencesRepository);
         }
@@ -133,7 +111,7 @@ namespace Tadmor.Tests
             var guildUser = Substitute.For<IGuildUser>();
             var preferences = await _sut.GetContextualPreferences(guildChannel, guildUser);
             Assert.AreEqual(".", preferences.CommandPrefix);
-            Assert.IsTrue(!preferences.AutoCommands.Any());
+            Assert.IsTrue(!preferences.Rules.Any());
             Assert.IsTrue(!preferences.CommandPermissions.Any());
         }
 

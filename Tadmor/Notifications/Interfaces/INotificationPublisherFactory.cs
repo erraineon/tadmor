@@ -1,6 +1,4 @@
-﻿using Tadmor.Notifications.Interfaces;
-
-namespace Tadmor.Abstractions.Interfaces
+﻿namespace Tadmor.Notifications.Interfaces
 {
     public interface INotificationPublisherFactory
     {

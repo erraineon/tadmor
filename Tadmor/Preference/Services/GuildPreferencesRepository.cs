@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Tadmor.Data.Interfaces;
 using Tadmor.Data.Models;
 using Tadmor.Data.Services;
 using Tadmor.Notifications.Interfaces;
-using Tadmor.Notifications.Models;
 using Tadmor.Preference.Interfaces;
 using Tadmor.Preference.Models;
 
@@ -32,6 +32,12 @@ namespace Tadmor.Preference.Services
             updateAction(preferences);
             await _dbContext.SaveChangesAsync();
             await _publisher.PublishAsync(new GuildPreferencesUpdatedNotification(guildId, preferences));
+        }
+
+        public async Task<GuildPreferences?> GetGuildPreferencesAsyncOrNull(ulong guildId)
+        {
+            var guildPreferencesEntity = await _dbContext.GuildPreferences.FindAsync(guildId);
+            return guildPreferencesEntity?.Preferences;
         }
 
         private async Task<GuildPreferencesEntity> GetOrCreateGuildPreferencesEntity(ulong guildId)
@@ -89,12 +95,6 @@ namespace Tadmor.Preference.Services
             return groupPreferencesContainer.RolePreferences.TryGetValue(userId, out var rolePreferences)
                 ? rolePreferences
                 : groupPreferencesContainer.RolePreferences[userId] = new RolePreferences();
-        }
-
-        public async Task<GuildPreferences?> GetGuildPreferencesAsync(ulong guildId)
-        {
-            var guildPreferencesEntity = await _dbContext.GuildPreferences.FindAsync(guildId);
-            return guildPreferencesEntity?.Preferences;
         }
     }
 }

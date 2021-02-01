@@ -34,17 +34,19 @@ namespace Tadmor.Data.Services
             var jsonSerializerSettings = new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
-                NullValueHandling = NullValueHandling.Include
+                NullValueHandling = NullValueHandling.Include,
+                TypeNameHandling = TypeNameHandling.Auto
             };
+
             ValueConverter<T, string> converter = new(
                 v => JsonConvert.SerializeObject(v, jsonSerializerSettings),
                 v => JsonConvert.DeserializeObject<T>(v, jsonSerializerSettings) ?? new T()
             );
 
             ValueComparer<T> comparer = new(
-                (l, r) => JsonConvert.SerializeObject(l) == JsonConvert.SerializeObject(r, jsonSerializerSettings),
+                (l, r) => JsonConvert.SerializeObject(l, jsonSerializerSettings) == JsonConvert.SerializeObject(r, jsonSerializerSettings),
                 v => v == null ? 0 : JsonConvert.SerializeObject(v, jsonSerializerSettings).GetHashCode(),
-                v => JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(v, jsonSerializerSettings))
+                v => JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(v, jsonSerializerSettings), jsonSerializerSettings)
             );
 
             propertyBuilder.HasConversion(converter);

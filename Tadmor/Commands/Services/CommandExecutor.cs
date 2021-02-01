@@ -1,55 +1,40 @@
-﻿using System.Threading.Tasks;
-using Discord;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Discord.Commands;
-using Microsoft.Extensions.DependencyInjection;
 using Tadmor.Commands.Interfaces;
+using Tadmor.Commands.Models;
 
 namespace Tadmor.Commands.Services
 {
     public class CommandExecutor : ICommandExecutor
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly ICommandServiceScopeFactory _commandServiceScopeFactory;
         private readonly ICommandService _commandService;
+        private readonly ICommandResultPublisher _commandResultPublisher;
 
         public CommandExecutor(
-            IServiceScopeFactory serviceScopeFactory,
-            ICommandService commandService)
+            ICommandServiceScopeFactory commandServiceScopeFactory,
+            ICommandService commandService,
+            ICommandResultPublisher commandResultPublisher)
         {
-            _serviceScopeFactory = serviceScopeFactory;
+            _commandServiceScopeFactory = commandServiceScopeFactory;
             _commandService = commandService;
+            _commandResultPublisher = commandResultPublisher;
         }
 
-        public async Task<IResult> BeginExecutionAsync(ICommandContext commandContext, string input)
+        public async Task<IResult> ExecuteAsync(ExecuteCommandRequest request, CancellationToken cancellationToken)
         {
-            var serviceScope = _serviceScopeFactory.CreateScope();
-            var commandScope = new CommandScope(_commandService, commandContext, input, serviceScope);
-            var result = await commandScope.BeginExecutionAsync();
+            var (commandContext, input) = request;
+            using var serviceScope = await _commandServiceScopeFactory.CreateScopeAsync(commandContext);
+            var result = await _commandService.ExecuteAsync(commandContext, input, serviceScope.ServiceProvider);
             return result;
         }
 
-        private record CommandScope(ICommandService CommandService, ICommandContext CommandContext, string Input, IServiceScope Scope)
+        public async Task ExecuteAndPublishAsync(ExecuteCommandRequest request, CancellationToken cancellationToken)
         {
-            public async Task<IResult> BeginExecutionAsync()
-            {
-                CommandService.CommandExecuted += DisposeScope;
-                var result = await CommandService.ExecuteAsync(
-                    CommandContext,
-                    Input,
-                    Scope.ServiceProvider);
-
-                return result;
-            }
-
-            private Task DisposeScope(Optional<CommandInfo> _, ICommandContext completedContext, IResult __)
-            {
-                if (completedContext == CommandContext)
-                {
-                    CommandService.CommandExecuted -= DisposeScope;
-                    Scope.Dispose();
-                }
-
-                return Task.CompletedTask;
-            }
+            var result = await ExecuteAsync(request, cancellationToken);
+            var publishCommandResultRequest = new PublishCommandResultRequest(request.CommandContext, result);
+            await _commandResultPublisher.PublishAsync(publishCommandResultRequest, cancellationToken);
         }
     }
 }

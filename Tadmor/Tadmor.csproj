@@ -7,26 +7,27 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.3.0-dev-20201126.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.0">
+    <PackageReference Include="Discord.Net" Version="2.3.0-dev-20201223.7" />
+    <PackageReference Include="Hangfire.Core" Version="1.7.19" />
+    <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
+    <PackageReference Include="Humanizer.Core" Version="2.8.26" />
+    <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.2" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="ncrontab" Version="3.3.1" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="appsettings.sample.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ChatClients\Telegram\" />
   </ItemGroup>
 
 </Project>

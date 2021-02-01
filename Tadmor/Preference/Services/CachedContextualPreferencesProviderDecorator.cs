@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Discord;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
+using Tadmor.Abstractions.Models;
 using Tadmor.Notifications.Interfaces;
-using Tadmor.Notifications.Models;
 using Tadmor.Preference.Interfaces;
 using Tadmor.Preference.Models;
 

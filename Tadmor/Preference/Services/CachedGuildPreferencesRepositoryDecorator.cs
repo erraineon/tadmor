@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Tadmor.Preference.Interfaces;
@@ -17,13 +18,13 @@ namespace Tadmor.Preference.Services
             _memoryCache = memoryCache;
         }
 
-        public async Task<GuildPreferences?> GetGuildPreferencesAsync(ulong guildId)
+        public async Task<GuildPreferences?> GetGuildPreferencesAsyncOrNull(ulong guildId)
         {
             var cacheKey = GetCacheKey(guildId);
             var preferences = await _memoryCache.GetOrCreateAsync(cacheKey, cacheEntry =>
             {
                 cacheEntry.SlidingExpiration = TimeSpan.FromDays(1);
-                return _guildPreferencesRepository.GetGuildPreferencesAsync(guildId);
+                return _guildPreferencesRepository.GetGuildPreferencesAsyncOrNull(guildId);
             });
             return preferences;
         }

@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
-using Tadmor.Commands.Models;
+using Tadmor.Extensions;
 using Tadmor.Preference.Interfaces;
 using Tadmor.Preference.Models;
 
@@ -20,7 +20,7 @@ namespace Tadmor.Preference.Services
 
         public async Task<Preferences> GetContextualPreferences(IGuildChannel channel, IGuildUser user)
         {
-            var guildPreferences = await _guildPreferencesRepository.GetGuildPreferencesAsync(channel.GuildId);
+            var guildPreferences = await _guildPreferencesRepository.GetGuildPreferencesAsyncOrNull(channel.GuildId);
             var orderedPreferences = FindPreferencesForContext(
                 channel, 
                 user,
@@ -83,6 +83,7 @@ namespace Tadmor.Preference.Services
             return guildPreferences.ChannelPreferences.TryGetValue(channelId, out channelPreferences);
         }
 
+        // TODO: adopt convention-based approach rather than copying properties one by one
         private static Preferences Reduce(IEnumerable<Preferences> orderedPreferences)
         {
             return orderedPreferences.Aggregate(
@@ -91,13 +92,9 @@ namespace Tadmor.Preference.Services
                 {
                     if (!string.IsNullOrWhiteSpace(value.CommandPrefix))
                         carry.CommandPrefix = value.CommandPrefix;
-                    var relevantPermissions = value.CommandPermissions
-                        .Where(valueCommand => valueCommand.CommandPermissionType != CommandPermissionType.None)
-                        .ToList();
-                    carry.CommandPermissions
-                        .RemoveAll(carryCommand => relevantPermissions
-                            .Any(valueCommand => carryCommand.CommandName == valueCommand.CommandName));
-                    carry.CommandPermissions.AddRange(relevantPermissions);
+                    foreach (var commandPermission in value.CommandPermissions)
+                        carry.CommandPermissions.AddOrUpdate(commandPermission);
+                    carry.Rules.AddRange(value.Rules);
                     return carry;
                 });
         }

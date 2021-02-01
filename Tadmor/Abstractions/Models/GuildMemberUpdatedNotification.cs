@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Tadmor.ChatClients.Interfaces;
 
-namespace Tadmor.Notifications.Models
+namespace Tadmor.Abstractions.Models
 {
     public record GuildMemberUpdatedNotification(IChatClient ChatClient, IGuildUser OldUser, IGuildUser NewUser);
 }

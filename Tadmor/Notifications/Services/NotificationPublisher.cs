@@ -1,6 +1,8 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Tadmor.Notifications.Interfaces;
 
 namespace Tadmor.Notifications.Services
@@ -8,10 +10,12 @@ namespace Tadmor.Notifications.Services
     public class NotificationPublisher : INotificationPublisher
     {
         private readonly IServiceScope _serviceScope;
+        private readonly ILogger<NotificationPublisher> _logger;
 
-        public NotificationPublisher(IServiceScope serviceScope)
+        public NotificationPublisher(IServiceScope serviceScope, ILogger<NotificationPublisher> logger)
         {
             _serviceScope = serviceScope;
+            _logger = logger;
         }
 
         public async Task PublishAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = new())
@@ -19,7 +23,14 @@ namespace Tadmor.Notifications.Services
             var notificationHandlers = _serviceScope.ServiceProvider.GetServices<INotificationHandler<TNotification>>();
             foreach (var notificationHandler in notificationHandlers)
             {
-                await notificationHandler.HandleAsync(notification, cancellationToken);
+                try
+                {
+                    await notificationHandler.HandleAsync(notification, cancellationToken);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogCritical(e, $"unhandled exception from {notificationHandler.GetType()}");
+                }
             }
         }
 

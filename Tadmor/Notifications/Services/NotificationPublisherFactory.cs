@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Tadmor.Abstractions.Interfaces;
 using Tadmor.Notifications.Interfaces;
 
@@ -16,7 +17,9 @@ namespace Tadmor.Notifications.Services
         public INotificationPublisher Create()
         {
             var scope = _serviceScopeFactory.CreateScope();
-            var notificationPublisher = scope.ServiceProvider.GetRequiredService<INotificationPublisher>();
+            var notificationPublisher = new NotificationPublisher(
+                scope,
+                scope.ServiceProvider.GetRequiredService<ILogger<NotificationPublisher>>());
             return notificationPublisher;
         }
     }

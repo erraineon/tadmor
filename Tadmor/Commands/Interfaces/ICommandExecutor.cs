@@ -1,10 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Discord.Commands;
+using Tadmor.Commands.Models;
 
 namespace Tadmor.Commands.Interfaces
 {
     public interface ICommandExecutor
     {
-        Task<IResult> BeginExecutionAsync(ICommandContext commandContext, string input);
+        Task<IResult> ExecuteAsync(ExecuteCommandRequest request, CancellationToken cancellationToken);
     }
 }

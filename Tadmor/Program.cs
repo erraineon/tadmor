@@ -4,10 +4,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Tadmor.Commands.Modules;
 using Tadmor.Data;
 using Tadmor.Data.Interfaces;
 using Tadmor.Data.Services;
 using Tadmor.Extensions;
+using Tadmor.Preference.Modules;
+using Tadmor.Rules.Modules;
 
 namespace Tadmor
 {
@@ -26,8 +29,10 @@ namespace Tadmor
             .UseTelegram()
             .UseLogging()
             .UseCommands()
+            .UseScheduledTasks()
             .UseModule<TestModule>()
-            .UseModule<PreferencesModule>()
+            .UseModule<CommandPreferencesModule>()
+            .UseModule<RulePreferencesModule>()
             .UseConsoleLifetime()
             .ConfigureServices(s =>
             {

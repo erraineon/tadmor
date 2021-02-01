@@ -28,7 +28,7 @@ namespace Tadmor.Tests
                 CommandPrefix = "!"
             };
             _guildPreferencesRepository
-                .GetGuildPreferencesAsync(ExistentGuildId)
+                .GetGuildPreferencesAsyncOrNull(ExistentGuildId)
                 .Returns(_guildPreferences);
             _sut = new CachedGuildPreferencesRepositoryDecorator(_guildPreferencesRepository, _memoryCache);
         }
@@ -36,23 +36,23 @@ namespace Tadmor.Tests
         [TestMethod]
         public async Task GetGuildPreferencesAsync_Cache_Works()
         {
-            await _sut.GetGuildPreferencesAsync(ExistentGuildId);
-            await _sut.GetGuildPreferencesAsync(ExistentGuildId);
-            await _guildPreferencesRepository.Received(1).GetGuildPreferencesAsync(ExistentGuildId);
+            await _sut.GetGuildPreferencesAsyncOrNull(ExistentGuildId);
+            await _sut.GetGuildPreferencesAsyncOrNull(ExistentGuildId);
+            await _guildPreferencesRepository.Received(1).GetGuildPreferencesAsyncOrNull(ExistentGuildId);
         }
 
         [TestMethod]
         public async Task UpdatePreferencesAsync_Cache_Clear_Works()
         {
-            await _sut.GetGuildPreferencesAsync(ExistentGuildId);
+            await _sut.GetGuildPreferencesAsyncOrNull(ExistentGuildId);
             await _sut.UpdatePreferencesAsync(_ => { }, ExistentGuildId,
                 new PreferencesScope(default, default, default));
-            await _sut.GetGuildPreferencesAsync(ExistentGuildId);
-            await _guildPreferencesRepository.Received(2).GetGuildPreferencesAsync(ExistentGuildId);
+            await _sut.GetGuildPreferencesAsyncOrNull(ExistentGuildId);
+            await _guildPreferencesRepository.Received(2).GetGuildPreferencesAsyncOrNull(ExistentGuildId);
             await _sut.UpdatePreferencesAsync(_ => { }, NonExistentGuildId,
                 new PreferencesScope(default, default, default));
-            await _sut.GetGuildPreferencesAsync(ExistentGuildId);
-            await _guildPreferencesRepository.Received(2).GetGuildPreferencesAsync(ExistentGuildId);
+            await _sut.GetGuildPreferencesAsyncOrNull(ExistentGuildId);
+            await _guildPreferencesRepository.Received(2).GetGuildPreferencesAsyncOrNull(ExistentGuildId);
         }
     }
 }

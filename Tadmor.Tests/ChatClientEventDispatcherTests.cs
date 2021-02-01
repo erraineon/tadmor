@@ -5,10 +5,10 @@ using Discord;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Tadmor.Abstractions.Interfaces;
+using Tadmor.Abstractions.Models;
 using Tadmor.Abstractions.Services;
 using Tadmor.ChatClients.Interfaces;
 using Tadmor.Notifications.Interfaces;
-using Tadmor.Notifications.Models;
 
 namespace Tadmor.Tests
 {
