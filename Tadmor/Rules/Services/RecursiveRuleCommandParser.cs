@@ -32,7 +32,7 @@ namespace Tadmor.Rules.Services
                 var sb = new StringBuilder();
                 while (sr.Peek() != -1)
                 {
-                    var character = (char)sr.Read();
+                    var character = (char) sr.Read();
                     if (character == '{')
                     {
                         var parsed = await GetCommandRecursive();
@@ -42,7 +42,8 @@ namespace Tadmor.Rules.Services
                             var groupName
                                 when GetGroupValueOrNull(ruleTriggerContext, groupName) is { } groupValue => groupValue,
                             var subCommand
-                                when await ExecuteSubCommand(subCommand, ruleTriggerContext) is RuntimeResult runtimeResult => runtimeResult.Reason,
+                                when await ExecuteSubCommand(subCommand, ruleTriggerContext) is RuntimeResult
+                                    runtimeResult => runtimeResult.Reason,
                             _ => parsed
                         };
                         sb.Append(evaluated);
@@ -51,7 +52,10 @@ namespace Tadmor.Rules.Services
                     {
                         break;
                     }
-                    else sb.Append(character);
+                    else
+                    {
+                        sb.Append(character);
+                    }
                 }
 
                 return sb.ToString();
@@ -62,17 +66,26 @@ namespace Tadmor.Rules.Services
 
         private async Task<IResult> ExecuteSubCommand(string subCommand, IRuleTriggerContext ruleTriggerContext)
         {
-            var commandContext = _commandContextFactory.Create(subCommand, ruleTriggerContext.ExecuteIn, ruleTriggerContext.ExecuteAs, ruleTriggerContext.ChatClient, ruleTriggerContext.ReferencedMessage);
-            var result = await _commandExecutor.ExecuteAsync(new ExecuteCommandRequest(commandContext, subCommand), CancellationToken.None);
+            var commandContext = _commandContextFactory.Create(
+                subCommand,
+                ruleTriggerContext.ExecuteIn,
+                ruleTriggerContext.ExecuteAs,
+                ruleTriggerContext.ChatClient,
+                ruleTriggerContext.ReferencedMessage);
+            var result = await _commandExecutor.ExecuteAsync(
+                new ExecuteCommandRequest(commandContext, subCommand),
+                CancellationToken.None);
             return result;
         }
 
-        static string? GetGroupValueOrNull(IRuleTriggerContext ruleTriggerContext, string groupName)
+        private static string? GetGroupValueOrNull(IRuleTriggerContext ruleTriggerContext, string groupName)
         {
             var groupValue = ruleTriggerContext is RegexRuleTriggerContext regexRuleTriggerContext &&
-                regexRuleTriggerContext.GetMatch() is { Success: true } m &&
+                regexRuleTriggerContext.GetMatch() is {Success: true} m &&
                 m.Groups[groupName].Value is var v &&
-                !string.IsNullOrEmpty(v) ? v : default;
+                !string.IsNullOrEmpty(v)
+                    ? v
+                    : default;
             return groupValue;
         }
     }

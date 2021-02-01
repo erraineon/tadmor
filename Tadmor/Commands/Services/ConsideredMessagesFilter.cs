@@ -15,15 +15,16 @@ namespace Tadmor.Commands.Services
         {
             _notificationPublisher = notificationPublisher;
         }
-        
+
         public async Task HandleAsync(MessageReceivedNotification notification, CancellationToken cancellationToken)
         {
             var (chatClient, message) = notification;
             if (message is IUserMessage userMessage &&
                 message.Channel is IGuildChannel guildChannel &&
-                message.Author is IGuildUser { IsBot: false } guildUser)
+                message.Author is IGuildUser {IsBot: false} guildUser)
             {
-                var messageValidatedNotification = new MessageValidatedNotification(chatClient, userMessage, guildChannel, guildUser);
+                var messageValidatedNotification =
+                    new MessageValidatedNotification(chatClient, userMessage, guildChannel, guildUser);
                 await _notificationPublisher.PublishAsync(messageValidatedNotification, cancellationToken);
             }
         }

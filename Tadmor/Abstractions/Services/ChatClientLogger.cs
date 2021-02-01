@@ -14,7 +14,7 @@ namespace Tadmor.Abstractions.Services
         {
             _logger = logger;
         }
-        
+
         public Task HandleAsync(LogNotification notification, CancellationToken cancellationToken)
         {
             _logger.Log(LogLevel.Information, notification.LogMessage.ToString());

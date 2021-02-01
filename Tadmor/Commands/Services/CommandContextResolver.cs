@@ -11,7 +11,7 @@ namespace Tadmor.Commands.Services
         public ICommandContext CurrentCommandContext
         {
             get => _currentCommandContext ??
-                   throw new Exception($"the command context was not set on the {nameof(ICommandContextResolver)}");
+                throw new Exception($"the command context was not set on the {nameof(ICommandContextResolver)}");
             set => _currentCommandContext = value;
         }
     }

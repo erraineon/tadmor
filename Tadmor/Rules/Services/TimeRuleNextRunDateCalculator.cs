@@ -13,7 +13,8 @@ namespace Tadmor.Rules.Services
             var nextRunDate = timeRule switch
             {
                 CronRule scheduledRule => CrontabSchedule.Parse(scheduledRule.CronSchedule).GetNextOccurrence(now),
-                RecurringRule recurringRule => timeRule.LastRunDate + recurringRule.Interval is { } originalNextRunDate && originalNextRunDate > now
+                RecurringRule recurringRule => timeRule.LastRunDate + recurringRule.Interval is
+                    { } originalNextRunDate && originalNextRunDate > now
                     ? originalNextRunDate
                     : now + recurringRule.Interval,
                 OneTimeRule oneTimeRule => now + oneTimeRule.Delay,

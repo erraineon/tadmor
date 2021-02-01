@@ -20,12 +20,13 @@ namespace Tadmor.Data.Services
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<GuildPreferencesEntity>(b =>
-            {
-                b.HasKey(e => e.GuildId);
-                b.Property(e => e.GuildId).ValueGeneratedNever();
-                HasJsonConversion(b.Property(e => e.Preferences));
-            });
+            modelBuilder.Entity<GuildPreferencesEntity>(
+                b =>
+                {
+                    b.HasKey(e => e.GuildId);
+                    b.Property(e => e.GuildId).ValueGeneratedNever();
+                    HasJsonConversion(b.Property(e => e.Preferences));
+                });
             base.OnModelCreating(modelBuilder);
         }
 
@@ -44,9 +45,12 @@ namespace Tadmor.Data.Services
             );
 
             ValueComparer<T> comparer = new(
-                (l, r) => JsonConvert.SerializeObject(l, jsonSerializerSettings) == JsonConvert.SerializeObject(r, jsonSerializerSettings),
+                (l, r) => JsonConvert.SerializeObject(l, jsonSerializerSettings) ==
+                    JsonConvert.SerializeObject(r, jsonSerializerSettings),
                 v => v == null ? 0 : JsonConvert.SerializeObject(v, jsonSerializerSettings).GetHashCode(),
-                v => JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(v, jsonSerializerSettings), jsonSerializerSettings)
+                v => JsonConvert.DeserializeObject<T>(
+                    JsonConvert.SerializeObject(v, jsonSerializerSettings),
+                    jsonSerializerSettings)
             );
 
             propertyBuilder.HasConversion(converter);

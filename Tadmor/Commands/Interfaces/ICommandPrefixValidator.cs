@@ -6,6 +6,8 @@ namespace Tadmor.Commands.Interfaces
 {
     public interface ICommandPrefixValidator
     {
-        Task<CommandPrefixValidationResult> ValidatePrefix(MessageValidatedNotification notification, CancellationToken cancellationToken);
+        Task<CommandPrefixValidationResult> ValidatePrefix(
+            MessageValidatedNotification notification,
+            CancellationToken cancellationToken);
     }
 }

@@ -8,9 +8,9 @@ namespace Tadmor.Commands.Services
 {
     public class CommandExecutor : ICommandExecutor
     {
-        private readonly ICommandServiceScopeFactory _commandServiceScopeFactory;
-        private readonly ICommandService _commandService;
         private readonly ICommandResultPublisher _commandResultPublisher;
+        private readonly ICommandService _commandService;
+        private readonly ICommandServiceScopeFactory _commandServiceScopeFactory;
 
         public CommandExecutor(
             ICommandServiceScopeFactory commandServiceScopeFactory,

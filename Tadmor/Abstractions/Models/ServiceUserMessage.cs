@@ -18,37 +18,41 @@ namespace Tadmor.Abstractions.Models
         public ulong Id => throw new NotSupportedException();
 
         public DateTimeOffset CreatedAt { get; } = DateTimeOffset.Now;
-        public Task DeleteAsync(RequestOptions options = null)
+
+        public Task DeleteAsync(RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
+        public Task AddReactionAsync(IEmote emote, RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
+        public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
+        public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task RemoveAllReactionsAsync(RequestOptions options = null)
+        public Task RemoveAllReactionsAsync(RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task RemoveAllReactionsForEmoteAsync(IEmote emote, RequestOptions options = null)
+        public Task RemoveAllReactionsForEmoteAsync(IEmote emote, RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
+        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(
+            IEmote emoji,
+            int limit,
+            RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
@@ -76,33 +80,37 @@ namespace Tadmor.Abstractions.Models
         public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotSupportedException();
         public MessageFlags? Flags => throw new NotSupportedException();
 
-        public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)
+        public Task ModifyAsync(Action<MessageProperties> func, RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
+        public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task PinAsync(RequestOptions options = null)
+        public Task PinAsync(RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task UnpinAsync(RequestOptions options = null)
+        public Task UnpinAsync(RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public Task CrosspostAsync(RequestOptions options = null)
+        public Task CrosspostAsync(RequestOptions? options = null)
         {
             throw new NotSupportedException();
         }
 
-        public string Resolve(TagHandling userHandling = TagHandling.Name, TagHandling channelHandling = TagHandling.Name, TagHandling roleHandling = TagHandling.Name,
-            TagHandling everyoneHandling = TagHandling.Ignore, TagHandling emojiHandling = TagHandling.Name)
+        public string Resolve(
+            TagHandling userHandling = TagHandling.Name,
+            TagHandling channelHandling = TagHandling.Name,
+            TagHandling roleHandling = TagHandling.Name,
+            TagHandling everyoneHandling = TagHandling.Ignore,
+            TagHandling emojiHandling = TagHandling.Name)
         {
             throw new NotSupportedException();
         }

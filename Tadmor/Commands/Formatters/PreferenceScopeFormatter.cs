@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 using Tadmor.Abstractions.Interfaces;
-using Tadmor.Commands.Interfaces;
 using Tadmor.Preference.Models;
 
 namespace Tadmor.Commands.Formatters
@@ -15,6 +14,7 @@ namespace Tadmor.Commands.Formatters
         {
             _context = context;
         }
+
         public async Task<string> ToStringAsync(PreferencesScope value)
         {
             var channelName = value.ChannelId is { } channelId
@@ -29,7 +29,9 @@ namespace Tadmor.Commands.Formatters
 
             string result;
             if (channelName == default && roleName == default && userName == default)
+            {
                 result = string.Empty;
+            }
             else
             {
                 var sb = new StringBuilder();

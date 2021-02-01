@@ -16,19 +16,34 @@ namespace Tadmor
         }
 
         [Command("ping")]
-        public Task<RuntimeResult> Ping() => Task.FromResult(CommandResult.FromSuccess("pong"));
+        public Task<RuntimeResult> Ping()
+        {
+            return Task.FromResult(CommandResult.FromSuccess("pong"));
+        }
 
         [Command("throw")]
-        public async Task Throw() => throw new Exception("error");
+        public async Task Throw()
+        {
+            throw new Exception("error");
+        }
 
         [Command("throwp")]
-        public async Task ThrowPublicFacing() => throw new FrontEndException("error");
+        public async Task ThrowPublicFacing()
+        {
+            throw new FrontEndException("error");
+        }
 
         [Command("echo")]
-        public Task<RuntimeResult> Echo([Remainder] string value) => Task.FromResult(CommandResult.FromSuccess(value));
+        public Task<RuntimeResult> Echo([Remainder] string value)
+        {
+            return Task.FromResult(CommandResult.FromSuccess(value));
+        }
 
         [RequireWhitelist]
         [Command("wlist")]
-        public Task<RuntimeResult> Whitelist() => Task.FromResult(CommandResult.FromSuccess("whitelist success"));
+        public Task<RuntimeResult> Whitelist()
+        {
+            return Task.FromResult(CommandResult.FromSuccess("whitelist success"));
+        }
     }
 }

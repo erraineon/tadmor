@@ -18,7 +18,7 @@ namespace Tadmor.ChatClients.Discord.Services
             base.Log += logMessage => Log(this, logMessage);
         }
 
-        public new event Func<IChatClient, IMessage, Task> MessageReceived = 
+        public new event Func<IChatClient, IMessage, Task> MessageReceived =
             (_, _) => Task.CompletedTask;
 
         public new event Func<IChatClient, IGuildUser, IGuildUser, Task> GuildMemberUpdated =

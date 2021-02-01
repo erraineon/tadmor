@@ -33,7 +33,8 @@ namespace Tadmor.Rules.Services
                     RegexRule regexRule => new RegexRuleTriggerContext(regexRule, notification),
                     _ => default
                 };
-                if (ruleTriggerContext?.ShouldExecute == true) await _ruleExecutor.ExecuteRuleAsync(ruleTriggerContext, cancellationToken);
+                if (ruleTriggerContext?.ShouldExecute == true)
+                    await _ruleExecutor.ExecuteRuleAsync(ruleTriggerContext, cancellationToken);
             }
         }
     }

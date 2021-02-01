@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Tadmor.Rules.Models
+﻿namespace Tadmor.Rules.Models
 {
     public record RegexRule(string Trigger, string Reaction) : RuleBase(Reaction);
 }

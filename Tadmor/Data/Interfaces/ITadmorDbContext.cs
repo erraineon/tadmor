@@ -10,7 +10,7 @@ namespace Tadmor.Data.Interfaces
     public interface ITadmorDbContext : IAsyncDisposable
     {
         DbSet<GuildPreferencesEntity> GuildPreferences { get; }
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         DatabaseFacade Database { get; }
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

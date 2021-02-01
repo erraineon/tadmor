@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord.Commands;
 using Tadmor.Commands.Models;
-using Tadmor.Commands.Services;
 using Tadmor.Extensions;
 using Tadmor.Preference.Interfaces;
 using Tadmor.Preference.Models;
@@ -15,12 +10,15 @@ namespace Tadmor.Commands.Modules
 {
     public class CommandPreferencesModule : PreferencesModuleBase
     {
-        public CommandPreferencesModule(IGuildPreferencesRepository guildPreferencesRepository) : base(guildPreferencesRepository)
+        public CommandPreferencesModule(IGuildPreferencesRepository guildPreferencesRepository) : base(
+            guildPreferencesRepository)
         {
         }
 
         [Command("prefix")]
-        public async Task<RuntimeResult> SetPrefix(string newPrefix, PreferencesScopeCommandModel? preferencesContext = null)
+        public async Task<RuntimeResult> SetPrefix(
+            string newPrefix,
+            PreferencesScopeCommandModel? preferencesContext = null)
         {
             preferencesContext ??= new PreferencesScopeCommandModel();
             await WithPreferencesScope(
@@ -40,11 +38,14 @@ namespace Tadmor.Commands.Modules
                 preferencesContext,
                 preferences => preferences.CommandPermissions
                     .AddOrUpdate(new CommandPermission(command, permissionType)));
-            return CommandResult.FromSuccess($"permission for command {command} set to {permissionType} for {preferencesContext}");
+            return CommandResult.FromSuccess(
+                $"permission for command {command} set to {permissionType} for {preferencesContext}");
         }
 
         [Command("perms rm")]
-        public async Task<RuntimeResult> RemovePermissions(string command, PreferencesScopeCommandModel? preferencesContext = null)
+        public async Task<RuntimeResult> RemovePermissions(
+            string command,
+            PreferencesScopeCommandModel? preferencesContext = null)
         {
             preferencesContext ??= new PreferencesScopeCommandModel();
             await WithPreferencesScope(

@@ -11,6 +11,9 @@ namespace Tadmor.Commands.Interfaces
 {
     public interface ICommandService
     {
+        IEnumerable<ModuleInfo> Modules { get; }
+        IEnumerable<CommandInfo> Commands { get; }
+        ILookup<Type, TypeReader> TypeReaders { get; }
         void Dispose();
         Task<ModuleInfo> CreateModuleAsync(string primaryAlias, Action<ModuleBuilder> buildFunc);
         Task<ModuleInfo> AddModuleAsync<T>(IServiceProvider services);
@@ -27,15 +30,18 @@ namespace Tadmor.Commands.Interfaces
         SearchResult Search(ICommandContext context, string input);
         SearchResult Search(string input);
 
-        Task<IResult> ExecuteAsync(ICommandContext context, int argPos, IServiceProvider services,
+        Task<IResult> ExecuteAsync(
+            ICommandContext context,
+            int argPos,
+            IServiceProvider services,
             MultiMatchHandling multiMatchHandling = MultiMatchHandling.Exception);
 
-        Task<IResult> ExecuteAsync(ICommandContext context, string input, IServiceProvider services,
+        Task<IResult> ExecuteAsync(
+            ICommandContext context,
+            string input,
+            IServiceProvider services,
             MultiMatchHandling multiMatchHandling = MultiMatchHandling.Exception);
 
-        IEnumerable<ModuleInfo> Modules { get; }
-        IEnumerable<CommandInfo> Commands { get; }
-        ILookup<Type, TypeReader> TypeReaders { get; }
         event Func<LogMessage, Task> Log;
         event Func<Optional<CommandInfo>, ICommandContext, IResult, Task> CommandExecuted;
     }

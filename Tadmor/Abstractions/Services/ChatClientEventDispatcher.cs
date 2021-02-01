@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Microsoft.Extensions.Hosting;
-using Tadmor.Abstractions.Interfaces;
 using Tadmor.Abstractions.Models;
 using Tadmor.ChatClients.Interfaces;
 using Tadmor.Notifications.Interfaces;
@@ -31,6 +30,7 @@ namespace Tadmor.Abstractions.Services
                 chatClient.GuildMemberUpdated += OnGuildMemberUpdated;
                 chatClient.Log += OnLog;
             }
+
             return Task.CompletedTask;
         }
 
@@ -42,6 +42,7 @@ namespace Tadmor.Abstractions.Services
                 chatClient.GuildMemberUpdated -= OnGuildMemberUpdated;
                 chatClient.Log -= OnLog;
             }
+
             return Task.CompletedTask;
         }
 
@@ -51,8 +52,8 @@ namespace Tadmor.Abstractions.Services
         }
 
         private async Task OnGuildMemberUpdated(
-            IChatClient chatClient, 
-            IGuildUser oldUser, 
+            IChatClient chatClient,
+            IGuildUser oldUser,
             IGuildUser newUser)
         {
             await PublishAsync(new GuildMemberUpdatedNotification(chatClient, oldUser, newUser));

@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
 using Tadmor.Commands.Attributes;
 using Tadmor.Commands.Interfaces;
 using Tadmor.Commands.Models;
@@ -24,7 +23,8 @@ namespace Tadmor.Commands.Services
             _commandService = commandService;
         }
 
-        public async Task<bool> CanRunAsync(ExecuteCommandRequest executeCommandRequest,
+        public async Task<bool> CanRunAsync(
+            ExecuteCommandRequest executeCommandRequest,
             CancellationToken cancellationToken)
         {
             var (commandContext, input) = executeCommandRequest;

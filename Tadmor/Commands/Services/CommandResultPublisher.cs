@@ -8,10 +8,6 @@ namespace Tadmor.Commands.Services
 {
     public class CommandResultPublisher : ICommandResultPublisher
     {
-        public CommandResultPublisher()
-        {
-        }
-
         public async Task PublishAsync(PublishCommandResultRequest request, CancellationToken cancellationToken)
         {
             switch (request.CommandResult)
@@ -19,7 +15,7 @@ namespace Tadmor.Commands.Services
                 case RuntimeResult runtimeResult:
                     await request.CommandContext.Channel.SendMessageAsync(runtimeResult.Reason);
                     break;
-                case ExecuteResult { Exception: FrontEndException e }:
+                case ExecuteResult {Exception: FrontEndException e}:
                     await request.CommandContext.Channel.SendMessageAsync(e.Message);
                     break;
             }

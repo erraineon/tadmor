@@ -13,12 +13,12 @@ namespace Tadmor.Commands.Services
 {
     public class CommandsModuleRegistrar : IHostedService
     {
-        private readonly ICommandServiceScopeFactory _commandServiceScopeFactory;
         private readonly ICommandService _commandService;
+        private readonly ICommandServiceScopeFactory _commandServiceScopeFactory;
         private readonly IEnumerable<IModuleRegistration> _moduleRegistrations;
 
         public CommandsModuleRegistrar(
-            ICommandServiceScopeFactory commandServiceScopeFactory, 
+            ICommandServiceScopeFactory commandServiceScopeFactory,
             ICommandService commandService,
             IEnumerable<IModuleRegistration> moduleRegistrations)
         {
@@ -35,9 +35,7 @@ namespace Tadmor.Commands.Services
                 _commandService.AddTypeReader(typeof(CrontabSchedule), new CrontabScheduleTypeReader());
 
             foreach (var moduleRegistration in _moduleRegistrations)
-            {
                 await _commandService.AddModuleAsync(moduleRegistration.ModuleType, serviceScope.ServiceProvider);
-            }
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

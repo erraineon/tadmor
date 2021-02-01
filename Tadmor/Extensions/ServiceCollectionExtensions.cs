@@ -31,10 +31,11 @@ namespace Tadmor.Extensions
                     typeof(TDecorator),
                     new[] {typeof(TInterface)});
 
-                services.Replace(ServiceDescriptor.Describe(
-                    typeof(TInterface),
-                    s => (TInterface) objectFactory(s, new[] {s.CreateInstance(wrappedDescriptor)}),
-                    wrappedDescriptor.Lifetime)
+                services.Replace(
+                    ServiceDescriptor.Describe(
+                        typeof(TInterface),
+                        s => (TInterface) objectFactory(s, new[] {s.CreateInstance(wrappedDescriptor)}),
+                        wrappedDescriptor.Lifetime)
                 );
             }
         }
@@ -47,7 +48,7 @@ namespace Tadmor.Extensions
             if (descriptor.ImplementationFactory != null)
                 return descriptor.ImplementationFactory(services);
 
-            return ActivatorUtilities.GetServiceOrCreateInstance(services, descriptor.ImplementationType);
+            return ActivatorUtilities.GetServiceOrCreateInstance(services, descriptor.ImplementationType!);
         }
     }
 }

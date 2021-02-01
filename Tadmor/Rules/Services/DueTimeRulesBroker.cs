@@ -13,8 +13,8 @@ namespace Tadmor.Rules.Services
 {
     public class DueTimeRulesBroker : INotificationHandler<TimeRuleCheckNotification>
     {
-        private readonly ITimeRuleProvider _timeRuleProvider;
         private readonly IRuleExecutor _ruleExecutor;
+        private readonly ITimeRuleProvider _timeRuleProvider;
 
         public DueTimeRulesBroker(
             ITimeRuleProvider timeRuleProvider,
@@ -28,32 +28,44 @@ namespace Tadmor.Rules.Services
         {
             var chatClient = notification.ChatClient;
             var guilds = await chatClient.GetGuildsAsync();
-            await Task.WhenAll(guilds
-                .Select(async guild => { await RunDueTimeRulesAsync(guild, chatClient, cancellationToken); }));
+            await Task.WhenAll(
+                guilds
+                    .Select(async guild => { await RunDueTimeRulesAsync(guild, chatClient, cancellationToken); }));
         }
 
-        private async Task RunDueTimeRulesAsync(IGuild guild, IChatClient chatClient, CancellationToken cancellationToken)
+        private async Task RunDueTimeRulesAsync(
+            IGuild guild,
+            IChatClient chatClient,
+            CancellationToken cancellationToken)
         {
             var dueTimeRulesByChannelId = await _timeRuleProvider.GetRulesByChannelId(guild.Id, DateTime.Now);
             await Task.WhenAll(
                 dueTimeRulesByChannelId
-                    .Select(async rulesByChannel =>
-                    {
-                        if (await chatClient.GetChannelAsync(rulesByChannel.Key) is ITextChannel channel)
+                    .Select(
+                        async rulesByChannel =>
                         {
-                            await RunDueTimeRulesAsync(chatClient, channel, rulesByChannel, cancellationToken);
-                        }
-                    }));
+                            if (await chatClient.GetChannelAsync(rulesByChannel.Key) is ITextChannel channel)
+                                await RunDueTimeRulesAsync(chatClient, channel, rulesByChannel, cancellationToken);
+                        }));
         }
 
-        private async Task RunDueTimeRulesAsync(IChatClient chatClient, IGuildChannel channel,
-            IEnumerable<TimeRule> rules, CancellationToken cancellationToken)
+        private async Task RunDueTimeRulesAsync(
+            IChatClient chatClient,
+            IGuildChannel channel,
+            IEnumerable<TimeRule> rules,
+            CancellationToken cancellationToken)
         {
             var timeRules = rules.ToList();
-            await Task.WhenAll(timeRules.Select(timeRule => RunDueRuleAsync(chatClient, channel, timeRule, cancellationToken)));
+            await Task.WhenAll(
+                timeRules.Select(
+                    timeRule =>
+                        RunDueRuleAsync(chatClient, channel, timeRule, cancellationToken)));
         }
 
-        private async Task RunDueRuleAsync(IChatClient chatClient, IGuildChannel channel, TimeRule timeRule,
+        private async Task RunDueRuleAsync(
+            IChatClient chatClient,
+            IGuildChannel channel,
+            TimeRule timeRule,
             CancellationToken cancellationToken)
         {
             var timeRuleTriggerContext = new TimeRuleTriggerContext(

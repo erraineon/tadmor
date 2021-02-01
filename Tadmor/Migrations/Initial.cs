@@ -7,22 +7,19 @@ namespace Tadmor.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GuildPreferences",
-                columns: table => new
+                "GuildPreferences",
+                table => new
                 {
-                    GuildId = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    Preferences = table.Column<string>(type: "TEXT", nullable: false)
+                    GuildId = table.Column<ulong>("INTEGER", nullable: false),
+                    Preferences = table.Column<string>("TEXT", nullable: false)
                 },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_GuildPreferences", x => x.GuildId);
-                });
+                constraints: table => { table.PrimaryKey("PK_GuildPreferences", x => x.GuildId); });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GuildPreferences");
+                "GuildPreferences");
         }
     }
 }

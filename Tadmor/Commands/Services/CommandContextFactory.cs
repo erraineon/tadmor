@@ -8,8 +8,12 @@ namespace Tadmor.Commands.Services
 {
     public class CommandContextFactory : ICommandContextFactory
     {
-        public ICommandContext Create(string command, IGuildChannel executeIn,
-            IUser executeAs, IChatClient chatClient, IUserMessage? referencedMessage)
+        public ICommandContext Create(
+            string command,
+            IGuildChannel executeIn,
+            IUser executeAs,
+            IChatClient chatClient,
+            IUserMessage? referencedMessage)
         {
             var serviceUserMessage = new ServiceUserMessage(
                 command,

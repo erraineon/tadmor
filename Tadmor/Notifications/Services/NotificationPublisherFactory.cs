@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Tadmor.Abstractions.Interfaces;
 using Tadmor.Notifications.Interfaces;
 
 namespace Tadmor.Notifications.Services

@@ -9,14 +9,14 @@ namespace Tadmor.Commands.Services
 {
     public class MessageDrivenCommandExecutor : INotificationHandler<MessageValidatedNotification>
     {
-        private readonly ICommandPrefixValidator _commandPrefixValidator;
         private readonly ICommandExecutor _commandExecutor;
-        private readonly ICommandResultPublisher _commandResultPublisher;
         private readonly ICommandPermissionValidator _commandPermissionValidator;
+        private readonly ICommandPrefixValidator _commandPrefixValidator;
+        private readonly ICommandResultPublisher _commandResultPublisher;
 
         public MessageDrivenCommandExecutor(
-            ICommandPrefixValidator commandPrefixValidator, 
-            ICommandExecutor commandExecutor, 
+            ICommandPrefixValidator commandPrefixValidator,
+            ICommandExecutor commandExecutor,
             ICommandResultPublisher commandResultPublisher,
             ICommandPermissionValidator commandPermissionValidator)
         {
@@ -36,7 +36,9 @@ namespace Tadmor.Commands.Services
                 if (await _commandPermissionValidator.CanRunAsync(executeCommandRequest, cancellationToken))
                 {
                     var result = await _commandExecutor.ExecuteAsync(executeCommandRequest, cancellationToken);
-                    await _commandResultPublisher.PublishAsync(new PublishCommandResultRequest(commandContext, result), cancellationToken);
+                    await _commandResultPublisher.PublishAsync(
+                        new PublishCommandResultRequest(commandContext, result),
+                        cancellationToken);
                 }
                 else
                 {

@@ -22,7 +22,7 @@ namespace Tadmor.Preference.Services
         {
             var guildPreferences = await _guildPreferencesRepository.GetGuildPreferencesAsyncOrNull(channel.GuildId);
             var orderedPreferences = FindPreferencesForContext(
-                channel, 
+                channel,
                 user,
                 guildPreferences);
             var reducedPreferences = Reduce(orderedPreferences);
@@ -30,7 +30,7 @@ namespace Tadmor.Preference.Services
         }
 
         private static IEnumerable<Preferences> FindPreferencesForContext(
-            IGuildChannel channel, 
+            IGuildChannel channel,
             IGuildUser user,
             GuildPreferences? guildPreferences)
         {
@@ -55,7 +55,8 @@ namespace Tadmor.Preference.Services
                     if (TryGetRolePreferences(channelPreferences, roleId, out var rolePreferences))
                         yield return rolePreferences;
 
-                if (TryGetUserPreferences(channelPreferences, user.Id, out var channelUserPreferences)) yield return channelUserPreferences;
+                if (TryGetUserPreferences(channelPreferences, user.Id, out var channelUserPreferences))
+                    yield return channelUserPreferences;
             }
         }
 

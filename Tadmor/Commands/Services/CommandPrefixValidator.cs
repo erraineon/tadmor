@@ -15,7 +15,9 @@ namespace Tadmor.Commands.Services
             _contextualPreferencesProvider = contextualPreferencesProvider;
         }
 
-        public async Task<CommandPrefixValidationResult> ValidatePrefix(MessageValidatedNotification notification, CancellationToken cancellationToken)
+        public async Task<CommandPrefixValidationResult> ValidatePrefix(
+            MessageValidatedNotification notification,
+            CancellationToken cancellationToken)
         {
             var (_, userMessage, guildChannel, guildUser) = notification;
             var preferences = await _contextualPreferencesProvider.GetContextualPreferences(guildChannel, guildUser);

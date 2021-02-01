@@ -17,10 +17,11 @@ namespace Tadmor.Commands.Services
             _commandExecutor = commandExecutor;
             _logger = logger;
         }
+
         public async Task<IResult> ExecuteAsync(ExecuteCommandRequest request, CancellationToken cancellationToken)
         {
             var result = await _commandExecutor.ExecuteAsync(request, cancellationToken);
-            if (result is ExecuteResult { Exception: { } e })
+            if (result is ExecuteResult {Exception: { } e})
                 _logger.LogError(e, $"unhandled exception in {request.Input}");
             return result;
         }

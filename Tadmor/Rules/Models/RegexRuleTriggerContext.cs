@@ -11,19 +11,24 @@ namespace Tadmor.Rules.Models
         private readonly IUserMessage _trigger;
 
         public RegexRuleTriggerContext(
-            RegexRule regexRule, 
-            MessageValidatedNotification notification) : base(notification.GuildUser, notification.GuildChannel, notification.ChatClient, notification.UserMessage, regexRule)
+            RegexRule regexRule,
+            MessageValidatedNotification notification) : base(
+            notification.GuildUser,
+            notification.GuildChannel,
+            notification.ChatClient,
+            notification.UserMessage,
+            regexRule)
         {
             _trigger = notification.UserMessage;
             _regex = new Regex(regexRule.Trigger, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
         }
+
+        public bool ShouldExecute => GetMatch().Success;
 
         public Match GetMatch()
         {
             var match = _regex.Match(_trigger.Content);
             return match;
         }
-
-        public bool ShouldExecute => GetMatch().Success;
     }
 }

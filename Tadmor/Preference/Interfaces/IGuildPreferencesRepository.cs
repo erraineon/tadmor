@@ -8,7 +8,8 @@ namespace Tadmor.Preference.Interfaces
     {
         Task<GuildPreferences?> GetGuildPreferencesAsyncOrNull(ulong guildId);
 
-        Task UpdatePreferencesAsync(Action<Preferences> updateAction,
+        Task UpdatePreferencesAsync(
+            Action<Preferences> updateAction,
             ulong guildId,
             PreferencesScope preferencesScope);
     }

@@ -7,6 +7,10 @@ namespace Tadmor.Rules.Interfaces
 {
     public interface ITimeRulePreferencesWriter
     {
-        Task<TimeRule> UpdatePreferencesAsync(ulong guildId, ulong channelId, TimeRule timeRule, Action<Preferences, TimeRule> updateAction);
+        Task<TimeRule> UpdatePreferencesAsync(
+            ulong guildId,
+            ulong channelId,
+            TimeRule timeRule,
+            Action<Preferences, TimeRule> updateAction);
     }
 }

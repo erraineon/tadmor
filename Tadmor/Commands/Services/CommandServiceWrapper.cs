@@ -14,12 +14,13 @@ namespace Tadmor.Commands.Services
     [ExcludeFromCodeCoverage]
     public class CommandServiceWrapper : ICommandService
     {
+        private readonly CommandService _commandService;
+
         public CommandServiceWrapper(CommandService commandService)
         {
             _commandService = commandService;
         }
 
-        private readonly CommandService _commandService;
         public void Dispose()
         {
             ((IDisposable) _commandService).Dispose();
@@ -95,13 +96,19 @@ namespace Tadmor.Commands.Services
             return _commandService.Search(input);
         }
 
-        public Task<IResult> ExecuteAsync(ICommandContext context, int argPos, IServiceProvider services,
+        public Task<IResult> ExecuteAsync(
+            ICommandContext context,
+            int argPos,
+            IServiceProvider services,
             MultiMatchHandling multiMatchHandling = MultiMatchHandling.Exception)
         {
             return _commandService.ExecuteAsync(context, argPos, services, multiMatchHandling);
         }
 
-        public Task<IResult> ExecuteAsync(ICommandContext context, string input, IServiceProvider services,
+        public Task<IResult> ExecuteAsync(
+            ICommandContext context,
+            string input,
+            IServiceProvider services,
             MultiMatchHandling multiMatchHandling = MultiMatchHandling.Exception)
         {
             return _commandService.ExecuteAsync(context, input, services, multiMatchHandling);

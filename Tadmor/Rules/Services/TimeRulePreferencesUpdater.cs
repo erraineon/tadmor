@@ -12,14 +12,19 @@ namespace Tadmor.Rules.Services
         private readonly IGuildPreferencesRepository _guildPreferencesRepository;
         private readonly ITimeRuleNextRunDateCalculator _timeRuleRunDateCalculator;
 
-        public TimeRulePreferencesUpdater(IGuildPreferencesRepository guildPreferencesRepository,
+        public TimeRulePreferencesUpdater(
+            IGuildPreferencesRepository guildPreferencesRepository,
             ITimeRuleNextRunDateCalculator timeRuleRunDateCalculator)
         {
             _guildPreferencesRepository = guildPreferencesRepository;
             _timeRuleRunDateCalculator = timeRuleRunDateCalculator;
         }
 
-        public async Task<TimeRule> UpdatePreferencesAsync(ulong guildId, ulong channelId, TimeRule timeRule, Action<Preferences, TimeRule> updateAction)
+        public async Task<TimeRule> UpdatePreferencesAsync(
+            ulong guildId,
+            ulong channelId,
+            TimeRule timeRule,
+            Action<Preferences, TimeRule> updateAction)
         {
             var preferencesScope = new PreferencesScope(channelId, default, default);
             var updatedTimeRule = timeRule with

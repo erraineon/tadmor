@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Tadmor.Data.Interfaces;
 using Tadmor.Data.Models;
-using Tadmor.Data.Services;
 using Tadmor.Notifications.Interfaces;
 using Tadmor.Preference.Interfaces;
 using Tadmor.Preference.Models;
@@ -23,7 +21,8 @@ namespace Tadmor.Preference.Services
             _publisher = publisher;
         }
 
-        public async Task UpdatePreferencesAsync(Action<Preferences> updateAction,
+        public async Task UpdatePreferencesAsync(
+            Action<Preferences> updateAction,
             ulong guildId,
             PreferencesScope preferencesScope)
         {
@@ -43,7 +42,7 @@ namespace Tadmor.Preference.Services
         private async Task<GuildPreferencesEntity> GetOrCreateGuildPreferencesEntity(ulong guildId)
         {
             var guildPreferencesEntity = await _dbContext.GuildPreferences.FindAsync(guildId) ??
-                                         await CreateGuildPreferencesEntity(guildId);
+                await CreateGuildPreferencesEntity(guildId);
             return guildPreferencesEntity;
         }
 
@@ -76,21 +75,27 @@ namespace Tadmor.Preference.Services
             return result;
         }
 
-        private static ChannelPreferences GetOrCreateChannelPreferences(GuildPreferences guildPreferences, ulong channelId)
+        private static ChannelPreferences GetOrCreateChannelPreferences(
+            GuildPreferences guildPreferences,
+            ulong channelId)
         {
             return guildPreferences.ChannelPreferences.TryGetValue(channelId, out var channelPreferences)
                 ? channelPreferences
                 : guildPreferences.ChannelPreferences[channelId] = new ChannelPreferences();
         }
 
-        private static UserPreferences GetOrCreateUserPreferences(IGroupPreferencesContainer groupPreferencesContainer, ulong userId)
+        private static UserPreferences GetOrCreateUserPreferences(
+            IGroupPreferencesContainer groupPreferencesContainer,
+            ulong userId)
         {
             return groupPreferencesContainer.UserPreferences.TryGetValue(userId, out var userPreferences)
                 ? userPreferences
                 : groupPreferencesContainer.UserPreferences[userId] = new UserPreferences();
         }
 
-        private static RolePreferences GetOrCreateRolePreferences(IGroupPreferencesContainer groupPreferencesContainer, ulong userId)
+        private static RolePreferences GetOrCreateRolePreferences(
+            IGroupPreferencesContainer groupPreferencesContainer,
+            ulong userId)
         {
             return groupPreferencesContainer.RolePreferences.TryGetValue(userId, out var rolePreferences)
                 ? rolePreferences

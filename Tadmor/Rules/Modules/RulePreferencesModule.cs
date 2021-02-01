@@ -11,7 +11,6 @@ using Tadmor.Preference.Models;
 using Tadmor.Preference.Modules;
 using Tadmor.Rules.Interfaces;
 using Tadmor.Rules.Models;
-using Tadmor.Rules.Services;
 
 namespace Tadmor.Rules.Modules
 {
@@ -19,8 +18,8 @@ namespace Tadmor.Rules.Modules
     {
         private readonly IGuildPreferencesRepository _guildPreferencesRepository;
         private readonly IStringFormatter<PreferencesScope> _preferenceScopeFormatter;
-        private readonly ITimeRulePreferencesWriter _timeRulePreferencesWriter;
         private readonly IStringFormatter<RuleBase> _ruleFormatter;
+        private readonly ITimeRulePreferencesWriter _timeRulePreferencesWriter;
 
         public RulePreferencesModule(
             IGuildPreferencesRepository guildPreferencesRepository,
@@ -37,8 +36,9 @@ namespace Tadmor.Rules.Modules
         [Command("remind")]
         public async Task<RuntimeResult> Remind(TimeSpan delay, [Remainder] string reminder)
         {
-            var rule = await AddTimeRuleAsync(() =>
-                new Reminder(Context.User.Username, Context.User.Mention, delay, reminder));
+            var rule = await AddTimeRuleAsync(
+                () =>
+                    new Reminder(Context.User.Username, Context.User.Mention, delay, reminder));
             return CommandResult.FromSuccess($"will remind at {rule.NextRunDate}");
         }
 
@@ -46,21 +46,21 @@ namespace Tadmor.Rules.Modules
         public async Task<RuntimeResult> AddOneTimeRule(TimeSpan delay, [Remainder] string reaction)
         {
             await AddTimeRuleAsync(() => new OneTimeRule(delay, reaction));
-            return CommandResult.FromSuccess($"added one-time rule");
+            return CommandResult.FromSuccess("added one-time rule");
         }
 
         [Command("every")]
         public async Task<RuntimeResult> AddRecurringRule(TimeSpan interval, [Remainder] string reaction)
         {
             await AddTimeRuleAsync(() => new RecurringRule(interval, reaction));
-            return CommandResult.FromSuccess($"added recurring rule");
+            return CommandResult.FromSuccess("added recurring rule");
         }
 
         [Command("cron")]
         public async Task<RuntimeResult> AddCronRule(CrontabSchedule cronSchedule, [Remainder] string reaction)
         {
             await AddTimeRuleAsync(() => new CronRule(cronSchedule.ToString(), reaction));
-            return CommandResult.FromSuccess($"added cron rule");
+            return CommandResult.FromSuccess("added cron rule");
         }
 
         [Command("on")]
@@ -88,14 +88,16 @@ namespace Tadmor.Rules.Modules
                 new GuildPreferences();
             var flattenedPreferences = FlattenPreferences(guildPreferences);
 
-            var ruleStrings = await Task.WhenAll(flattenedPreferences
-                .SelectMany(t => t.Item2.Rules, (t, rule) => (scope: t.Item1, rule))
-                .Select(async (t, i) =>
-                {
-                    var scope = await _preferenceScopeFormatter.ToStringAsync(t.scope);
-                    var rule = await _ruleFormatter.ToStringAsync(t.rule);
-                    return $"{i}{scope}: {rule}";
-                }));
+            var ruleStrings = await Task.WhenAll(
+                flattenedPreferences
+                    .SelectMany(t => t.Item2.Rules, (t, rule) => (scope: t.Item1, rule))
+                    .Select(
+                        async (t, i) =>
+                        {
+                            var scope = await _preferenceScopeFormatter.ToStringAsync(t.scope);
+                            var rule = await _ruleFormatter.ToStringAsync(t.rule);
+                            return $"{i}{scope}: {rule}";
+                        }));
             return ruleStrings.Any()
                 ? CommandResult.FromSuccess(ruleStrings)
                 : CommandResult.FromError("there are no rules on this guild");
@@ -109,10 +111,11 @@ namespace Tadmor.Rules.Modules
             var removalTasks = FlattenPreferences(guildPreferences)
                 .SelectMany(t => t.Item2.Rules, (t, rule) => (scope: t.Item1, rule))
                 .Where((_, i) => ruleIndexes.Contains(i))
-                .Select(t => _guildPreferencesRepository.UpdatePreferencesAsync(
-                    preferences => preferences.Rules.Remove(t.rule),
-                    Context.Guild.Id,
-                    t.scope))
+                .Select(
+                    t => _guildPreferencesRepository.UpdatePreferencesAsync(
+                        preferences => preferences.Rules.Remove(t.rule),
+                        Context.Guild.Id,
+                        t.scope))
                 .ToList();
             await Task.WhenAll(removalTasks);
             return CommandResult.FromSuccess($"removed {removalTasks.Count} rules");
@@ -125,20 +128,28 @@ namespace Tadmor.Rules.Modules
                 {
                     (new PreferencesScope(default, default, default), (Preferences) guildPreferences)
                 }
-                .Concat(guildPreferences.RolePreferences
-                    .Select(p => (new PreferencesScope(default, default, p.Key), (Preferences) p.Value)))
-                .Concat(guildPreferences.UserPreferences
-                    .Select(p => (new PreferencesScope(default, p.Key, default), (Preferences) p.Value)))
-                .Concat(guildPreferences.ChannelPreferences
-                    .SelectMany(cp => new[]
-                        {
-                            (new PreferencesScope(cp.Key, default, default), (Preferences) cp.Value)
-                        }
-                        .Concat(cp.Value.RolePreferences
-                            .Select(p => (new PreferencesScope(cp.Key, default, p.Key), (Preferences) p.Value)))
-                        .Concat(cp.Value.UserPreferences
-                            .Select(p => (new PreferencesScope(cp.Key, p.Key, default), (Preferences) p.Value)))
-                    ));
+                .Concat(
+                    guildPreferences.RolePreferences
+                        .Select(p => (new PreferencesScope(default, default, p.Key), (Preferences) p.Value)))
+                .Concat(
+                    guildPreferences.UserPreferences
+                        .Select(p => (new PreferencesScope(default, p.Key, default), (Preferences) p.Value)))
+                .Concat(
+                    guildPreferences.ChannelPreferences
+                        .SelectMany(
+                            cp => new[]
+                                {
+                                    (new PreferencesScope(cp.Key, default, default), (Preferences) cp.Value)
+                                }
+                                .Concat(
+                                    cp.Value.RolePreferences
+                                        .Select(
+                                            p => (new PreferencesScope(cp.Key, default, p.Key), (Preferences) p.Value)))
+                                .Concat(
+                                    cp.Value.UserPreferences
+                                        .Select(
+                                            p => (new PreferencesScope(cp.Key, p.Key, default), (Preferences) p.Value)))
+                        ));
             return flattenedPreferences;
         }
 
