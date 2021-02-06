@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Http;
 using Discord.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +14,9 @@ using Tadmor.ChatClients.Discord.Models;
 using Tadmor.ChatClients.Discord.Services;
 using Tadmor.ChatClients.Interfaces;
 using Tadmor.ChatClients.Telegram;
+using Tadmor.ChatClients.Telegram.Interfaces;
+using Tadmor.ChatClients.Telegram.Models;
+using Tadmor.ChatClients.Telegram.Services;
 using Tadmor.Commands.Formatters;
 using Tadmor.Commands.Interfaces;
 using Tadmor.Commands.Models;
@@ -27,6 +31,7 @@ using Tadmor.Rules.Interfaces;
 using Tadmor.Rules.Models;
 using Tadmor.Rules.Notifications;
 using Tadmor.Rules.Services;
+using Telegram.Bot;
 
 namespace Tadmor.Extensions
 {
@@ -47,11 +52,15 @@ namespace Tadmor.Extensions
                 .ConfigureServices(
                     (hostingContext, services) =>
                     {
-                        services.BindConfigurationSection<DiscordOptions>(hostingContext.Configuration);
-                        services.AddSingleton<DiscordClient>();
-                        services.AddSingleton<IChatClient>(s => s.GetRequiredService<DiscordClient>());
-                        services.AddSingleton<IDiscordChatClient>(s => s.GetRequiredService<DiscordClient>());
-                        services.AddSingleton<IHostedService, DiscordClientLauncher>();
+                        var discordOptions = services.BindConfigurationSection<DiscordOptions>(hostingContext.Configuration);
+                        if (discordOptions.Enabled)
+                        {
+                            services.AddSingleton<DiscordClient>();
+                            services.AddSingleton<IChatClient>(s => s.GetRequiredService<DiscordClient>());
+                            services.AddSingleton<IDiscordChatClient>(s => s.GetRequiredService<DiscordClient>());
+                            services.AddSingleton<IChatEventProvider>(s => s.GetRequiredService<DiscordClient>());
+                            services.AddHostedService<DiscordClientLauncher>();
+                        }
                     });
         }
 
@@ -61,7 +70,22 @@ namespace Tadmor.Extensions
                 .ConfigureServices(
                     (hostingContext, services) =>
                     {
-                        services.BindConfigurationSection<TelegramOptions>(hostingContext.Configuration);
+                        var telegramOptions = services.BindConfigurationSection<TelegramOptions>(hostingContext.Configuration);
+                        if (telegramOptions.Enabled)
+                        {
+                            services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(telegramOptions.Token));
+                            services.AddSingleton<ITelegramApiClient, TelegramApiClient>();
+                            services.AddSingleton<ITelegramClient, TelegramClient>();
+                            services.AddSingleton<ITelegramApiListener, TelegramApiListener>();
+                            services.AddSingleton<ITelegramEventProvider, TelegramEventProvider>();
+                            services.AddSingleton<IChatEventProvider>(s => s.GetRequiredService<ITelegramEventProvider>());
+                            services.AddHostedService<TelegramClientLauncher>();
+                            services.AddTransient<IGuildUserCache, GuildUserCache>();
+                            services.AddTransient<IUserMessageCache, UserMessageCache>();
+                            services.AddTransient<ITelegramGuildFactory, TelegramGuildFactory>();
+                            services.AddTransient<ITelegramGuildUserFactory, TelegramGuildUserFactory>();
+                            services.AddTransient<ITelegramUserMessageFactory, TelegramUserMessageFactory>();
+                        }
                     });
         }
 

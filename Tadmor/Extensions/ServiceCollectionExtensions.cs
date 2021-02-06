@@ -9,14 +9,14 @@ namespace Tadmor.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection BindConfigurationSection<TOptions>(
+        public static TOptions BindConfigurationSection<TOptions>(
             this IServiceCollection services,
             IConfiguration configuration) where TOptions : class
         {
             var options = (TOptions) FormatterServices.GetUninitializedObject(typeof(TOptions));
             configuration.GetSection(typeof(TOptions).Name).Bind(options);
             services.TryAddSingleton(options);
-            return services;
+            return options;
         }
 
         public static void Decorate<TInterface, TDecorator>(this IServiceCollection services)

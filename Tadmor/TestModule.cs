@@ -21,6 +21,12 @@ namespace Tadmor
             return Task.FromResult(CommandResult.FromSuccess("pong"));
         }
 
+        [Command("reply")]
+        public Task<RuntimeResult> Reply()
+        {
+            return Task.FromResult(CommandResult.FromSuccess("replied", true));
+        }
+
         [Command("throw")]
         public async Task Throw()
         {

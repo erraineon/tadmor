@@ -9,9 +9,10 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Tadmor.Extensions
 {
-    public static class CacheExtensions
+    public static class MemoryCacheExtensions
     {
-        private static readonly ConcurrentDictionary<object, SemaphoreSlim> Semaphores = new();
+        private static readonly ConcurrentDictionary<object, SemaphoreSlim> Semaphores =
+            new();
         public static async Task<TItem> GetOrCreateAsyncLock<TItem>(
             this IMemoryCache cache,
             object key,

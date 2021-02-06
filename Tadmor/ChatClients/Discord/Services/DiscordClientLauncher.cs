@@ -22,27 +22,24 @@ namespace Tadmor.ChatClients.Discord.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            if (_discordOptions.Enabled)
+            var discordReady = new TaskCompletionSource();
+
+            Task OnReady()
             {
-                var discordReady = new TaskCompletionSource();
-
-                Task OnReady()
-                {
-                    _discordChatClient.Ready -= OnReady;
-                    discordReady.SetResult();
-                    return Task.CompletedTask;
-                }
-
-                _discordChatClient.Ready += OnReady;
-                await _discordChatClient.LoginAsync(TokenType.Bot, _discordOptions.Token, true);
-                await _discordChatClient.StartAsync();
-                await discordReady.Task;
+                _discordChatClient.Ready -= OnReady;
+                discordReady.SetResult();
+                return Task.CompletedTask;
             }
+
+            _discordChatClient.Ready += OnReady;
+            await _discordChatClient.LoginAsync(TokenType.Bot, _discordOptions.Token, true);
+            await _discordChatClient.StartAsync();
+            await discordReady.Task;
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            if (_discordOptions.Enabled) await _discordChatClient.StopAsync();
+            await _discordChatClient.StopAsync();
         }
     }
 }

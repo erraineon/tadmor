@@ -9,7 +9,7 @@ using Tadmor.ChatClients.Interfaces;
 namespace Tadmor.ChatClients.Discord.Services
 {
     [ExcludeFromCodeCoverage]
-    public class DiscordClient : DiscordSocketClient, IDiscordChatClient
+    public class DiscordClient : DiscordSocketClient, IDiscordChatClient, IChatEventProvider
     {
         public DiscordClient() : base(new DiscordSocketConfig {MessageCacheSize = 100})
         {

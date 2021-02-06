@@ -4,21 +4,24 @@ namespace Tadmor.Commands.Models
 {
     public class CommandResult : RuntimeResult
     {
-        private CommandResult(CommandError? error, string reason) : base(error, reason)
+        public bool Reply { get; }
+
+        private CommandResult(CommandError? error, string reason, bool reply) : base(error, reason)
         {
+            Reply = reply;
         }
 
-        public static RuntimeResult FromError(string reason)
+        public static RuntimeResult FromError(string reason, bool reply = false)
         {
-            return new CommandResult(CommandError.Unsuccessful, reason);
+            return new CommandResult(CommandError.Unsuccessful, reason, reply);
         }
 
-        public static RuntimeResult FromSuccess(string value)
+        public static RuntimeResult FromSuccess(string value, bool reply = false)
         {
-            return new CommandResult(null, value);
+            return new CommandResult(null, value, reply);
         }
 
-        public static RuntimeResult FromSuccess(string[] values)
+        public static RuntimeResult FromSuccess(string[] values, bool reply = false)
         {
             return FromSuccess(string.Join('\n', values));
         }

@@ -11,20 +11,20 @@ namespace Tadmor.Abstractions.Services
 {
     public class ChatClientEventDispatcher : IHostedService
     {
-        private readonly IEnumerable<IChatClient> _chatClients;
+        private readonly IEnumerable<IChatEventProvider> _chatEventProviders;
         private readonly INotificationPublisherFactory _notificationPublisherFactory;
 
         public ChatClientEventDispatcher(
-            IEnumerable<IChatClient> chatClients,
+            IEnumerable<IChatEventProvider> chatEventProviders,
             INotificationPublisherFactory notificationPublisherFactory)
         {
-            _chatClients = chatClients;
+            _chatEventProviders = chatEventProviders;
             _notificationPublisherFactory = notificationPublisherFactory;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            foreach (var chatClient in _chatClients)
+            foreach (var chatClient in _chatEventProviders)
             {
                 chatClient.MessageReceived += OnMessageReceived;
                 chatClient.GuildMemberUpdated += OnGuildMemberUpdated;
@@ -36,7 +36,7 @@ namespace Tadmor.Abstractions.Services
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            foreach (var chatClient in _chatClients)
+            foreach (var chatClient in _chatEventProviders)
             {
                 chatClient.MessageReceived -= OnMessageReceived;
                 chatClient.GuildMemberUpdated -= OnGuildMemberUpdated;

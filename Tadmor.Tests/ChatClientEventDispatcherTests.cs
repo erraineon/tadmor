@@ -15,8 +15,8 @@ namespace Tadmor.Tests
     [TestClass]
     public class ChatClientEventDispatcherTests
     {
-        private IChatClient _client1;
-        private IChatClient _client2;
+        private IChatEventProvider _client1;
+        private IChatEventProvider _client2;
         private INotificationPublisherFactory _notificationPublisherFactory;
         private ChatClientEventDispatcher _sut;
         private INotificationPublisher _notificationPublisher;
@@ -24,8 +24,8 @@ namespace Tadmor.Tests
         [TestInitialize]
         public void Initialize()
         {
-            _client1 = Substitute.For<IChatClient>();
-            _client2 = Substitute.For<IChatClient>();
+            _client1 = Substitute.For<IChatEventProvider>();
+            _client2 = Substitute.For<IChatEventProvider>();
             _notificationPublisherFactory = Substitute.For<INotificationPublisherFactory>();
             _notificationPublisher = Substitute.For<INotificationPublisher>();
             _notificationPublisherFactory.Create().Returns(_notificationPublisher);
