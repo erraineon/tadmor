@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Tadmor.Extensions;
+using Tadmor.Core.Extensions;
 using Tadmor.Impersonation.Interfaces;
 using Tadmor.Impersonation.Services;
 

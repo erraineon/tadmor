@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tadmor", "Tadmor\Tadmor.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TadmorLegacy", "TadmorLegacy\TadmorLegacy.csproj", "{6B0FCDA7-E715-410C-A99B-D01475D72993}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tadmor.Tests", "Tadmor.Tests\Tadmor.Tests.csproj", "{35FBA35A-057B-443D-9898-AB1E0E235299}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tadmor.Tests", "Tadmor.Tests\Tadmor.Tests.csproj", "{35FBA35A-057B-443D-9898-AB1E0E235299}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tadmor.Core", "Tadmor.Core\Tadmor.Core.csproj", "{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,14 @@ Global
 		{35FBA35A-057B-443D-9898-AB1E0E235299}.Release|Any CPU.Build.0 = Release|Any CPU
 		{35FBA35A-057B-443D-9898-AB1E0E235299}.Release|x64.ActiveCfg = Release|Any CPU
 		{35FBA35A-057B-443D-9898-AB1E0E235299}.Release|x64.Build.0 = Release|Any CPU
+		{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}.Debug|x64.Build.0 = Debug|Any CPU
+		{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}.Release|x64.ActiveCfg = Release|Any CPU
+		{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Tadmor.Commands.Models;
+using Tadmor.Core.Commands.Models;
 using Tadmor.GuildManager.Interfaces;
 
 namespace Tadmor.GuildManager.Modules

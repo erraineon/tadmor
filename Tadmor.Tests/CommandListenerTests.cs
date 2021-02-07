@@ -4,12 +4,10 @@ using Discord;
 using Discord.Commands;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Tadmor.ChatClients.Abstractions.Interfaces;
-using Tadmor.Commands.Interfaces;
-using Tadmor.Commands.Models;
-using Tadmor.Commands.Services;
-using Tadmor.Preference.Interfaces;
-using Tadmor.Preference.Models;
+using Tadmor.Core.ChatClients.Abstractions.Interfaces;
+using Tadmor.Core.Commands.Interfaces;
+using Tadmor.Core.Commands.Services;
+using Tadmor.Core.Preference.Interfaces;
 
 namespace Tadmor.Tests
 {

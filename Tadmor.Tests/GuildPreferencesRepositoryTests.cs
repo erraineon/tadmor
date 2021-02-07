@@ -7,14 +7,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Tadmor.Commands.Interfaces;
-using Tadmor.Commands.Services;
-using Tadmor.Data.Interfaces;
-using Tadmor.Data.Models;
-using Tadmor.Data.Services;
-using Tadmor.Notifications.Interfaces;
-using Tadmor.Preference.Models;
-using Tadmor.Preference.Services;
+using Tadmor.Core.Data.Interfaces;
+using Tadmor.Core.Data.Models;
+using Tadmor.Core.Notifications.Interfaces;
+using Tadmor.Core.Preference.Models;
+using Tadmor.Core.Preference.Services;
 
 namespace Tadmor.Tests
 {

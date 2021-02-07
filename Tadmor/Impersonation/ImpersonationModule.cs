@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Tadmor.Commands.Attributes;
+using Tadmor.Core.Commands.Attributes;
 using Tadmor.Impersonation.Interfaces;
 
 namespace Tadmor.Impersonation

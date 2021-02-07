@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Discord;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Tadmor.ChatClients.Discord.Interfaces;
-using Tadmor.ChatClients.Discord.Models;
-using Tadmor.ChatClients.Discord.Services;
+using Tadmor.Core.ChatClients.Discord.Interfaces;
+using Tadmor.Core.ChatClients.Discord.Models;
+using Tadmor.Core.ChatClients.Discord.Services;
 
 namespace Tadmor.Tests
 {

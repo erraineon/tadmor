@@ -3,10 +3,10 @@ using System.Threading.Tasks;
 using Discord;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Tadmor.Commands.Models;
-using Tadmor.Preference.Interfaces;
-using Tadmor.Preference.Models;
-using Tadmor.Preference.Services;
+using Tadmor.Core.Commands.Models;
+using Tadmor.Core.Preference.Interfaces;
+using Tadmor.Core.Preference.Models;
+using Tadmor.Core.Preference.Services;
 
 namespace Tadmor.Tests
 {

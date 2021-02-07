@@ -6,9 +6,9 @@ using Discord.Commands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Tadmor.Commands.Interfaces;
-using Tadmor.Commands.Models;
-using Tadmor.Commands.Services;
+using Tadmor.Core.Commands.Interfaces;
+using Tadmor.Core.Commands.Models;
+using Tadmor.Core.Commands.Services;
 
 namespace Tadmor.Tests
 {

@@ -7,8 +7,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using Tadmor.Notifications.Interfaces;
-using Tadmor.Notifications.Services;
+using Tadmor.Core.Notifications.Interfaces;
+using Tadmor.Core.Notifications.Services;
 
 namespace Tadmor.Tests
 {

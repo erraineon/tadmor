@@ -2,9 +2,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Tadmor.Preference.Interfaces;
-using Tadmor.Preference.Models;
-using Tadmor.Preference.Services;
+using Tadmor.Core.Preference.Interfaces;
+using Tadmor.Core.Preference.Models;
+using Tadmor.Core.Preference.Services;
 
 namespace Tadmor.Tests
 {

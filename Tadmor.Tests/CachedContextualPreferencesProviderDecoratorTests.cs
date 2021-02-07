@@ -4,11 +4,11 @@ using Discord;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Tadmor.ChatClients.Abstractions.Interfaces;
-using Tadmor.ChatClients.Abstractions.Models;
-using Tadmor.Preference.Interfaces;
-using Tadmor.Preference.Models;
-using Tadmor.Preference.Services;
+using Tadmor.Core.ChatClients.Abstractions.Interfaces;
+using Tadmor.Core.ChatClients.Abstractions.Models;
+using Tadmor.Core.Preference.Interfaces;
+using Tadmor.Core.Preference.Models;
+using Tadmor.Core.Preference.Services;
 
 namespace Tadmor.Tests
 {

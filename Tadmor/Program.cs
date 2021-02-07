@@ -1,19 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Tadmor.ChatClients.Abstractions.Extensions;
-using Tadmor.ChatClients.Discord.Extensions;
-using Tadmor.ChatClients.Telegram.Extensions;
-using Tadmor.Commands.Extensions;
-using Tadmor.Commands.Modules;
-using Tadmor.Data.Interfaces;
-using Tadmor.Data.Services;
-using Tadmor.Extensions;
+using Tadmor.Core.ChatClients.Abstractions.Extensions;
+using Tadmor.Core.ChatClients.Discord.Extensions;
+using Tadmor.Core.ChatClients.Telegram.Extensions;
+using Tadmor.Core.Commands.Extensions;
+using Tadmor.Core.Extensions;
 using Tadmor.GuildManager.Extensions;
-using Tadmor.Rules.Extensions;
-using Tadmor.Rules.Modules;
 
 namespace Tadmor
 {
@@ -36,7 +29,6 @@ namespace Tadmor
                 .UseTelegram()
                 .UseLogging()
                 .UseCommands()
-                .UseScheduledTasks()
                 .UseModule<TestModule>()
                 .UseGuildManager()
                 .UseConsoleLifetime();

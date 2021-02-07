@@ -10,7 +10,6 @@
     <PackageReference Include="Discord.Net" Version="2.3.0-dev-20201223.7" />
     <PackageReference Include="Flurl.Http" Version="3.0.1" />
     <PackageReference Include="Humanizer.Core" Version="2.8.26" />
-    <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.2">
       <PrivateAssets>all</PrivateAssets>
@@ -20,8 +19,6 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageReference Include="ncrontab" Version="3.3.1" />
-    <PackageReference Include="Telegram.Bot" Version="15.7.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,9 +28,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Commands\Notifications\" />
     <Folder Include="Impersonation\Modules\" />
     <Folder Include="Modules\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tadmor.Core\Tadmor.Core.csproj" />
   </ItemGroup>
 
 </Project>

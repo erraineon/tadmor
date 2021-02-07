@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Discord.Commands;
-using Tadmor.Commands.Attributes;
-using Tadmor.Commands.Models;
+using Tadmor.Core.Commands.Attributes;
+using Tadmor.Core.Commands.Models;
 
 namespace Tadmor
 {
