@@ -19,7 +19,7 @@ namespace Tadmor.Extensions
             return options;
         }
 
-        public static void Decorate<TInterface, TDecorator>(this IServiceCollection services)
+        public static IServiceCollection Decorate<TInterface, TDecorator>(this IServiceCollection services)
             where TInterface : class
             where TDecorator : class, TInterface
         {
@@ -38,6 +38,8 @@ namespace Tadmor.Extensions
                         wrappedDescriptor.Lifetime)
                 );
             }
+
+            return services;
         }
 
         private static object CreateInstance(this IServiceProvider services, ServiceDescriptor descriptor)

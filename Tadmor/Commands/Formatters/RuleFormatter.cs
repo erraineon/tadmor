@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Humanizer;
-using Tadmor.Abstractions.Interfaces;
+using Tadmor.Formatting.Interfaces;
 using Tadmor.Rules.Models;
 
 namespace Tadmor.Commands.Formatters

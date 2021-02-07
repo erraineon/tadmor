@@ -1,4 +1,4 @@
-﻿using Tadmor.ChatClients.Interfaces;
+﻿using Tadmor.ChatClients.Abstractions.Interfaces;
 using Tadmor.Rules.Models;
 
 namespace Tadmor.Rules.Notifications

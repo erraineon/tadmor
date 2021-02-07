@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Discord;
-using Tadmor.ChatClients.Interfaces;
+using Tadmor.ChatClients.Abstractions.Interfaces;
 using Tadmor.ChatClients.Telegram.Interfaces;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;

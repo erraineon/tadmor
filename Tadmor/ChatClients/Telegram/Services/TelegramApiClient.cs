@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Tadmor.ChatClients.Interfaces;
 using Tadmor.ChatClients.Telegram.Interfaces;
 using Telegram.Bot;
 using Telegram.Bot.Args;

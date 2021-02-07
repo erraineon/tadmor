@@ -20,7 +20,7 @@ namespace Tadmor.Commands.Services
                         : default;
                     await commandContext.Channel.SendMessageAsync(runtimeResult.Reason, messageReference: messageReference);
                     break;
-                case ExecuteResult {Exception: FrontEndException e}:
+                case ExecuteResult {Exception: ModuleException e}:
                     await commandContext.Channel.SendMessageAsync(e.Message);
                     break;
             }

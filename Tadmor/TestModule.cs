@@ -30,13 +30,13 @@ namespace Tadmor
         [Command("throw")]
         public async Task Throw()
         {
-            throw new Exception("error");
+            throw new Exception("inner error");
         }
 
         [Command("throwp")]
         public async Task ThrowPublicFacing()
         {
-            throw new FrontEndException("error");
+            throw new ModuleException("public facing error");
         }
 
         [Command("echo")]

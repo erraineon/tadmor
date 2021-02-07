@@ -4,9 +4,9 @@ using Discord;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Tadmor.Abstractions.Models;
-using Tadmor.Abstractions.Services;
-using Tadmor.ChatClients.Interfaces;
+using Tadmor.ChatClients.Abstractions.Interfaces;
+using Tadmor.ChatClients.Abstractions.Models;
+using Tadmor.ChatClients.Abstractions.Services;
 
 namespace Tadmor.Tests
 {

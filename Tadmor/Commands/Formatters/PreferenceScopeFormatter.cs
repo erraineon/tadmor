@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using System.Threading.Tasks;
 using Discord.Commands;
-using Tadmor.Abstractions.Interfaces;
+using Tadmor.Formatting.Interfaces;
 using Tadmor.Preference.Models;
 
 namespace Tadmor.Commands.Formatters

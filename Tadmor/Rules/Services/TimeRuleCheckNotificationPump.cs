@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
-using Tadmor.ChatClients.Interfaces;
+using Tadmor.ChatClients.Abstractions.Interfaces;
 using Tadmor.Notifications.Interfaces;
 using Tadmor.Rules.Models;
 

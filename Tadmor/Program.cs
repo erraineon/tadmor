@@ -3,10 +3,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Tadmor.ChatClients.Abstractions.Extensions;
+using Tadmor.ChatClients.Discord.Extensions;
+using Tadmor.ChatClients.Telegram.Extensions;
+using Tadmor.Commands.Extensions;
 using Tadmor.Commands.Modules;
 using Tadmor.Data.Interfaces;
 using Tadmor.Data.Services;
 using Tadmor.Extensions;
+using Tadmor.GuildManager.Extensions;
+using Tadmor.Rules.Extensions;
 using Tadmor.Rules.Modules;
 
 namespace Tadmor
@@ -25,21 +31,15 @@ namespace Tadmor
                 .ConfigureAppConfiguration(
                     config => config
                         .AddJsonFile("appsettings.json"))
+                .UseTadmorDbContext()
                 .UseDiscord()
                 .UseTelegram()
                 .UseLogging()
                 .UseCommands()
                 .UseScheduledTasks()
                 .UseModule<TestModule>()
-                .UseModule<CommandPreferencesModule>()
-                .UseModule<RulePreferencesModule>()
-                .UseConsoleLifetime()
-                .ConfigureServices(
-                    s =>
-                    {
-                        s.AddDbContext<TadmorDbContext>();
-                        s.TryAddScoped<ITadmorDbContext, TadmorDbContext>();
-                    });
+                .UseGuildManager()
+                .UseConsoleLifetime();
         }
     }
 }

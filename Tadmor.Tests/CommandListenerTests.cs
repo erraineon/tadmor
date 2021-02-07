@@ -4,7 +4,7 @@ using Discord;
 using Discord.Commands;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Tadmor.ChatClients.Interfaces;
+using Tadmor.ChatClients.Abstractions.Interfaces;
 using Tadmor.Commands.Interfaces;
 using Tadmor.Commands.Models;
 using Tadmor.Commands.Services;
@@ -16,7 +16,7 @@ namespace Tadmor.Tests
     [TestClass]
     public class CommandListenerTests
     {
-        private MessageDrivenCommandExecutor _sut;
+        private ChatCommandMonitor _sut;
         private IContextualPreferencesProvider _contextualPreferencesProvider;
         private ICommandPermissionValidator _commandPermissionValidator;
         private IChatClient _chatClient;
@@ -29,7 +29,7 @@ namespace Tadmor.Tests
         //    _contextualPreferencesProvider = Substitute.For<IContextualPreferencesProvider>();
         //    _commandPermissionValidator = Substitute.For<ICommandPermissionValidator>();
         //    _chatClient = Substitute.For<IChatClient>();
-        //    _sut = new MessageDrivenCommandExecutor(_commandPrefixValidator, _frontFacingCommandExecutor, _commandPermissionValidator);
+        //    _sut = new ChatCommandMonitor(_commandPrefixValidator, _frontFacingCommandExecutor, _commandPermissionValidator);
         //}
 
         //[TestMethod]

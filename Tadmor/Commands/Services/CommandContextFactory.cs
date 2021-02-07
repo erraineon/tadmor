@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
-using Tadmor.Abstractions.Models;
-using Tadmor.ChatClients.Interfaces;
+using Tadmor.ChatClients.Abstractions.Interfaces;
+using Tadmor.ChatClients.Abstractions.Models;
 using Tadmor.Commands.Interfaces;
 
 namespace Tadmor.Commands.Services

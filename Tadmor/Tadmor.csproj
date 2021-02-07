@@ -8,8 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.3.0-dev-20201223.7" />
-    <PackageReference Include="Hangfire.Core" Version="1.7.19" />
-    <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
+    <PackageReference Include="Flurl.Http" Version="3.0.1" />
     <PackageReference Include="Humanizer.Core" Version="2.8.26" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
@@ -33,6 +32,8 @@
 
   <ItemGroup>
     <Folder Include="Commands\Notifications\" />
+    <Folder Include="Impersonation\Modules\" />
+    <Folder Include="Modules\" />
   </ItemGroup>
 
 </Project>

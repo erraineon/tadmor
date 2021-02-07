@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Tadmor.ChatClients.Interfaces;
+using Tadmor.ChatClients.Abstractions.Interfaces;
 using Telegram.Bot.Types;
 
 namespace Tadmor.ChatClients.Telegram.Interfaces

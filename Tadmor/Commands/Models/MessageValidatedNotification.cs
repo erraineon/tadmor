@@ -1,5 +1,5 @@
 ﻿using Discord;
-using Tadmor.ChatClients.Interfaces;
+using Tadmor.ChatClients.Abstractions.Interfaces;
 
 namespace Tadmor.Commands.Models
 {

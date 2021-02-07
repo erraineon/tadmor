@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Discord.Commands;
+using Tadmor.Commands.Extensions;
 using Tadmor.Commands.Models;
 using Tadmor.Extensions;
 using Tadmor.Preference.Interfaces;

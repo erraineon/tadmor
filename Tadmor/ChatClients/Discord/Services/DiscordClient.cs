@@ -3,8 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Tadmor.ChatClients.Abstractions.Interfaces;
 using Tadmor.ChatClients.Discord.Interfaces;
-using Tadmor.ChatClients.Interfaces;
 
 namespace Tadmor.ChatClients.Discord.Services
 {

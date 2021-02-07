@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Tadmor.Commands.Extensions;
 using Tadmor.Extensions;
 using Tadmor.Preference.Interfaces;
 using Tadmor.Preference.Models;
