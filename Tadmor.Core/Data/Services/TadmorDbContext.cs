@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Newtonsoft.Json;
+using Tadmor.Core.Bookmarks.Models;
 using Tadmor.Core.Data.Interfaces;
 using Tadmor.Core.Data.Models;
 
@@ -17,16 +18,20 @@ namespace Tadmor.Core.Data.Services
         }
 
         public DbSet<GuildPreferencesEntity> GuildPreferences { get; set; } = null!;
+        public DbSet<Bookmark> Bookmarks { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<GuildPreferencesEntity>(
-                b =>
-                {
-                    b.HasKey(e => e.GuildId);
-                    b.Property(e => e.GuildId).ValueGeneratedNever();
-                    HasJsonConversion(b.Property(e => e.Preferences));
-                });
+            modelBuilder.Entity<GuildPreferencesEntity>(b =>
+            {
+                b.HasKey(e => e.GuildId);
+                b.Property(e => e.GuildId).ValueGeneratedNever();
+                HasJsonConversion(b.Property(e => e.Preferences));
+            });
+            modelBuilder.Entity<Bookmark>(b =>
+            {
+                b.HasKey(e => new {e.ChatClientId, e.GuildId, e.ChannelId, e.Key});
+            });
             base.OnModelCreating(modelBuilder);
         }
 

@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using System.Collections.Generic;
+using Discord.Commands;
 
 namespace Tadmor.Core.Commands.Models
 {
@@ -21,7 +22,7 @@ namespace Tadmor.Core.Commands.Models
             return new CommandResult(null, value, reply);
         }
 
-        public static RuntimeResult FromSuccess(string[] values, bool reply = false)
+        public static RuntimeResult FromSuccess(IEnumerable<string> values, bool reply = false)
         {
             return FromSuccess(string.Join('\n', values));
         }

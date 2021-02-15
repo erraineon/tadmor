@@ -6,6 +6,7 @@ using Tadmor.Core.ChatClients.Abstractions.Models;
 using Tadmor.Core.Commands.Interfaces;
 using Tadmor.Core.Commands.Models;
 using Tadmor.Core.Commands.Services;
+using Tadmor.Core.Data.Extensions;
 using Tadmor.Core.Extensions;
 using Tadmor.Core.Notifications.Extensions;
 using Tadmor.Core.Notifications.Interfaces;

@@ -1,10 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Tadmor.Core.Bookmarks.Extensions;
 using Tadmor.Core.ChatClients.Abstractions.Extensions;
 using Tadmor.Core.ChatClients.Discord.Extensions;
 using Tadmor.Core.ChatClients.Telegram.Extensions;
 using Tadmor.Core.Commands.Extensions;
+using Tadmor.Core.Data.Extensions;
 using Tadmor.Core.Extensions;
 using Tadmor.GuildManager.Extensions;
 
@@ -29,8 +31,10 @@ namespace Tadmor
                 .UseTelegram()
                 .UseLogging()
                 .UseCommands()
+                .UseBookmarks()
                 .UseModule<TestModule>()
                 .UseGuildManager()
+                .UseE621()
                 .UseConsoleLifetime();
         }
     }

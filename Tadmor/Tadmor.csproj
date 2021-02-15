@@ -7,7 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.3.0-dev-20201223.7" />
+    <PackageReference Include="Discord.Net" Version="2.3.1-dev-20210131.6" />
+    <PackageReference Include="E621Client" Version="0.0.3" />
     <PackageReference Include="Flurl.Http" Version="3.0.1" />
     <PackageReference Include="Humanizer.Core" Version="2.8.26" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.2" />
@@ -28,8 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Furry\Models\" />
     <Folder Include="Impersonation\Modules\" />
-    <Folder Include="Modules\" />
   </ItemGroup>
 
   <ItemGroup>

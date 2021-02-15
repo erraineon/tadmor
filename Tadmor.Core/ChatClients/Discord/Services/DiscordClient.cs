@@ -25,5 +25,6 @@ namespace Tadmor.Core.ChatClients.Discord.Services
             (_, _, _) => Task.CompletedTask;
 
         public new event Func<IChatClient, LogMessage, Task> Log = (_, _) => Task.CompletedTask;
+        public string Name => "discord";
     }
 }

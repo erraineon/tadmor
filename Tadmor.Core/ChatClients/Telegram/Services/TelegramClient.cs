@@ -167,5 +167,6 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         //    });
         //    return data;
         //}
+        public string Name => "telegram";
     }
 }

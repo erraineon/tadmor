@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Tadmor.Core.Data.Interfaces;
 using Tadmor.Core.Data.Services;
 
-namespace Tadmor.Core.Extensions
+namespace Tadmor.Core.Data.Extensions
 {
     public static class DataRegistrationExtensions
     {
