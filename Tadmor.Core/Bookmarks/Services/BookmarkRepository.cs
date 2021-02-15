@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord.Commands;
-using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.EntityFrameworkCore;
 using Tadmor.Core.Bookmarks.Interfaces;
 using Tadmor.Core.Bookmarks.Models;
 using Tadmor.Core.ChatClients.Abstractions.Interfaces;
@@ -36,21 +33,33 @@ namespace Tadmor.Core.Bookmarks.Services
                 Key = key,
                 LastSeenValue = lastSeenId
             };
-            _tadmorDbContext.Update(bookmark);
+
+            var alreadyExists = await _tadmorDbContext.Bookmarks
+                .AsNoTracking()
+                .AnyAsync(b =>
+                    b.ChatClientId == bookmark.ChatClientId &&
+                    b.GuildId == bookmark.GuildId &&
+                    b.ChannelId == bookmark.ChannelId &&
+                    b.Key == bookmark.Key, cancellationToken);
+
+            if (alreadyExists) _tadmorDbContext.Update(bookmark);
+            else await _tadmorDbContext.Bookmarks.AddAsync(bookmark, cancellationToken);
+
             await _tadmorDbContext.SaveChangesAsync(cancellationToken);
         }
 
         public async Task<string?> GetLastSeenValueAsync(string key, CancellationToken cancellationToken = default)
         {
-            var keyValues = new object[]
-            {
-                ((IChatClient) _commandContext.Client).Name,
-                _commandContext.Guild.Id,
-                _commandContext.Channel.Id,
-                key
-            };
-            var bookmark = await _tadmorDbContext.Bookmarks.FindAsync(keyValues, cancellationToken);
-            var lastSeenValue = bookmark?.LastSeenValue;
+            var lastSeenValue = await _tadmorDbContext.Bookmarks
+                .AsQueryable()
+                .Where(b =>
+                    b.ChatClientId == ((IChatClient)_commandContext.Client).Name &&
+                    b.GuildId == _commandContext.Guild.Id &&
+                    b.ChannelId == _commandContext.Channel.Id &&
+                    b.Key == key)
+                .Select(b => b.LastSeenValue)
+                .SingleOrDefaultAsync(cancellationToken);
+
             return lastSeenValue;
         }
     }

@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tadmor.Core.Extensions;
+using Tadmor.Furry.Modules;
 using Tadmor.Furry.Services;
-using Tadmor.GuildManager.Interfaces;
-using Tadmor.GuildManager.Modules;
-using Tadmor.GuildManager.Services;
 
-namespace Tadmor.GuildManager.Extensions
+namespace Tadmor.Furry.Extensions
 {
     public static class E621RegistrationExtensions
     {
@@ -16,8 +14,9 @@ namespace Tadmor.GuildManager.Extensions
                 .ConfigureServices(services =>
                 {
                     services.AddTransient<IE621Client, E621ClientWrapper>();
+                    services.AddTransient<IE621SearchEngine, E621SearchEngine>();
                 })
-                .UseModule<GuildManagerModule>();
+                .UseModule<FurrySearchEngineModule>();
         }
     }
 }

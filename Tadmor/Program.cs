@@ -8,6 +8,7 @@ using Tadmor.Core.ChatClients.Telegram.Extensions;
 using Tadmor.Core.Commands.Extensions;
 using Tadmor.Core.Data.Extensions;
 using Tadmor.Core.Extensions;
+using Tadmor.Furry.Extensions;
 using Tadmor.GuildManager.Extensions;
 
 namespace Tadmor

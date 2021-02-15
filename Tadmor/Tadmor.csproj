@@ -29,7 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Furry\Models\" />
     <Folder Include="Impersonation\Modules\" />
   </ItemGroup>
 
