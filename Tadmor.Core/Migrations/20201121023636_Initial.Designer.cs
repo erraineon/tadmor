@@ -9,7 +9,7 @@ namespace Tadmor.Core.Migrations
 {
     [DbContext(typeof(TadmorDbContext))]
     [Migration("20201121023636_Initial")]
-    partial class Initial
+    partial class _20201121023636_Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

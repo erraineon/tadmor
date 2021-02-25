@@ -6,7 +6,7 @@ using Tadmor.Core.Notifications.Interfaces;
 
 namespace Tadmor.Core.ChatClients.Abstractions.Services
 {
-    public class ChatClientLogger : INotificationHandler<LogNotification>
+    public class ChatClientLogger : INotificationHandler<LogNotification>, INotificationHandler<MessageReceivedNotification>
     {
         private readonly ILogger<ChatClientLogger> _logger;
 
@@ -18,6 +18,12 @@ namespace Tadmor.Core.ChatClients.Abstractions.Services
         public Task HandleAsync(LogNotification notification, CancellationToken cancellationToken)
         {
             _logger.Log(LogLevel.Information, notification.LogMessage.ToString());
+            return Task.CompletedTask;
+        }
+
+        public Task HandleAsync(MessageReceivedNotification notification, CancellationToken cancellationToken)
+        {
+            _logger.Log(LogLevel.Information, notification.Message.ToString());
             return Task.CompletedTask;
         }
     }

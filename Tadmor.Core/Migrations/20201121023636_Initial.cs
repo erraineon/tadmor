@@ -2,7 +2,7 @@
 
 namespace Tadmor.Core.Migrations
 {
-    public partial class Initial : Migration
+    public partial class _20201121023636_Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
