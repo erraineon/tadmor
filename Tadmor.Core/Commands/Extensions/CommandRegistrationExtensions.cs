@@ -5,6 +5,7 @@ using Tadmor.Core.ChatClients.Abstractions.Extensions;
 using Tadmor.Core.ChatClients.Abstractions.Models;
 using Tadmor.Core.Commands.Interfaces;
 using Tadmor.Core.Commands.Models;
+using Tadmor.Core.Commands.Modules;
 using Tadmor.Core.Commands.Services;
 using Tadmor.Core.Data.Extensions;
 using Tadmor.Core.Extensions;
@@ -45,7 +46,12 @@ namespace Tadmor.Core.Commands.Extensions
                     .AddTransient<INotificationHandler<MessageValidatedNotification>, ChatCommandMonitor>()
                     .AddTransient<ICommandPrefixValidator, CommandPrefixValidator>()
                     .AddTransient<ICommandPermissionValidator, CommandPermissionValidator>()
-                    .AddTransient<ICommandResultPublisher, CommandResultPublisher>());
+                    .AddTransient<ICommandResultPublisher, CommandResultPublisher>()
+                
+                    // commands help and related
+                    .AddTransient<ICommandsMetadataProvider, CommandsMetadataProvider>()
+                )
+                .UseModule<HelpModule>();
         }
     }
 }

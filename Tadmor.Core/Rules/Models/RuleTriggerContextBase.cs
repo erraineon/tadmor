@@ -25,5 +25,6 @@ namespace Tadmor.Core.Rules.Models
         public IChatClient ChatClient { get; }
         public IUserMessage? ReferencedMessage { get; }
         public RuleBase Rule { get; }
+        public abstract bool ShouldExecute { get; }
     }
 }

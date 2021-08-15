@@ -37,7 +37,7 @@ namespace Tadmor.Tests
         //    var channel = Substitute.For<IMessageChannel, IGuildChannel>();
         //    var author = Substitute.For<IGuildUser>();
         //    var preferences = new Preferences {CommandPrefix = "!"};
-        //    _contextualPreferencesProvider.GetContextualPreferences(default!, default!).ReturnsForAnyArgs(preferences);
+        //    _contextualPreferencesProvider.GetContextualPreferencesAsync(default!, default!).ReturnsForAnyArgs(preferences);
         //    message.Channel.Returns(channel);
         //    message.Author.Returns(author);
         //    message.Content.Returns("!test");
@@ -53,7 +53,7 @@ namespace Tadmor.Tests
         //    var channel = Substitute.For<IMessageChannel, IGuildChannel>();
         //    var author = Substitute.For<IGuildUser>();
         //    var preferences = new Preferences {CommandPrefix = "!"};
-        //    _contextualPreferencesProvider.GetContextualPreferences(default!, default!).ReturnsForAnyArgs(preferences);
+        //    _contextualPreferencesProvider.GetContextualPreferencesAsync(default!, default!).ReturnsForAnyArgs(preferences);
         //    message.Channel.Returns(channel);
         //    message.Author.Returns(author);
         //    message.Content.Returns("!test");
@@ -68,7 +68,7 @@ namespace Tadmor.Tests
         //    var channel = Substitute.For<IMessageChannel, IDMChannel>();
         //    var author = Substitute.For<IGuildUser>();
         //    var preferences = new Preferences {CommandPrefix = "!"};
-        //    _contextualPreferencesProvider.GetContextualPreferences(default!, default!).ReturnsForAnyArgs(preferences);
+        //    _contextualPreferencesProvider.GetContextualPreferencesAsync(default!, default!).ReturnsForAnyArgs(preferences);
         //    message.Channel.Returns(channel);
         //    message.Author.Returns(author);
         //    message.Content.Returns("!test");
@@ -83,7 +83,7 @@ namespace Tadmor.Tests
         //    var channel = Substitute.For<IMessageChannel, IDMChannel>();
         //    var author = Substitute.For<IGroupUser>();
         //    var preferences = new Preferences {CommandPrefix = "!"};
-        //    _contextualPreferencesProvider.GetContextualPreferences(default!, default!).ReturnsForAnyArgs(preferences);
+        //    _contextualPreferencesProvider.GetContextualPreferencesAsync(default!, default!).ReturnsForAnyArgs(preferences);
         //    message.Channel.Returns(channel);
         //    message.Author.Returns(author);
         //    message.Content.Returns("!test");
@@ -98,7 +98,7 @@ namespace Tadmor.Tests
         //    var channel = Substitute.For<IMessageChannel, IGuildChannel>();
         //    var author = Substitute.For<IGuildUser>();
         //    var preferences = new Preferences {CommandPrefix = "$"};
-        //    _contextualPreferencesProvider.GetContextualPreferences(default!, default!).ReturnsForAnyArgs(preferences);
+        //    _contextualPreferencesProvider.GetContextualPreferencesAsync(default!, default!).ReturnsForAnyArgs(preferences);
         //    message.Channel.Returns(channel);
         //    message.Author.Returns(author);
         //    message.Content.Returns("!test");

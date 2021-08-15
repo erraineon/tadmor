@@ -11,6 +11,7 @@ namespace Tadmor.Core.Data.Interfaces
 {
     public interface ITadmorDbContext : IAsyncDisposable
     {
+        DbSet<TValue> Set<TValue>() where TValue : class;
         DbSet<GuildPreferencesEntity> GuildPreferences { get; }
         DbSet<Bookmark> Bookmarks { get; set; }
         DatabaseFacade Database { get; }

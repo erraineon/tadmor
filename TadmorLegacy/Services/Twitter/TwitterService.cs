@@ -65,7 +65,6 @@ namespace Tadmor.Services.Twitter
             return $"https://twitter.com/{myName}/status/{tweet.StatusID}";
         }
 
-
         public async Task<string> GetRandomMediaStatusUrl(AppDbContext context, string username)
         {
             var posts = await GetImagePosts(context, username);

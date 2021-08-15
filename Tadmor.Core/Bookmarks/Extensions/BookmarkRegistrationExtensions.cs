@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tadmor.Core.Bookmarks.Interfaces;
 using Tadmor.Core.Bookmarks.Services;

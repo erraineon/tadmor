@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -62,15 +61,6 @@ namespace Tadmor
                 .UseConsoleLifetime()
                 .Build();
             return host;
-        }
-    }
-
-    public class CommandContextResolver
-    {
-        public ICommandContext? CurrentCommandContext { get; set; }
-        public ICommandContext? GetCommandContext()
-        {
-            return CurrentCommandContext;
         }
     }
 }

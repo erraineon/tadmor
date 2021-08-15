@@ -10,6 +10,9 @@ using Tadmor.Core.Data.Extensions;
 using Tadmor.Core.Extensions;
 using Tadmor.Furry.Extensions;
 using Tadmor.GuildManager.Extensions;
+using Tadmor.Search.Extensions;
+using Tadmor.TextGeneration.Extensions;
+using Tadmor.Twitter.Extensions;
 
 namespace Tadmor
 {
@@ -17,7 +20,7 @@ namespace Tadmor
     {
         public static async Task Main(string[] args)
         {
-            var host = CreateHostBuilder(args).Build();
+            using var host = CreateHostBuilder(args).Build();
             await host.RunAsync();
         }
 
@@ -36,6 +39,9 @@ namespace Tadmor
                 .UseModule<TestModule>()
                 .UseGuildManager()
                 .UseE621()
+                .UseGoogleSearch()
+                .UseTadmorMind()
+                .UseTwitter()
                 .UseConsoleLifetime();
         }
     }

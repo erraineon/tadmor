@@ -6,6 +6,7 @@ using Tadmor.Core.Commands.Models;
 
 namespace Tadmor
 {
+    [HideInHelp]
     public class TestModule : ModuleBase<ICommandContext>
     {
         [Command("synctest")]
@@ -50,6 +51,14 @@ namespace Tadmor
         public Task<RuntimeResult> Whitelist()
         {
             return Task.FromResult(CommandResult.FromSuccess("whitelist success"));
+        }
+
+        [Command("del")]
+        public async Task<RuntimeResult?> Delete([Remainder] string message)
+        {
+            if (Context.Message.ReferencedMessage is { } messageToDelete)
+                await messageToDelete.DeleteAsync();
+            return !string.IsNullOrWhiteSpace(message) ? CommandResult.FromSuccess(message) : default;
         }
     }
 }

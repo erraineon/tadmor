@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Tadmor.Core.ChatClients.Abstractions.Models;
 using Tadmor.Core.Commands.Formatters;
+using Tadmor.Core.Commands.Models;
 using Tadmor.Core.Commands.Modules;
 using Tadmor.Core.Extensions;
 using Tadmor.Core.Formatting.Interfaces;
@@ -28,7 +29,8 @@ namespace Tadmor.Core.Preference.Extensions
                     .AddTransient<
                         INotificationHandler<GuildPreferencesUpdatedNotification>,
                         CachedContextualPreferencesProviderDecorator>()
-                    .AddTransient<IStringFormatter<PreferencesScope>, PreferenceScopeFormatter>())
+                    .AddTransient<IStringFormatter<PreferencesScope>, PreferenceScopeFormatter>()
+                    .AddTransient<IStringFormatter<CommandPermission>, CommandPermissionFormatter>())
                 .UseModule<CommandPreferencesModule>();
         }
     }

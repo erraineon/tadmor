@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace Tadmor.Core.Preference.Services
             _guildPreferencesRepository = guildPreferencesRepository;
         }
 
-        public async Task<Preferences> GetContextualPreferences(IGuildChannel channel, IGuildUser user)
+        public async Task<Preferences> GetContextualPreferencesAsync(IGuildChannel channel, IGuildUser user)
         {
             var guildPreferences = await _guildPreferencesRepository.GetGuildPreferencesAsyncOrNull(channel.GuildId);
             var orderedPreferences = FindPreferencesForContext(
@@ -37,12 +38,10 @@ namespace Tadmor.Core.Preference.Services
             if (guildPreferences == null) yield break;
             yield return guildPreferences;
 
-            var roleIds = (user.RoleIds ?? Enumerable.Empty<ulong>()).ToList();
-
             if (TryGetChannelPreferences(guildPreferences, channel.Id, out var channelPreferences))
                 yield return channelPreferences;
 
-            foreach (var roleId in roleIds)
+            foreach (var roleId in user.RoleIds)
                 if (TryGetRolePreferences(guildPreferences, roleId, out var rolePreferences))
                     yield return rolePreferences;
 
@@ -51,7 +50,7 @@ namespace Tadmor.Core.Preference.Services
 
             if (channelPreferences != null)
             {
-                foreach (var roleId in roleIds)
+                foreach (var roleId in user.RoleIds)
                     if (TryGetRolePreferences(channelPreferences, roleId, out var rolePreferences))
                         yield return rolePreferences;
 

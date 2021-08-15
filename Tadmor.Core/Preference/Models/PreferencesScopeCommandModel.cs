@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.ComponentModel;
+using System.Text;
 using Discord;
 using Discord.Commands;
 using JetBrains.Annotations;
@@ -8,8 +9,11 @@ namespace Tadmor.Core.Preference.Models
     [NamedArgumentType]
     public class PreferencesScopeCommandModel
     {
+        [DefaultValue("#chan")]
         public ITextChannel? Channel { get; [UsedImplicitly] init; }
+        [DefaultValue("@user")]
         public IUser? User { get; [UsedImplicitly] init; }
+        [DefaultValue("@role")]
         public IRole? Role { get; [UsedImplicitly] init; }
 
         public override string ToString()

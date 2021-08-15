@@ -23,12 +23,12 @@ namespace Tadmor.Core.Rules.Services
 
         public async Task HandleAsync(MessageValidatedNotification notification, CancellationToken cancellationToken)
         {
-            var preferences = await _contextualPreferencesProvider.GetContextualPreferences(
+            var preferences = await _contextualPreferencesProvider.GetContextualPreferencesAsync(
                 notification.GuildChannel,
                 notification.GuildUser);
             foreach (var rule in preferences.Rules)
             {
-                var ruleTriggerContext = rule switch
+                RuleTriggerContextBase? ruleTriggerContext = rule switch
                 {
                     RegexRule regexRule => new RegexRuleTriggerContext(regexRule, notification),
                     _ => default

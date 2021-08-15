@@ -23,12 +23,12 @@ namespace Tadmor.Core.Rules.Models
             _regex = new Regex(regexRule.Trigger, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
         }
 
-        public bool ShouldExecute => GetMatch().Success;
-
         public Match GetMatch()
         {
             var match = _regex.Match(_trigger.Content);
             return match;
         }
+
+        public override bool ShouldExecute => GetMatch().Success;
     }
 }

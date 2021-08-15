@@ -8,7 +8,7 @@ namespace Tadmor.Core.Extensions
     {
         private static readonly Random DefaultRandom = new();
 
-        public static IEnumerable<TValue> RandomSubset<TValue>(this IEnumerable<TValue> values,
+        public static IEnumerable<TValue?> RandomSubset<TValue>(this IEnumerable<TValue> values,
             int subsetSize,
             Random? random = null,
             Func<TValue, float>? weightFunction = null)
@@ -20,22 +20,23 @@ namespace Tadmor.Core.Extensions
             var itemsAndWeight = values
                 .Select(item => (item, weight: weightAccumulator += weightFunction(item)))
                 .ToList();
-            if (!itemsAndWeight.Any())
-                throw new ArgumentException("the collection must not be empty to pick a random value", nameof(values));
-            var totalWeight = itemsAndWeight.Last().weight;
-            for (var i = 0; i < subsetSize; i++)
+            if (itemsAndWeight.Any())
             {
-                var weightIndex = random.NextDouble() * totalWeight;
-                yield return itemsAndWeight.First(t => t.weight >= weightIndex).item;
+                var totalWeight = itemsAndWeight.Last().weight;
+                for (var i = 0; i < subsetSize; i++)
+                {
+                    var weightIndex = random.NextDouble() * totalWeight;
+                    yield return itemsAndWeight.First(t => t.weight >= weightIndex).item;
+                }
             }
         }
 
-        public static TValue Random<TValue>(
+        public static TValue? RandomOrDefault<TValue>(
             this IEnumerable<TValue> values, 
             Random? random = null,
             Func<TValue, float>? weightFunction = null)
         {
-            return RandomSubset(values, 1, random, weightFunction).First();
+            return RandomSubset(values, 1, random, weightFunction).FirstOrDefault();
         }
     }
 }

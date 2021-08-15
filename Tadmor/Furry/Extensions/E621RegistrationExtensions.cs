@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Tadmor.Core.Extensions;
+using Tadmor.Furry.Interfaces;
 using Tadmor.Furry.Modules;
 using Tadmor.Furry.Services;
 

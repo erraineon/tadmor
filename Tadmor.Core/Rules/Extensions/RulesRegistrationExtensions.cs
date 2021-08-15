@@ -37,7 +37,7 @@ namespace Tadmor.Core.Rules.Extensions
                     .AddTransient<ITimeRulePreferencesWriter, TimeRulePreferencesUpdater>()
                     .AddTransient<INotificationHandler<RuleExecutedNotification>, TimeRuleUpdater>()
                     .AddTransient<ITimeRuleNextRunDateCalculator, TimeRuleNextRunDateCalculator>())
-                .UseModule<TimeRulePreferencesModule>();
+                .UseModule<RulePreferencesModule>();
         }
     }
 }

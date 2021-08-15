@@ -35,7 +35,7 @@ namespace Tadmor.Core.Commands.Formatters
             else
             {
                 var sb = new StringBuilder();
-                sb.Append(" (");
+                sb.Append("(");
                 if (channelName != default) sb.Append($"channel: {channelName}");
                 if (roleName != default) sb.Append($"role: {roleName}");
                 if (userName != default) sb.Append($"username: {userName}");

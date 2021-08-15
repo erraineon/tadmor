@@ -8,11 +8,6 @@ using Tadmor.Core.Extensions;
 namespace Tadmor.Tests
 {
     [TestClass]
-    public class DiscordClientHostedServiceTests
-    {
-
-    }
-    [TestClass]
     public class ServiceCollectionExtensionsTests
     {
         private record TestOptions(int Foo, string Bar, ulong? NullableUlong);

@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord.Commands;
 using E621;
-using Microsoft.AspNetCore.WebUtilities;
 using Tadmor.Core.Bookmarks.Interfaces;
 using Tadmor.Core.Commands.Models;
-using Tadmor.Furry.Services;
+using Tadmor.Furry.Interfaces;
 
 namespace Tadmor.Furry.Modules
 {
+    [RequireNsfw]
+    [Summary("furry stuff")]
     public class FurrySearchEngineModule : ModuleBase<ICommandContext>
     {
         private readonly IE621SearchEngine _e621SearchEngine;

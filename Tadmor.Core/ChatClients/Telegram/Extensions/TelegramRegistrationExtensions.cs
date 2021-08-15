@@ -22,14 +22,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Extensions
                         if (telegramOptions.Enabled)
                         {
                             services.AddMemoryCache();
-                            services.AddSingleton<ITelegramBotClient>(
-                                _ => new TelegramBotClient(telegramOptions.Token));
+                            services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(telegramOptions.Token));
                             services.AddSingleton<ITelegramApiClient, TelegramApiClient>();
                             services.AddSingleton<ITelegramClient, TelegramClient>();
                             services.AddSingleton<ITelegramApiListener, TelegramApiListener>();
                             services.AddSingleton<ITelegramEventProvider, TelegramEventProvider>();
-                            services.AddSingleton<IChatEventProvider>(
-                                s => s.GetRequiredService<ITelegramEventProvider>());
+                            services.AddSingleton<IChatEventProvider>(s => s.GetRequiredService<ITelegramEventProvider>());
                             services.AddHostedService<TelegramClientLauncher>();
                             services.AddTransient<IGuildUserCache, GuildUserCache>();
                             services.AddTransient<IUserMessageCache, UserMessageCache>();

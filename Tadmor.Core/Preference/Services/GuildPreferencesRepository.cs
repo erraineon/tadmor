@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Discord;
 using Tadmor.Core.Data.Interfaces;
 using Tadmor.Core.Data.Models;
 using Tadmor.Core.Notifications.Interfaces;

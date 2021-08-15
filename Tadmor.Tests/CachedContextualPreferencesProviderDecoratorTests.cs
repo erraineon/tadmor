@@ -34,9 +34,9 @@ namespace Tadmor.Tests
             var guildChannel = Substitute.For<IGuildChannel>();
             var guildUser = Substitute.For<IGuildUser>();
             guildUser.Id.Returns(ExistingUserId);
-            await _sut.GetContextualPreferences(guildChannel, guildUser);
-            await _sut.GetContextualPreferences(guildChannel, guildUser);
-            await _contextualPreferencesProvider.Received(1).GetContextualPreferences(guildChannel, guildUser);
+            await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
+            await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
+            await _contextualPreferencesProvider.Received(1).GetContextualPreferencesAsync(guildChannel, guildUser);
         }
 
         [TestMethod]
@@ -45,15 +45,15 @@ namespace Tadmor.Tests
             var guildChannel = Substitute.For<IGuildChannel>();
             var guildUser = Substitute.For<IGuildUser>();
             guildUser.Id.Returns(ExistingUserId);
-            await _sut.GetContextualPreferences(guildChannel, guildUser);
+            await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             var chatClient = Substitute.For<IChatClient>();
             var newUser = Substitute.For<IGuildUser>();
             newUser.Id.Returns(ExistingUserId);
             newUser.RoleIds.Returns(new[] {98765UL});
             await _sut.HandleAsync(new GuildMemberUpdatedNotification(chatClient, guildUser, newUser),
                 CancellationToken.None);
-            await _sut.GetContextualPreferences(guildChannel, guildUser);
-            await _contextualPreferencesProvider.Received(2).GetContextualPreferences(guildChannel, guildUser);
+            await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
+            await _contextualPreferencesProvider.Received(2).GetContextualPreferencesAsync(guildChannel, guildUser);
         }
 
         [TestMethod]
@@ -63,15 +63,15 @@ namespace Tadmor.Tests
             var guildUser = Substitute.For<IGuildUser>();
             guildUser.Id.Returns(ExistingUserId);
             guildUser.RoleIds.Returns(new[] {98765UL});
-            await _sut.GetContextualPreferences(guildChannel, guildUser);
+            await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             var chatClient = Substitute.For<IChatClient>();
             var newUser = Substitute.For<IGuildUser>();
             newUser.Id.Returns(ExistingUserId);
             newUser.RoleIds.Returns(new[] {98765UL});
             var notification = new GuildMemberUpdatedNotification(chatClient, guildUser, newUser);
             await _sut.HandleAsync(notification, CancellationToken.None);
-            await _sut.GetContextualPreferences(guildChannel, guildUser);
-            await _contextualPreferencesProvider.Received(1).GetContextualPreferences(guildChannel, guildUser);
+            await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
+            await _contextualPreferencesProvider.Received(1).GetContextualPreferencesAsync(guildChannel, guildUser);
         }
 
         [TestMethod]
@@ -80,11 +80,11 @@ namespace Tadmor.Tests
             var guildChannel = Substitute.For<IGuildChannel>();
             var guildUser = Substitute.For<IGuildUser>();
             guildUser.Id.Returns(ExistingUserId);
-            await _sut.GetContextualPreferences(guildChannel, guildUser);
+            await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             var notification = new GuildPreferencesUpdatedNotification(guildUser.GuildId, new Preferences());
             await _sut.HandleAsync(notification, CancellationToken.None);
-            await _sut.GetContextualPreferences(guildChannel, guildUser);
-            await _contextualPreferencesProvider.Received(2).GetContextualPreferences(guildChannel, guildUser);
+            await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
+            await _contextualPreferencesProvider.Received(2).GetContextualPreferencesAsync(guildChannel, guildUser);
         }
     }
 }

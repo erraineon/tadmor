@@ -40,7 +40,7 @@ namespace Tadmor.Core.Rules.Services
                         {
                             "user" => ruleTriggerContext.ExecuteAs.Mention,
                             var groupName
-                                when GetGroupValueOrNull(ruleTriggerContext, groupName) is { } groupValue => groupValue,
+                                when GetRgexGroupValueOrNull(ruleTriggerContext, groupName) is { } groupValue => groupValue,
                             var subCommand
                                 when await ExecuteSubCommand(subCommand, ruleTriggerContext) is RuntimeResult
                                     runtimeResult => runtimeResult.Reason,
@@ -78,7 +78,7 @@ namespace Tadmor.Core.Rules.Services
             return result;
         }
 
-        private static string? GetGroupValueOrNull(IRuleTriggerContext ruleTriggerContext, string groupName)
+        private static string? GetRgexGroupValueOrNull(IRuleTriggerContext ruleTriggerContext, string groupName)
         {
             var groupValue = ruleTriggerContext is RegexRuleTriggerContext regexRuleTriggerContext &&
                 regexRuleTriggerContext.GetMatch() is {Success: true} m &&

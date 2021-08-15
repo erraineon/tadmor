@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Tadmor.Core.ChatClients.Abstractions.Models;
 using Tadmor.Core.Commands.Interfaces;
 using Tadmor.Core.Commands.Models;
 
@@ -12,10 +13,12 @@ namespace Tadmor.Core.Commands.Services
         public async Task PublishAsync(PublishCommandResultRequest request, CancellationToken cancellationToken)
         {
             var (commandContext, commandResult) = request;
-            var replyTo = new MessageReference(
-                commandContext.Message.Id, 
-                commandContext.Channel.Id,
-                commandContext.Guild.Id);
+            var replyTo = commandContext.Message is not ServiceUserMessage
+                ? new MessageReference(
+                    commandContext.Message.Id,
+                    commandContext.Channel.Id,
+                    commandContext.Guild.Id)
+                : default;
             switch (commandResult)
             {
                 case RuntimeResult runtimeResult:

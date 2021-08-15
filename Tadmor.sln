@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TadmorLegacy", "TadmorLegac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tadmor.Tests", "Tadmor.Tests\Tadmor.Tests.csproj", "{35FBA35A-057B-443D-9898-AB1E0E235299}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tadmor.Core", "Tadmor.Core\Tadmor.Core.csproj", "{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tadmor.Core", "Tadmor.Core\Tadmor.Core.csproj", "{BC831522-CDB4-41E7-89AB-4ADFD7C20FDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

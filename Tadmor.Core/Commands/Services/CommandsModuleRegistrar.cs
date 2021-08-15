@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NCrontab;
 using Tadmor.Core.Commands.Interfaces;
 using Tadmor.Core.Commands.TypeReaders;
@@ -40,7 +41,9 @@ namespace Tadmor.Core.Commands.Services
                 .Distinct();
 
             foreach (var moduleType in moduleTypes)
+            {
                 await _commandService.AddModuleAsync(moduleType, serviceScope.ServiceProvider);
+            }
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

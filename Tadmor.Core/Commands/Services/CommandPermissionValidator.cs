@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Commands;
 using Tadmor.Core.Commands.Attributes;
 using Tadmor.Core.Commands.Interfaces;
 using Tadmor.Core.Commands.Models;
@@ -23,12 +24,19 @@ namespace Tadmor.Core.Commands.Services
             _commandService = commandService;
         }
 
-        public async Task<bool> CanRunAsync(
+        public async Task<bool?> CanRunAsync(
             ExecuteCommandRequest executeCommandRequest,
             CancellationToken cancellationToken)
         {
             var (commandContext, input) = executeCommandRequest;
-            var preferences = await _contextualPreferencesProvider.GetContextualPreferences(
+            return _commandService.Search(commandContext, input) is {IsSuccess: true} searchResult
+                ? (bool?) await CanRunAsync(commandContext, searchResult.Commands.First().Command)
+                : null;
+        }
+
+        public async Task<bool> CanRunAsync(ICommandContext commandContext, CommandInfo commandInfo)
+        {
+            var preferences = await _contextualPreferencesProvider.GetContextualPreferencesAsync(
                 (IGuildChannel) commandContext.Channel,
                 (IGuildUser) commandContext.User);
             bool canRun;
@@ -36,19 +44,14 @@ namespace Tadmor.Core.Commands.Services
             {
                 canRun = wildcardPermission.CommandPermissionType == CommandPermissionType.Whitelist;
             }
-            else if (_commandService.Search(commandContext, input) is {IsSuccess: true} searchResult)
-            {
-                var commandMatch = searchResult.Commands.First();
-                var commandName = commandMatch.Command.Name ?? commandMatch.Alias;
-                var permission = preferences.CommandPermissions
-                    .SingleOrDefault(cp => string.Equals(cp.CommandName, commandName, StringComparison.Ordinal));
-                var requiresWhitelist = commandMatch.Command.Attributes.OfType<RequireWhitelistAttribute>().Any();
-                canRun = requiresWhitelist && permission is {CommandPermissionType: CommandPermissionType.Whitelist} ||
-                    !requiresWhitelist && permission is not {CommandPermissionType: CommandPermissionType.Blacklist};
-            }
             else
             {
-                canRun = true;
+                var commandName = commandInfo.Name ?? commandInfo.Aliases.First();
+                var permission = preferences.CommandPermissions
+                    .SingleOrDefault(cp => string.Equals(cp.CommandName, commandName, StringComparison.Ordinal));
+                var requiresWhitelist = commandInfo.Attributes.OfType<RequireWhitelistAttribute>().Any();
+                canRun = requiresWhitelist && permission is {CommandPermissionType: CommandPermissionType.Whitelist} ||
+                         !requiresWhitelist && permission is not {CommandPermissionType: CommandPermissionType.Blacklist};
             }
 
             return canRun;

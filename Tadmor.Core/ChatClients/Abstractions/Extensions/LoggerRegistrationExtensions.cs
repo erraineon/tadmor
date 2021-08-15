@@ -13,7 +13,9 @@ namespace Tadmor.Core.ChatClients.Abstractions.Extensions
         {
             return hostBuilder
                 .ConfigureServices(services => services
-                    .AddLogging(configLogging => configLogging.AddConsole())
+                    .AddLogging(configLogging => configLogging
+                        .SetMinimumLevel(LogLevel.Trace)
+                        .AddConsole())
                     .AddTransient<INotificationHandler<LogNotification>, ChatClientLogger>());
         }
     }

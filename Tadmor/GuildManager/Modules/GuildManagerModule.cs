@@ -1,11 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Tadmor.Core.Commands.Attributes;
 using Tadmor.Core.Commands.Models;
 using Tadmor.GuildManager.Interfaces;
 
 namespace Tadmor.GuildManager.Modules
 {
+    [HideInHelp]
     public class GuildManagerModule : ModuleBase<ICommandContext>
     {
         private readonly IChannelCopier _channelCopier;

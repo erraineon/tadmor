@@ -20,7 +20,7 @@ namespace Tadmor.Core.Commands.Services
             CancellationToken cancellationToken)
         {
             var (_, userMessage, guildChannel, guildUser) = notification;
-            var preferences = await _contextualPreferencesProvider.GetContextualPreferences(guildChannel, guildUser);
+            var preferences = await _contextualPreferencesProvider.GetContextualPreferencesAsync(guildChannel, guildUser);
             var isPrefixValid = userMessage.Content.StartsWith(preferences.CommandPrefix);
             var input = isPrefixValid
                 ? userMessage.Content[preferences.CommandPrefix.Length..]

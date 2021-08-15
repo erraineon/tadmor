@@ -109,7 +109,7 @@ namespace Tadmor.Tests
             var nonExistentGuildId = 123456UL;
             guildChannel.GuildId.Returns(nonExistentGuildId);
             var guildUser = Substitute.For<IGuildUser>();
-            var preferences = await _sut.GetContextualPreferences(guildChannel, guildUser);
+            var preferences = await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             Assert.AreEqual(".", preferences.CommandPrefix);
             Assert.IsTrue(!preferences.Rules.Any());
             Assert.IsTrue(!preferences.CommandPermissions.Any());
@@ -121,7 +121,7 @@ namespace Tadmor.Tests
             var guildChannel = Substitute.For<IGuildChannel>();
             guildChannel.GuildId.Returns(ExistentGuildId);
             var guildUser = Substitute.For<IGuildUser>();
-            var preferences = await _sut.GetContextualPreferences(guildChannel, guildUser);
+            var preferences = await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             Assert.AreEqual("!", preferences.CommandPrefix);
             var actualPermissionType = preferences.CommandPermissions.Single().CommandPermissionType;
             Assert.AreEqual(CommandPermissionType.Blacklist, actualPermissionType);
@@ -134,7 +134,7 @@ namespace Tadmor.Tests
             guildChannel.GuildId.Returns(ExistentGuildId);
             guildChannel.Id.Returns(ExistentChannelId);
             var guildUser = Substitute.For<IGuildUser>();
-            var preferences = await _sut.GetContextualPreferences(guildChannel, guildUser);
+            var preferences = await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             Assert.AreEqual("$", preferences.CommandPrefix);
             var actualPermissionType = preferences.CommandPermissions.Single().CommandPermissionType;
             Assert.AreEqual(CommandPermissionType.Whitelist, actualPermissionType);
@@ -148,7 +148,7 @@ namespace Tadmor.Tests
             guildChannel.Id.Returns(ExistentChannelId);
             var guildUser = Substitute.For<IGuildUser>();
             guildUser.RoleIds.Returns(new[] {ExistentRoleId});
-            var preferences = await _sut.GetContextualPreferences(guildChannel, guildUser);
+            var preferences = await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             Assert.AreEqual("%", preferences.CommandPrefix);
             var actualPermissionType = preferences.CommandPermissions.Single().CommandPermissionType;
             Assert.AreEqual(CommandPermissionType.Whitelist, actualPermissionType);
@@ -163,7 +163,7 @@ namespace Tadmor.Tests
             var guildUser = Substitute.For<IGuildUser>();
             guildUser.RoleIds.Returns(new[] {ExistentRoleId});
             guildUser.Id.Returns(ExistentUserId);
-            var preferences = await _sut.GetContextualPreferences(guildChannel, guildUser);
+            var preferences = await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             Assert.AreEqual("#", preferences.CommandPrefix);
             var actualPermissionType = preferences.CommandPermissions.Single().CommandPermissionType;
             Assert.AreEqual(CommandPermissionType.Whitelist, actualPermissionType);
@@ -177,7 +177,7 @@ namespace Tadmor.Tests
             guildChannel.Id.Returns(ExistentChannelWithNestedPrefsId);
             var guildUser = Substitute.For<IGuildUser>();
             guildUser.RoleIds.Returns(new[] {ExistentRoleId});
-            var preferences = await _sut.GetContextualPreferences(guildChannel, guildUser);
+            var preferences = await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             Assert.AreEqual("*", preferences.CommandPrefix);
             var actualPermissionType = preferences.CommandPermissions.Single().CommandPermissionType;
             Assert.AreEqual(CommandPermissionType.Blacklist, actualPermissionType);
@@ -192,7 +192,7 @@ namespace Tadmor.Tests
             var guildUser = Substitute.For<IGuildUser>();
             guildUser.RoleIds.Returns(new[] {ExistentRoleId});
             guildUser.Id.Returns(ExistentUserId);
-            var preferences = await _sut.GetContextualPreferences(guildChannel, guildUser);
+            var preferences = await _sut.GetContextualPreferencesAsync(guildChannel, guildUser);
             Assert.AreEqual("@", preferences.CommandPrefix);
             var actualPermissionType = preferences.CommandPermissions.Single().CommandPermissionType;
             Assert.AreEqual(CommandPermissionType.Whitelist, actualPermissionType);

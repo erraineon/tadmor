@@ -26,7 +26,7 @@ namespace Tadmor.Core.Preference.Services
             _memoryCache = memoryCache;
         }
 
-        public async Task<Preferences> GetContextualPreferences(IGuildChannel channel, IGuildUser user)
+        public async Task<Preferences> GetContextualPreferencesAsync(IGuildChannel channel, IGuildUser user)
         {
             var cacheKey = GetCacheKey(channel, user);
             var preferences = await _memoryCache.GetOrCreateAsync(
@@ -40,7 +40,7 @@ namespace Tadmor.Core.Preference.Services
                     cacheEntry.SlidingExpiration = TimeSpan.FromHours(1);
                     cacheEntry.ExpirationTokens.Add(guildEvictionToken);
                     cacheEntry.ExpirationTokens.Add(userEvictionToken);
-                    return _contextualPreferencesProvider.GetContextualPreferences(channel, user);
+                    return _contextualPreferencesProvider.GetContextualPreferencesAsync(channel, user);
                 });
 
             return preferences;

@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,12 +15,15 @@ namespace Tadmor.Core.Data.Services
     [ExcludeFromCodeCoverage]
     public class TadmorDbContext : DbContext, ITadmorDbContext
     {
-        public TadmorDbContext(DbContextOptions<TadmorDbContext> options) : base(options)
+        private readonly IEnumerable<IModelExtension> _modelExtensions;
+
+        public TadmorDbContext(DbContextOptions<TadmorDbContext> options, IEnumerable<IModelExtension> modelExtensions) : base(options)
         {
+            _modelExtensions = modelExtensions;
         }
 
-        public DbSet<GuildPreferencesEntity> GuildPreferences { get; set; } = null!;
-        public DbSet<Bookmark> Bookmarks { get; set; } = null!;
+        public DbSet<GuildPreferencesEntity> GuildPreferences { get; [UsedImplicitly] set; } = null!;
+        public DbSet<Bookmark> Bookmarks { get; [UsedImplicitly] set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +37,10 @@ namespace Tadmor.Core.Data.Services
             {
                 b.HasKey(e => new {e.ChatClientId, e.GuildId, e.ChannelId, e.Key});
             });
+            foreach (var modelExtension in _modelExtensions)
+            {
+                modelExtension.Extend(modelBuilder);
+            }
             base.OnModelCreating(modelBuilder);
         }
 
