@@ -42,6 +42,9 @@ namespace Tadmor.Core.Commands.Services
                 case ExecuteResult {Exception: ModuleException e}:
                     await commandContext.Channel.SendMessageAsync(e.Message, messageReference: replyTo);
                     break;
+                case ExecuteResult {Exception: {}}:
+                    await commandContext.Channel.SendMessageAsync("TADMOR IS DEAD", messageReference: replyTo);
+                    break;
             }
         }
     }

@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Discord.Commands;
 
 namespace Tadmor.Core.Commands.Models
 {
     public class CommandResult : RuntimeResult
     {
+        private const string NoContentValue = "no content";
         public bool Reply { get; }
         public FileToUpload? File { get; }
 
@@ -21,6 +23,7 @@ namespace Tadmor.Core.Commands.Models
 
         public static RuntimeResult FromSuccess(string value, bool reply = false)
         {
+            if (string.IsNullOrEmpty(value)) value = NoContentValue;
             return new CommandResult(null, value, reply);
         }
 
@@ -29,8 +32,9 @@ namespace Tadmor.Core.Commands.Models
             return new CommandResult(null, text ?? string.Empty, reply, new FileToUpload(file, filename));
         }
 
-        public static RuntimeResult FromSuccess(IEnumerable<string> values, bool reply = false)
+        public static RuntimeResult FromSuccess(ICollection<string> values, bool reply = false)
         {
+            if (!values.Any()) values.Add(NoContentValue);
             return FromSuccess(string.Join('\n', values), reply);
         }
     }

@@ -22,7 +22,8 @@ namespace Tadmor.Twitter.Extensions
                     services.Decorate<ITweetProvider, CachedTweetProviderDecorator>();
                     services.AddTransient<ITwitterContextFactory, TwitterContextFactory>();
                     services.Decorate<ITwitterContextFactory, CachedTwitterContextFactoryDecorator>();
-                    services.AddTransient<ITwitterService, TwitterService>();
+                    services.AddTransient<IRandomTweetProvider, RandomTweetProvider>();
+                    services.AddTransient<IImageTweetSender, ImageTweetSender>();
                 })
                 .UseModule<TwitterModule>();
         }

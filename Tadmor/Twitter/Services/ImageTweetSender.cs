@@ -1,36 +1,18 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Tadmor.Core.Extensions;
 using Tadmor.Twitter.Interfaces;
-using Tadmor.Twitter.Models;
 
 namespace Tadmor.Twitter.Services
 {
-    public class TwitterService : ITwitterService
+    public class ImageTweetSender : IImageTweetSender
     {
-        private readonly ITweetProvider _tweetProvider;
         private readonly ITwitterContextFactory _twitterContextFactory;
 
-        public TwitterService(
-            ITweetProvider tweetProvider,
+        public ImageTweetSender(
             ITwitterContextFactory twitterContextFactory)
         {
-            _tweetProvider = tweetProvider;
             _twitterContextFactory = twitterContextFactory;
         }
-
-        public async Task<Tweet?> GetRandomTweetAsync(string displayName, bool onlyMedia, string? filter = default)
-        {
-            var tweets = await _tweetProvider.GetTweetsAsync(displayName);
-            var tweet = tweets
-                .Where(t =>
-                    (!onlyMedia || t.HasMedia) &&
-                    (filter == default || t.Status.Contains(filter, StringComparison.OrdinalIgnoreCase)))
-                .RandomOrDefault();
-            return tweet;
-        }
-
         public async Task<string> TweetImageAsync(byte[] image)
         {
             var context = await _twitterContextFactory.CreateAsync();

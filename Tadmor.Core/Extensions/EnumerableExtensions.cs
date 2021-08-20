@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Tadmor.Core.Extensions
 {
@@ -8,7 +9,7 @@ namespace Tadmor.Core.Extensions
     {
         private static readonly Random DefaultRandom = new();
 
-        public static IEnumerable<TValue?> RandomSubset<TValue>(this IEnumerable<TValue> values,
+        public static IEnumerable<TValue> RandomSubset<TValue>(this IEnumerable<TValue> values,
             int subsetSize,
             Random? random = null,
             Func<TValue, float>? weightFunction = null)
@@ -37,6 +38,14 @@ namespace Tadmor.Core.Extensions
             Func<TValue, float>? weightFunction = null)
         {
             return RandomSubset(values, 1, random, weightFunction).FirstOrDefault();
+        }
+
+        public static TValue Random<TValue>(
+            this IEnumerable<TValue> values, 
+            Random? random = null,
+            Func<TValue, float>? weightFunction = null)
+        {
+            return RandomSubset(values, 1, random, weightFunction).First();
         }
     }
 }

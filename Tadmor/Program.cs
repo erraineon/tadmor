@@ -11,9 +11,11 @@ using Tadmor.Core.Extensions;
 using Tadmor.Furry.Extensions;
 using Tadmor.GuildManager.Extensions;
 using Tadmor.MessageRendering.Extensions;
+using Tadmor.Raffles.Extensions;
 using Tadmor.Search.Extensions;
 using Tadmor.TextGeneration.Extensions;
 using Tadmor.Twitter.Extensions;
+using Tadmor.Utilities.Extensions;
 
 namespace Tadmor
 {
@@ -44,6 +46,8 @@ namespace Tadmor
                 .UseTadmorMind()
                 .UseTwitter()
                 .UseMessageRendering()
+                .UseUtilities()
+                .UseRaffles()
                 .UseConsoleLifetime();
         }
     }

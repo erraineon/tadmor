@@ -15,6 +15,7 @@ namespace Tadmor.MessageRendering.Extensions
                 .ConfigureServices(services =>
                 {
                     services.AddTransient<IMessageRenderer, MessageRenderer>();
+                    services.AddTransient<IDrawableMessageFactory, DrawableMessageFactory>();
                     services.AddTransient<IImageProvider, ImageProvider>();
                 })
                 .UseModule<MessageRendererModule>();

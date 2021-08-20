@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 
@@ -13,6 +15,12 @@ namespace Tadmor.Core.Extensions
                 : context.Message.Id;
             var messages = context.Channel.GetMessagesAsync(maxId, Direction.Before, messagesCount).Flatten();
             return messages;
+        }
+
+        public static async Task<IMessage> GetSelectedMessageAsync(this ICommandContext context)
+        {
+            var message = await GetSelectedMessagesAsync(context, 1).FirstOrDefaultAsync();
+            return message;
         }
     }
 }

@@ -37,7 +37,8 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
 
         public ITelegramGuildUser Create(ITelegramGuild telegramGuild, ChatMember chatMember)
         {
-            return Create(telegramGuild, chatMember.User, chatMember.Status == ChatMemberStatus.Administrator);
+            var isAdmin = chatMember.Status is ChatMemberStatus.Administrator or ChatMemberStatus.Creator;
+            return Create(telegramGuild, chatMember.User, isAdmin);
         }
 
         public ITelegramGuildUser Create(ITelegramGuild telegramGuild, User user, bool isAdmin)

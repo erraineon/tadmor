@@ -77,7 +77,7 @@ namespace Tadmor.Core.Commands.Modules
                 if (Attribute.IsDefined(parameter.Type, typeof(NamedArgumentTypeAttribute)))
                 {
                     var namedArgumentValues = GetNamedArgumentValues(parameter);
-                    stringBuilder.Append(namedArgumentValues.Humanize(" "));
+                    stringBuilder.Append(string.Join(" ", namedArgumentValues));
                 }
                 else stringBuilder.Append(parameter.Name.Humanize().Kebaberize().ToLower());
                 if (showAsOptional) stringBuilder.Append("]_");
