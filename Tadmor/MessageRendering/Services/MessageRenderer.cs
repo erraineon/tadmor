@@ -49,7 +49,7 @@ namespace Tadmor.MessageRendering.Services
             };
         }
 
-        public byte[] DrawConversation(IList<DrawableMessage> messages)
+        public byte[] RenderConversation(IList<DrawableMessage> messages)
         {
             var messagesMargin = 20;
             var messageImages = messages.Select(DrawMessage).ToList();

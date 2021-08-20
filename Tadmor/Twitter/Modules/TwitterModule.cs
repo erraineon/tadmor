@@ -1,6 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Discord.Commands;
+using Tadmor.Core.Commands.Attributes;
 using Tadmor.Core.Commands.Models;
+using Tadmor.Core.Extensions;
+using Tadmor.MessageRendering.Interfaces;
 using Tadmor.Twitter.Interfaces;
 
 namespace Tadmor.Twitter.Modules
@@ -9,10 +13,16 @@ namespace Tadmor.Twitter.Modules
     public class TwitterModule : ModuleBase<ICommandContext>
     {
         private readonly ITwitterService _twitterService;
+        private readonly IDrawableMessageFactory _drawableMessageFactory;
+        private readonly IMessageRenderer _messageRenderer;
 
-        public TwitterModule(ITwitterService twitterService)
+        public TwitterModule(ITwitterService twitterService, 
+            IDrawableMessageFactory drawableMessageFactory,
+            IMessageRenderer messageRenderer)
         {
             _twitterService = twitterService;
+            _drawableMessageFactory = drawableMessageFactory;
+            _messageRenderer = messageRenderer;
         }
 
         [Command("twitter")]
@@ -26,6 +36,18 @@ namespace Tadmor.Twitter.Modules
         public async Task<RuntimeResult> GetRandomMediaTweetAsync(string displayName, [Remainder] string? filter = default)
         {
             return await GetRandomTweetAsync(displayName, filter, true);
+        }
+
+        [Command("tweet")]
+        [RequireWhitelist]
+        [Priority(1)]
+        public async Task<RuntimeResult> TweetAsync(int messagesToTweet = 1)
+        {
+            var selectedMessages = await Context.GetSelectedMessagesAsync(messagesToTweet).ToListAsync();
+            var drawableMessages = await Task.WhenAll(selectedMessages.Select(_drawableMessageFactory.CreateAsync));
+            var image = _messageRenderer.RenderConversation(drawableMessages);
+            var tweetUrl = await _twitterService.TweetImageAsync(image);
+            return CommandResult.FromSuccess(tweetUrl);
         }
 
         private async Task<RuntimeResult> GetRandomTweetAsync(string displayName, string? filter, bool onlyMedia)

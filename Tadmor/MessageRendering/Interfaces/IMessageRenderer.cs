@@ -5,6 +5,6 @@ namespace Tadmor.MessageRendering.Interfaces
 {
     public interface IMessageRenderer
     {
-        byte[] DrawConversation(IList<DrawableMessage> messages);
+        byte[] RenderConversation(IList<DrawableMessage> messages);
     }
 }
