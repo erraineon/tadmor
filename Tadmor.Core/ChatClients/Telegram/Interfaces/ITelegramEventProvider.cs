@@ -7,5 +7,6 @@ namespace Tadmor.Core.ChatClients.Telegram.Interfaces
     public interface ITelegramEventProvider : IChatEventProvider
     {
         Task HandleInboundMessageAsync(Message apiMessage);
+        Task HandleInboundUpdateAsync(Update update);
     }
 }

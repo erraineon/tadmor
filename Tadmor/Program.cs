@@ -10,6 +10,7 @@ using Tadmor.Core.Data.Extensions;
 using Tadmor.Core.Extensions;
 using Tadmor.Furry.Extensions;
 using Tadmor.GuildManager.Extensions;
+using Tadmor.MessageRendering.Extensions;
 using Tadmor.Search.Extensions;
 using Tadmor.TextGeneration.Extensions;
 using Tadmor.Twitter.Extensions;
@@ -42,6 +43,7 @@ namespace Tadmor
                 .UseGoogleSearch()
                 .UseTadmorMind()
                 .UseTwitter()
+                .UseMessageRendering()
                 .UseConsoleLifetime();
         }
     }

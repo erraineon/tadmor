@@ -7,23 +7,23 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
 {
     public class TelegramClientLauncher : IHostedService
     {
-        private readonly ITelegramClient _telegramClient;
+        private readonly ITelegramChatClient _telegramChatClient;
         private readonly ITelegramApiListener _telegramApiListener;
 
-        public TelegramClientLauncher(ITelegramClient telegramClient, ITelegramApiListener telegramApiListener)
+        public TelegramClientLauncher(ITelegramChatClient telegramChatClient, ITelegramApiListener telegramApiListener)
         {
-            _telegramClient = telegramClient;
+            _telegramChatClient = telegramChatClient;
             _telegramApiListener = telegramApiListener;
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             await _telegramApiListener.StartAsync(cancellationToken);
-            await _telegramClient.StartAsync();
+            await _telegramChatClient.StartAsync();
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            await _telegramClient.StopAsync();
+            await _telegramChatClient.StopAsync();
             await _telegramApiListener.StopAsync(cancellationToken);
         }
     }

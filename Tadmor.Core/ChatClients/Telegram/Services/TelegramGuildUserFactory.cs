@@ -1,9 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Tadmor.Core.ChatClients.Telegram.Interfaces;
 using Tadmor.Core.ChatClients.Telegram.Models;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace Tadmor.Core.ChatClients.Telegram.Services
 {
@@ -35,7 +37,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
 
         public ITelegramGuildUser Create(ITelegramGuild telegramGuild, ChatMember chatMember)
         {
-            return new TelegramGuildUser(telegramGuild, chatMember, _api);
+            return Create(telegramGuild, chatMember.User, chatMember.Status == ChatMemberStatus.Administrator);
+        }
+
+        public ITelegramGuildUser Create(ITelegramGuild telegramGuild, User user, bool isAdmin)
+        {
+            return new TelegramGuildUser(telegramGuild, user, isAdmin);
         }
     }
 }

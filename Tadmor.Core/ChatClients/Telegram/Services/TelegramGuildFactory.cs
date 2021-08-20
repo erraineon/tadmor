@@ -12,22 +12,25 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         private readonly ITelegramGuildUserFactory _telegramGuildUserFactory;
         private readonly IGuildUserCache _guildUserCache;
         private readonly IUserMessageCache _userMessageCache;
+        private readonly ITelegramUserMessageFactory _telegramUserMessageFactory;
 
         public TelegramGuildFactory(
             ITelegramApiClient api,
             ITelegramGuildUserFactory telegramGuildUserFactory,
             IGuildUserCache guildUserCache,
-            IUserMessageCache userMessageCache)
+            IUserMessageCache userMessageCache, 
+            ITelegramUserMessageFactory telegramUserMessageFactory)
         {
             _api = api;
             _telegramGuildUserFactory = telegramGuildUserFactory;
             _guildUserCache = guildUserCache;
             _userMessageCache = userMessageCache;
+            _telegramUserMessageFactory = telegramUserMessageFactory;
         }
 
         public ITelegramGuild Create(Chat apiChat)
         {
-            return new TelegramGuild(apiChat, _telegramGuildUserFactory, _guildUserCache, _userMessageCache, _api);
+            return new TelegramGuild(apiChat, _telegramGuildUserFactory, _guildUserCache, _userMessageCache, _telegramUserMessageFactory, _api);
         }
 
         public async Task<ITelegramGuild> CreateAsync(long guildId)

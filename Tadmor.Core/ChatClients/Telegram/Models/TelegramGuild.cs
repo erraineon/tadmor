@@ -13,6 +13,7 @@ using Tadmor.Core.ChatClients.Telegram.Interfaces;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
+using File = System.IO.File;
 
 namespace Tadmor.Core.ChatClients.Telegram.Models
 {
@@ -23,15 +24,18 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
         private readonly ITelegramGuildUserFactory _telegramGuildUserFactory;
         private readonly IGuildUserCache _guildUserCache;
         private readonly IUserMessageCache _userMessageCache;
+        private readonly ITelegramUserMessageFactory _telegramUserMessageFactory;
 
         public TelegramGuild(
             Chat chat,
             ITelegramGuildUserFactory telegramGuildUserFactory,
             IGuildUserCache guildUserCache,
             IUserMessageCache userMessageCache,
+            ITelegramUserMessageFactory telegramUserMessageFactory,
             ITelegramApiClient api)
         {
             _api = api;
+            _telegramUserMessageFactory = telegramUserMessageFactory;
             _chat = chat;
             _telegramGuildUserFactory = telegramGuildUserFactory;
             _guildUserCache = guildUserCache;
@@ -264,8 +268,6 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
             return Task.FromResult(GetUsers());
         }
 
-        private const string UsersKeyPrefix = "telegram-user";
-
         public async Task<IGuildUser?> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
@@ -285,11 +287,8 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
             var currentApiUser = await _api.GetMeAsync(options?.CancelToken ?? default);
             var currentUser = _telegramGuildUserFactory.Create(
                 this,
-                new ChatMember
-                {
-                    User = currentApiUser,
-                    Status = ChatMemberStatus.Administrator
-                });
+                currentApiUser,
+                true);
             return currentUser;
         }
 
@@ -571,30 +570,6 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
             return builder.ToString();
         }
 
-        public Task<IUserMessage> SendMessageAsync(string? text = null, bool isTts = false, Embed? embed = null,
-            RequestOptions? options = null, AllowedMentions? allowedMentions = null)
-        {
-            return SendMessageAsync(text, isTts, embed, options, allowedMentions, null);
-        }
-
-        public Task<IUserMessage> SendFileAsync(string filePath, string? text = null, bool isTts = false,
-            Embed? embed = null,
-            RequestOptions? options = null, bool isSpoiler = false)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<IUserMessage?> SendFileAsync(Stream stream, string filename, string? text = null,
-            bool isTts = false, Embed? embed = null,
-            RequestOptions? options = null, bool isSpoiler = false) 
-        {
-            var videoExtensions = new[] {".gif"};
-            var message = videoExtensions.Any(filename.EndsWith)
-                ? await _api.SendAnimationAsync(_chat.Id, new InputOnlineFile(stream, filename), caption: text)
-                : await _api.SendPhotoAsync(_chat.Id, new InputOnlineFile(stream), text);// TODO: reuse the message factory to return the message
-            return null;
-        }
-
         public async Task<IUserMessage> SendMessageAsync(
             string? text = null,
             bool isTTS = false,
@@ -629,36 +604,44 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
                 .ToList();
             text = unmatchedMarkdownIndexes.Aggregate(text, (current, index) => current.Insert(index, "\\"));
             var replyToMessageId = (int) (messageReference?.MessageId.Value ?? 0);
-            var message = await _api.SendTextMessageAsync(_chat.Id, text, ParseMode.Markdown, replyToMessageId: replyToMessageId);
-            // TODO: reuse the message factory to return the message
-            return null;
+            var apiMessage = await _api.SendTextMessageAsync(_chat.Id, text, ParseMode.Markdown, replyToMessageId: replyToMessageId);
+            var userMessage = AddMessageToCache(apiMessage);
+            return userMessage;
         }
 
-        public Task<IUserMessage> SendFileAsync(
+        public async Task<IUserMessage> SendFileAsync(
             string filePath,
-            string text = null,
+            string? text = null,
             bool isTTS = false,
-            Embed embed = null,
-            RequestOptions options = null,
+            Embed? embed = null,
+            RequestOptions? options = null,
             bool isSpoiler = false,
-            AllowedMentions allowedMentions = null,
-            MessageReference messageReference = null)
+            AllowedMentions? allowedMentions = null,
+            MessageReference? messageReference = null)
         {
-            throw new NotImplementedException();
+            await using var fileStream = File.OpenRead(filePath);
+            return await SendFileAsync(fileStream, new FileInfo(fileStream.Name).Name, text, isTTS, embed, options,
+                isSpoiler, allowedMentions, messageReference);
         }
 
-        public Task<IUserMessage> SendFileAsync(
+        public async Task<IUserMessage> SendFileAsync(
             Stream stream,
             string filename,
-            string text = null,
+            string? text = null,
             bool isTTS = false,
-            Embed embed = null,
-            RequestOptions options = null,
+            Embed? embed = null,
+            RequestOptions? options = null,
             bool isSpoiler = false,
-            AllowedMentions allowedMentions = null,
-            MessageReference messageReference = null)
+            AllowedMentions? allowedMentions = null,
+            MessageReference? messageReference = null)
         {
-            throw new NotImplementedException();
+            var videoExtensions = new[] { ".gif" };
+            var replyToMessageId = (int)(messageReference?.MessageId.Value ?? 0);
+            var apiMessage = videoExtensions.Any(filename.EndsWith)
+                ? await _api.SendAnimationAsync(_chat.Id, new InputOnlineFile(stream, filename), caption: text, replyToMessageId: replyToMessageId)
+                : await _api.SendPhotoAsync(_chat.Id, new InputOnlineFile(stream), text, replyToMessageId: replyToMessageId);
+            var userMessage = AddMessageToCache(apiMessage);
+            return userMessage;
         }
 
         public Task<IMessage?> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload,
@@ -672,24 +655,36 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100,
             CacheMode mode = CacheMode.AllowDownload, RequestOptions? options = null)
         {
-            var messages = _userMessageCache.GetCachedUserMessages(Id)
-                .Reverse()
-                .Take(limit);
-            return ToAsyncEnumerableReadOnlyCollection(messages);
+            return GetMessagesAsync(0, Direction.After, limit, mode, options);
         }
 
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir,
             int limit = 100, CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
-            throw new NotImplementedException();
+            // latest messages are first
+            var messages = _userMessageCache.GetCachedUserMessages(Id);
+            var selectedMessages = dir switch
+            {
+                Direction.After => messages
+                    .SkipWhile(um => um.Id <= fromMessageId)
+                    .Take(limit),
+                Direction.Before => messages
+                    .Reverse()
+                    .SkipWhile(um => um.Id >= fromMessageId)
+                    .Take(limit)
+                    .Reverse(),
+                Direction.Around => throw new NotImplementedException(),
+                _ => throw new ArgumentOutOfRangeException(nameof(dir), dir, null)
+            };
+            return ToAsyncEnumerableReadOnlyCollection(selectedMessages);
         }
 
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir,
             int limit = 100, CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
-            throw new NotImplementedException();
+            return GetMessagesAsync(fromMessage.Id, dir, limit, mode, options);
         }
 
         public Task<IReadOnlyCollection<IMessage>> GetPinnedMessagesAsync(RequestOptions? options = null)
@@ -723,6 +718,13 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
         {
             return new[] {new ReadOnlyCollection<T>(values.ToList())}
                 .ToAsyncEnumerable();
+        }
+
+        private ITelegramUserMessage AddMessageToCache(Message apiMessage)
+        {
+            var telegramGuildUser = _telegramGuildUserFactory.Create(this, apiMessage.From, true);
+            var userMessage = _telegramUserMessageFactory.Create(apiMessage, this, telegramGuildUser);
+            return userMessage;
         }
     }
 }

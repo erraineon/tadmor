@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -9,14 +10,14 @@ using Tadmor.Core.ChatClients.Telegram.Models;
 
 namespace Tadmor.Core.ChatClients.Telegram.Services
 {
-    public class TelegramClient : ITelegramClient
+    public class TelegramChatClient : ITelegramChatClient
     {
         private readonly TelegramOptions _telegramOptions;
         private readonly ITelegramGuildFactory _telegramGuildFactory;
         private readonly ITelegramApiClient _api;
         private IApplication? _application;
 
-        public TelegramClient(
+        public TelegramChatClient(
             TelegramOptions telegramOptions,
             ITelegramGuildFactory telegramGuildFactory,
             ITelegramApiClient api)
@@ -168,5 +169,17 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         //    return data;
         //}
         public string Name => "telegram";
+        public async Task<byte[]> DownloadFileAsync(string fileId)
+        {
+            var memoryStream = new MemoryStream();
+            await _api.GetInfoAndDownloadFileAsync(fileId, memoryStream);
+            return memoryStream.ToArray();
+        }
+
+        public async Task<string?> GetAvatarIdAsync(IUser user)
+        {
+            var userPhotos = (await _api.GetUserProfilePhotosAsync((int)user.Id, 0, 1)).Photos;
+            return userPhotos.FirstOrDefault()?.FirstOrDefault().FileId;
+        }
     }
 }

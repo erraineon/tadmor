@@ -7,6 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="MessageRendering\Services\Mx437_DOS-V_re_JPN24.ttf" />
+    <None Remove="MessageRendering\Services\Mx437_IBM_XGA-AI_12x20.ttf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="MessageRendering\Resources\Mx437_DOS-V_re_JPN24.ttf" />
+    <EmbeddedResource Include="MessageRendering\Resources\Mx437_IBM_XGA-AI_12x20.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="E621Client" Version="0.0.3" />
     <PackageReference Include="Google.Apis.Customsearch.v1" Version="1.49.0.2084" />
     <PackageReference Include="linqtotwitter" Version="6.7.1" />

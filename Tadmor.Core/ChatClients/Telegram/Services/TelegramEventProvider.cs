@@ -11,9 +11,9 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
     public class TelegramEventProvider : ITelegramEventProvider
     {
         private readonly ITelegramGuildFactory _telegramGuildFactory;
-        private readonly ITelegramUserMessageFactory _telegramUserMessageFactory;
         private readonly ITelegramGuildUserFactory _telegramGuildUserFactory;
-        private readonly ITelegramClient _telegramClient;
+        private readonly ITelegramChatClient _telegramChatClient;
+        private readonly ITelegramUserMessageFactory _telegramUserMessageFactory;
         private readonly IUserMessageCache _userMessageCache;
         public event Func<IChatClient, IMessage, Task> MessageReceived = (_, _) => Task.CompletedTask;
         public event Func<IChatClient, IGuildUser, IGuildUser, Task> GuildMemberUpdated= (_, _, _) => Task.CompletedTask;
@@ -23,13 +23,13 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             ITelegramGuildFactory telegramGuildFactory,
             ITelegramUserMessageFactory telegramUserMessageFactory, 
             ITelegramGuildUserFactory telegramGuildUserFactory,
-            ITelegramClient telegramClient,
+            ITelegramChatClient telegramChatClient,
             IUserMessageCache userMessageCache)
         {
             _telegramGuildFactory = telegramGuildFactory;
             _telegramUserMessageFactory = telegramUserMessageFactory;
             _telegramGuildUserFactory = telegramGuildUserFactory;
-            _telegramClient = telegramClient;
+            _telegramChatClient = telegramChatClient;
             _userMessageCache = userMessageCache;
         }
 
@@ -38,14 +38,23 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             if (apiMessage.Chat.Type != ChatType.Private)
             {
                 var telegramGuild = _telegramGuildFactory.Create(apiMessage.Chat);
-                var telegramGuildUser = await _telegramGuildUserFactory.CreateOrNullAsync(telegramGuild, apiMessage.From.Id);
+                var telegramGuildUser = apiMessage.From.Id == (int)_telegramChatClient.CurrentUser.Id
+                    ? _telegramGuildUserFactory.Create(telegramGuild, apiMessage.From, true)
+                    // TODO: this is an extra http call per message, just to get up-to-date user permissions
+                    // instead consider caching them and using the synchronous overload above
+                    : await _telegramGuildUserFactory.CreateOrNullAsync(telegramGuild, apiMessage.From.Id);
                 if (telegramGuildUser != null)
                 {
                     var message = _telegramUserMessageFactory.Create(apiMessage, telegramGuild, telegramGuildUser);
                     _userMessageCache.AddUserMessage(message, telegramGuild.Id);
-                    await MessageReceived(_telegramClient, message);
+                    await MessageReceived(_telegramChatClient, message);
                 }
             }
+        }
+
+        public async Task HandleInboundUpdateAsync(Update update)
+        {
+            // TODO: handle avatar updates
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Tadmor.Core.ChatClients.Telegram.Interfaces;
+using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 
 namespace Tadmor.Core.ChatClients.Telegram.Services
@@ -26,6 +27,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _api.MessageReceivedAsync += OnApiMessageReceived;
+            _api.OnUpdate += OnApiUpdate;
             return Task.CompletedTask;
         }
 
@@ -45,6 +47,18 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             {
                 // todo: replace .Text access with message formatter
                 _logger.LogError(exception, $"error when receiving telegram message: {message.Text}");
+            }
+        }
+
+        private async void OnApiUpdate(object? sender, UpdateEventArgs e)
+        {
+            try
+            {
+                await _telegramEventProvider.HandleInboundUpdateAsync(e.Update);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, $"error when receiving telegram update: {e.Update.Id}");
             }
         }
     }

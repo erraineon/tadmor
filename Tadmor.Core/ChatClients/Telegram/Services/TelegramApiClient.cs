@@ -50,10 +50,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         public async Task<TResponse> MakeRequestAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = new CancellationToken())
         {
             var response = await _telegramBotClient.MakeRequestAsync(request, cancellationToken);
-            if (response is Message responseMessage)
-            {
-                FireMessageReceivedSafe(responseMessage);
-            }
+            if (response is Message responseMessage) FireMessageReceivedSafe(responseMessage);
             return response;
         }
 
@@ -109,7 +106,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             return _telegramBotClient.GetMeAsync(cancellationToken);
         }
 
-        public Task<Message> SendTextMessageAsync(
+        public async Task<Message> SendTextMessageAsync(
             ChatId chatId,
             string text,
             ParseMode parseMode = ParseMode.Default,
@@ -119,7 +116,9 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             IReplyMarkup replyMarkup = null,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            return _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode, disableWebPagePreview, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            var apiMessage = await _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode, disableWebPagePreview, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
         public Task<Message> ForwardMessageAsync(
@@ -132,7 +131,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             return _telegramBotClient.ForwardMessageAsync(chatId, fromChatId, messageId, disableNotification, cancellationToken);
         }
 
-        public Task<Message> SendPhotoAsync(
+        public async Task<Message> SendPhotoAsync(
             ChatId chatId,
             InputOnlineFile photo,
             string caption = null,
@@ -142,10 +141,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             IReplyMarkup replyMarkup = null,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            return _telegramBotClient.SendPhotoAsync(chatId, photo, caption, parseMode, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            var apiMessage = await _telegramBotClient.SendPhotoAsync(chatId, photo, caption, parseMode, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendAudioAsync(
+        public async Task<Message> SendAudioAsync(
             ChatId chatId,
             InputOnlineFile audio,
             string caption = null,
@@ -159,10 +160,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             CancellationToken cancellationToken = new CancellationToken(),
             InputMedia thumb = null)
         {
-            return _telegramBotClient.SendAudioAsync(chatId, audio, caption, parseMode, duration, performer, title, disableNotification, replyToMessageId, replyMarkup, cancellationToken, thumb);
+            var apiMessage = await _telegramBotClient.SendAudioAsync(chatId, audio, caption, parseMode, duration, performer, title, disableNotification, replyToMessageId, replyMarkup, cancellationToken, thumb);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendDocumentAsync(
+        public async Task<Message> SendDocumentAsync(
             ChatId chatId,
             InputOnlineFile document,
             string caption = null,
@@ -173,10 +176,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             CancellationToken cancellationToken = new CancellationToken(),
             InputMedia thumb = null)
         {
-            return _telegramBotClient.SendDocumentAsync(chatId, document, caption, parseMode, disableNotification, replyToMessageId, replyMarkup, cancellationToken, thumb);
+            var apiMessage = await _telegramBotClient.SendDocumentAsync(chatId, document, caption, parseMode, disableNotification, replyToMessageId, replyMarkup, cancellationToken, thumb);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendStickerAsync(
+        public async Task<Message> SendStickerAsync(
             ChatId chatId,
             InputOnlineFile sticker,
             bool disableNotification = false,
@@ -184,10 +189,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             IReplyMarkup replyMarkup = null,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            return _telegramBotClient.SendStickerAsync(chatId, sticker, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            var apiMessage = await _telegramBotClient.SendStickerAsync(chatId, sticker, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendVideoAsync(
+        public async Task<Message> SendVideoAsync(
             ChatId chatId,
             InputOnlineFile video,
             int duration = 0,
@@ -202,10 +209,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             CancellationToken cancellationToken = new CancellationToken(),
             InputMedia thumb = null)
         {
-            return _telegramBotClient.SendVideoAsync(chatId, video, duration, width, height, caption, parseMode, supportsStreaming, disableNotification, replyToMessageId, replyMarkup, cancellationToken, thumb);
+            var apiMessage = await _telegramBotClient.SendVideoAsync(chatId, video, duration, width, height, caption, parseMode, supportsStreaming, disableNotification, replyToMessageId, replyMarkup, cancellationToken, thumb);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendAnimationAsync(
+        public async Task<Message> SendAnimationAsync(
             ChatId chatId,
             InputOnlineFile animation,
             int duration = 0,
@@ -219,10 +228,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             IReplyMarkup replyMarkup = null,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            return _telegramBotClient.SendAnimationAsync(chatId, animation, duration, width, height, thumb, caption, parseMode, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            var apiMessage = await _telegramBotClient.SendAnimationAsync(chatId, animation, duration, width, height, thumb, caption, parseMode, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendVoiceAsync(
+        public async Task<Message> SendVoiceAsync(
             ChatId chatId,
             InputOnlineFile voice,
             string caption = null,
@@ -233,10 +244,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             IReplyMarkup replyMarkup = null,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            return _telegramBotClient.SendVoiceAsync(chatId, voice, caption, parseMode, duration, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            var apiMessage = await _telegramBotClient.SendVoiceAsync(chatId, voice, caption, parseMode, duration, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendVideoNoteAsync(
+        public async Task<Message> SendVideoNoteAsync(
             ChatId chatId,
             InputTelegramFile videoNote,
             int duration = 0,
@@ -247,7 +260,9 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             CancellationToken cancellationToken = new CancellationToken(),
             InputMedia thumb = null)
         {
-            return _telegramBotClient.SendVideoNoteAsync(chatId, videoNote, duration, length, disableNotification, replyToMessageId, replyMarkup, cancellationToken, thumb);
+            var apiMessage = await _telegramBotClient.SendVideoNoteAsync(chatId, videoNote, duration, length, disableNotification, replyToMessageId, replyMarkup, cancellationToken, thumb);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
         public Task<Message[]> SendMediaGroupAsync(
@@ -270,7 +285,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             return _telegramBotClient.SendMediaGroupAsync(inputMedia, chatId, disableNotification, replyToMessageId, cancellationToken);
         }
 
-        public Task<Message> SendLocationAsync(
+        public async Task<Message> SendLocationAsync(
             ChatId chatId,
             float latitude,
             float longitude,
@@ -280,10 +295,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             IReplyMarkup replyMarkup = null,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            return _telegramBotClient.SendLocationAsync(chatId, latitude, longitude, livePeriod, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            var apiMessage = await _telegramBotClient.SendLocationAsync(chatId, latitude, longitude, livePeriod, disableNotification, replyToMessageId, replyMarkup, cancellationToken);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendVenueAsync(
+        public async Task<Message> SendVenueAsync(
             ChatId chatId,
             float latitude,
             float longitude,
@@ -296,10 +313,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             CancellationToken cancellationToken = new CancellationToken(),
             string foursquareType = null)
         {
-            return _telegramBotClient.SendVenueAsync(chatId, latitude, longitude, title, address, foursquareId, disableNotification, replyToMessageId, replyMarkup, cancellationToken, foursquareType);
+            var apiMessage = await _telegramBotClient.SendVenueAsync(chatId, latitude, longitude, title, address, foursquareId, disableNotification, replyToMessageId, replyMarkup, cancellationToken, foursquareType);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendContactAsync(
+        public async Task<Message> SendContactAsync(
             ChatId chatId,
             string phoneNumber,
             string firstName,
@@ -310,10 +329,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             CancellationToken cancellationToken = new CancellationToken(),
             string vCard = null)
         {
-            return _telegramBotClient.SendContactAsync(chatId, phoneNumber, firstName, lastName, disableNotification, replyToMessageId, replyMarkup, cancellationToken, vCard);
+            var apiMessage = await _telegramBotClient.SendContactAsync(chatId, phoneNumber, firstName, lastName, disableNotification, replyToMessageId, replyMarkup, cancellationToken, vCard);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendPollAsync(
+        public async Task<Message> SendPollAsync(
             ChatId chatId,
             string question,
             IEnumerable<string> options,
@@ -331,10 +352,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             int? openPeriod = null,
             DateTime? closeDate = null)
         {
-            return _telegramBotClient.SendPollAsync(chatId, question, options, disableNotification, replyToMessageId, replyMarkup, cancellationToken, isAnonymous, type, allowsMultipleAnswers, correctOptionId, isClosed, explanation, explanationParseMode, openPeriod, closeDate);
+            var apiMessage = await _telegramBotClient.SendPollAsync(chatId, question, options, disableNotification, replyToMessageId, replyMarkup, cancellationToken, isAnonymous, type, allowsMultipleAnswers, correctOptionId, isClosed, explanation, explanationParseMode, openPeriod, closeDate);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
-        public Task<Message> SendDiceAsync(
+        public async Task<Message> SendDiceAsync(
             ChatId chatId,
             bool disableNotification = false,
             int replyToMessageId = 0,
@@ -342,7 +365,9 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             CancellationToken cancellationToken = new CancellationToken(),
             Emoji? emoji = null)
         {
-            return _telegramBotClient.SendDiceAsync(chatId, disableNotification, replyToMessageId, replyMarkup, cancellationToken, emoji);
+            var apiMessage = await _telegramBotClient.SendDiceAsync(chatId, disableNotification, replyToMessageId, replyMarkup, cancellationToken, emoji);
+            FireMessageReceivedSafe(apiMessage);
+            return apiMessage;
         }
 
         public Task SendChatActionAsync(

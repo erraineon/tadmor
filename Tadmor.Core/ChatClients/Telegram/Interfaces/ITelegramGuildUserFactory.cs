@@ -7,5 +7,6 @@ namespace Tadmor.Core.ChatClients.Telegram.Interfaces
     {
         Task<ITelegramGuildUser?> CreateOrNullAsync(ITelegramGuild telegramGuild, int userId);
         ITelegramGuildUser Create(ITelegramGuild telegramGuild, ChatMember chatMember);
+        ITelegramGuildUser Create(ITelegramGuild telegramGuild, User user, bool isAdmin);
     }
 }

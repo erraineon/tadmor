@@ -11,13 +11,13 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
 {
     public class TelegramGuildUser : TelegramUser, ITelegramGuildUser
     {
-        private readonly ChatMember _chatMember;
-        private readonly ITelegramBotClient _api;
+        private readonly User _user;
+        private readonly bool _isAdmin;
 
-        public TelegramGuildUser(ITelegramGuild guild, ChatMember chatMember, ITelegramBotClient api) : base(chatMember.User)
+        public TelegramGuildUser(ITelegramGuild guild, User user, bool isAdmin) : base(user)
         {
-            _chatMember = chatMember;
-            _api = api;
+            _user = user;
+            _isAdmin = isAdmin;
             Guild = guild;
         }
 
@@ -57,9 +57,9 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
         }
 
         public DateTimeOffset? JoinedAt => throw new NotImplementedException();
-        public string? Nickname => null;
+        public string? Nickname => _user.FirstName;
 
-        public GuildPermissions GuildPermissions => _chatMember.Status == ChatMemberStatus.Administrator
+        public GuildPermissions GuildPermissions => _isAdmin
             ? GuildPermissions.All
             : new GuildPermissions(sendMessages: true);
 

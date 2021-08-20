@@ -24,7 +24,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Extensions
                             services.AddMemoryCache();
                             services.AddSingleton<ITelegramBotClient>(_ => new TelegramBotClient(telegramOptions.Token));
                             services.AddSingleton<ITelegramApiClient, TelegramApiClient>();
-                            services.AddSingleton<ITelegramClient, TelegramClient>();
+                            services.AddSingleton<ITelegramChatClient, TelegramChatClient>();
                             services.AddSingleton<ITelegramApiListener, TelegramApiListener>();
                             services.AddSingleton<ITelegramEventProvider, TelegramEventProvider>();
                             services.AddSingleton<IChatEventProvider>(s => s.GetRequiredService<ITelegramEventProvider>());
