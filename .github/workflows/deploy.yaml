@@ -90,4 +90,4 @@ jobs:
             curl -o pstools.zip https://download.sysinternals.com/files/PSTools.zip
             unzip -n pstools.zip
             session_id=$(query session | sed -nr 's/.+Administrator\s*([0-9]).+/\1/p')
-            ./psexec -i $session_id -d -s -accepteula $PWD/$PROCESS_NAME
+            ./psexec -i $session_id -d -s -accepteula -w $PWD $PWD/$PROCESS_NAME
