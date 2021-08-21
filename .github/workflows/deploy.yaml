@@ -28,7 +28,7 @@ jobs:
         run: dotnet build
         
       - name: publish the artifacts
-        run: dotnet publish -r win-x64 -o $ARTIFACT_PATH
+        run: dotnet publish -r win-x64 --self-contained true -o $ARTIFACT_PATH
         
       - name: clone settings file
         run: cp $ARTIFACT_PATH/appsettings.sample.json $ARTIFACT_PATH/appsettings.json
@@ -39,10 +39,10 @@ jobs:
           files: ${{ env.ARTIFACT_PATH }}/appsettings.json
         env:
           DiscordOptions.Token: ${{ secrets.DISCORD_TOKEN }}
-          DiscordOptions.Enabled: true,
+          DiscordOptions.Enabled: true
           TelegramOptions.Token: ${{ secrets.TELEGRAM_TOKEN }}
           TelegramOptions.BotOwnerId: ${{ secrets.TELEGRAM_BOT_OWNER_ID }}
-          TelegramOptions.Enabled: true,
+          TelegramOptions.Enabled: true
           GoogleOptions.SearchEngineId: ${{ secrets.GOOGLE_SEARCH_ENGINE_ID }}
           GoogleOptions.ApiKey: ${{ secrets.GOOGLE_API_KEY }}
           TadmorMindOptions.ServiceAddress: ${{ secrets.TADMOR_MIND_ADDRESS }}
