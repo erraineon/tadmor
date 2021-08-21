@@ -13,9 +13,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="MessageRendering\Resources\Mx437_DOS-V_re_JPN24.ttf" />
-    <EmbeddedResource Include="MessageRendering\Resources\Mx437_IBM_XGA-AI_12x20.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </EmbeddedResource>
+    <EmbeddedResource Include="MessageRendering\Resources\Mx437_IBM_XGA-AI_12x20.ttf" />
   </ItemGroup>
 
   <ItemGroup>
