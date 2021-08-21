@@ -78,6 +78,7 @@ namespace Tadmor.Core.ChatClients.Abstractions.Models
         public MessageApplication Application => throw new NotSupportedException();
         public MessageReference Reference => throw new NotSupportedException();
         public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotSupportedException();
+        public IReadOnlyCollection<ISticker> Stickers => throw new NotSupportedException();
         public MessageFlags? Flags => throw new NotSupportedException();
 
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions? options = null)

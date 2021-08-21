@@ -73,14 +73,14 @@ namespace Tadmor.Core.Commands.Modules
             {
                 stringBuilder.Append(' ');
                 var showAsOptional = parameter.IsOptional || parameter.IsMultiple;
-                if (showAsOptional) stringBuilder.Append("_[");
+                if (showAsOptional) stringBuilder.Append("*[");
                 if (Attribute.IsDefined(parameter.Type, typeof(NamedArgumentTypeAttribute)))
                 {
                     var namedArgumentValues = GetNamedArgumentValues(parameter);
                     stringBuilder.Append(string.Join(" ", namedArgumentValues));
                 }
                 else stringBuilder.Append(parameter.Name.Humanize().Kebaberize().ToLower());
-                if (showAsOptional) stringBuilder.Append("]_");
+                if (showAsOptional) stringBuilder.Append("]*");
             }
 
             stringBuilder.Append("**");

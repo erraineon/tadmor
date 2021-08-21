@@ -9,8 +9,6 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
 {
     public class TelegramUserMessage : ITelegramUserMessage
     {
-        
-
         public ulong Id => (ulong) ApiMessage.MessageId;
         public DateTimeOffset CreatedAt => ApiMessage.Date;
 
@@ -40,6 +38,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
         public MessageApplication Application => throw new NotImplementedException();
         public MessageReference Reference => throw new NotImplementedException();
         public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
+        public IReadOnlyCollection<ISticker> Stickers { get; }
         public MessageFlags? Flags { get; }
 
         public async Task<IMessage?> GetQuotedMessageAsync()

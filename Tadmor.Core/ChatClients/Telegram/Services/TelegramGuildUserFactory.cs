@@ -18,7 +18,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             _api = api;
         }
 
-        public async Task<ITelegramGuildUser?> CreateOrNullAsync(ITelegramGuild telegramGuild, int userId)
+        public async Task<ITelegramGuildUser?> CreateOrNullAsync(ITelegramGuild telegramGuild, long userId)
         {
             try
             {

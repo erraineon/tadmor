@@ -35,7 +35,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         public Task StartAsync()
         {
             _api.StartReceiving(null, CancellationToken.None);
-            CurrentUser = new TelegramSelfUser(_api.BotId);
+            CurrentUser = new TelegramSelfUser(_api.BotId.Value);
             _application = new TelegramApplication(_telegramOptions.BotOwnerId);
             return Task.CompletedTask;
         }

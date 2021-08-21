@@ -7,7 +7,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
 {
     public class TelegramSelfUser : TelegramUser, ISelfUser
     {
-        public TelegramSelfUser(int botId) : base(new User{Id = botId})
+        public TelegramSelfUser(long botId) : base(new User{Id = botId})
         {
         }
 

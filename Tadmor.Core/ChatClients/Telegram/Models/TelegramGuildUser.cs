@@ -36,7 +36,17 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
             throw new NotImplementedException();
         }
 
+        public Task AddRoleAsync(ulong roleId, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task AddRoleAsync(IRole role, RequestOptions? options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions options = null)
         {
             throw new NotImplementedException();
         }
@@ -46,7 +56,17 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
             throw new NotImplementedException();
         }
 
+        public Task RemoveRoleAsync(ulong roleId, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task RemoveRoleAsync(IRole role, RequestOptions? options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveRolesAsync(IEnumerable<ulong> roleIds, RequestOptions options = null)
         {
             throw new NotImplementedException();
         }

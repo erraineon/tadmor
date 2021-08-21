@@ -9,11 +9,34 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Audio;
+using JetBrains.Annotations;
+using Markdig;
+using Markdig.Renderers;
+using Markdig.Renderers.Roundtrip.Inlines;
+using Markdig.Syntax;
 using Tadmor.Core.ChatClients.Telegram.Interfaces;
+using Tadmor.Core.ChatClients.Telegram.Services;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
+using AutolinkInlineRenderer = Markdig.Renderers.Roundtrip.Inlines.AutolinkInlineRenderer;
+using CodeBlockRenderer = Markdig.Renderers.Roundtrip.CodeBlockRenderer;
+using CodeInlineRenderer = Markdig.Renderers.Roundtrip.Inlines.CodeInlineRenderer;
+using DelimiterInlineRenderer = Markdig.Renderers.Roundtrip.Inlines.DelimiterInlineRenderer;
+using EmphasisInlineRenderer = Markdig.Renderers.Roundtrip.Inlines.EmphasisInlineRenderer;
+using EmptyBlockRenderer = Markdig.Renderers.Roundtrip.EmptyBlockRenderer;
 using File = System.IO.File;
+using HeadingRenderer = Markdig.Renderers.Roundtrip.HeadingRenderer;
+using HtmlBlockRenderer = Markdig.Renderers.Roundtrip.HtmlBlockRenderer;
+using LineBreakInlineRenderer = Markdig.Renderers.Roundtrip.Inlines.LineBreakInlineRenderer;
+using LinkInlineRenderer = Markdig.Renderers.Roundtrip.Inlines.LinkInlineRenderer;
+using LinkReferenceDefinitionGroupRenderer = Markdig.Renderers.Roundtrip.LinkReferenceDefinitionGroupRenderer;
+using LinkReferenceDefinitionRenderer = Markdig.Renderers.Roundtrip.LinkReferenceDefinitionRenderer;
+using ListRenderer = Markdig.Renderers.Roundtrip.ListRenderer;
+using LiteralInlineRenderer = Markdig.Renderers.Roundtrip.Inlines.LiteralInlineRenderer;
+using ParagraphRenderer = Markdig.Renderers.Roundtrip.ParagraphRenderer;
+using QuoteBlockRenderer = Markdig.Renderers.Roundtrip.QuoteBlockRenderer;
+using ThematicBreakRenderer = Markdig.Renderers.Roundtrip.ThematicBreakRenderer;
 
 namespace Tadmor.Core.ChatClients.Telegram.Models
 {
@@ -338,6 +361,11 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
             throw new NotImplementedException();
         }
 
+        public Task<IReadOnlyCollection<GuildEmote>> GetEmotesAsync(RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<GuildEmote> GetEmoteAsync(ulong id, RequestOptions? options = null)
         {
             throw new NotImplementedException();
@@ -565,7 +593,9 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
             {
                 builder.AppendLine($"**{embedField.Name}**");
                 builder.AppendLine(embedField.Value);
+                builder.AppendLine();
             }
+
 
             return builder.ToString();
         }
@@ -584,27 +614,9 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
                 text = ToText(embed);
             }
 
-            var markdownChars = new[] { '*', '_', '`' };
-            var concatMarkdownChars = string.Concat(markdownChars);
-            // replace regular markdown with the kind that telegram expects
-            text = Regex.Replace(text, $@"([{concatMarkdownChars}])\1(.*?)\1\1", @"$1$2$1");
-            // escape telegram markdown tokens out of urls and usernames
-            text = Regex.Replace(text, @"(http|\@).+?(?=\s|$)", m => Regex.Replace(m.Value, $@"[{concatMarkdownChars}]", @"\$&"));
-            Regex.Matches("a", @"(?'x'[\*])+(?'-x')\k'x'", RegexOptions.None);
-            // escape unmatched markdown tokens
-            var charsAndIndexes = text.Select((c, i) => (c, i)).ToList();
-            var unmatchedMarkdownIndexes = markdownChars
-                .Select(c => charsAndIndexes
-                    .Where(t => t.c == c && (t.i == 0 || text[t.i - 1] != '\\'))
-                    .Select(t => t.i)
-                    .ToList())
-                .Where(indexes => indexes.Count % 2 != 0)
-                .Select(indexes => indexes.Last())
-                .OrderByDescending(index => index)
-                .ToList();
-            text = unmatchedMarkdownIndexes.Aggregate(text, (current, index) => current.Insert(index, "\\"));
+            var htmlText = TelegramMarkdownConverter.ConvertToHtml(text);
             var replyToMessageId = (int) (messageReference?.MessageId.Value ?? 0);
-            var apiMessage = await _api.SendTextMessageAsync(_chat.Id, text, ParseMode.Markdown, replyToMessageId: replyToMessageId);
+            var apiMessage = await _api.SendTextMessageAsync(_chat.Id, htmlText, ParseMode.Html, replyToMessageId: replyToMessageId);
             var userMessage = AddMessageToCache(apiMessage);
             return userMessage;
         }
@@ -635,11 +647,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
             AllowedMentions? allowedMentions = null,
             MessageReference? messageReference = null)
         {
+            var htmlText = TelegramMarkdownConverter.ConvertToHtml(text);
             var videoExtensions = new[] { ".gif" };
             var replyToMessageId = (int)(messageReference?.MessageId.Value ?? 0);
             var apiMessage = videoExtensions.Any(filename.EndsWith)
-                ? await _api.SendAnimationAsync(_chat.Id, new InputOnlineFile(stream, filename), caption: text, replyToMessageId: replyToMessageId)
-                : await _api.SendPhotoAsync(_chat.Id, new InputOnlineFile(stream), text, replyToMessageId: replyToMessageId);
+                ? await _api.SendAnimationAsync(_chat.Id, new InputOnlineFile(stream, filename), caption: htmlText, replyToMessageId: replyToMessageId)
+                : await _api.SendPhotoAsync(_chat.Id, new InputOnlineFile(stream), htmlText, replyToMessageId: replyToMessageId);
             var userMessage = AddMessageToCache(apiMessage);
             return userMessage;
         }
@@ -700,6 +713,11 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
         public Task DeleteMessageAsync(IMessage message, RequestOptions? options = null)
         {
             return DeleteMessageAsync(message.Id, options);
+        }
+
+        public Task<IUserMessage> ModifyMessageAsync(ulong messageId, Action<MessageProperties> func, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
         }
 
         public Task TriggerTypingAsync(RequestOptions? options = null)
