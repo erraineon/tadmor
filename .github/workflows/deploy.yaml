@@ -23,12 +23,10 @@ jobs:
       - uses: actions/setup-dotnet@v1
         with:
             dotnet-version: '5.x'
-            
-      - name: build the solution
-        run: dotnet build
         
-      - name: publish the artifacts
-        run: dotnet publish -r win-x64 --self-contained true -o $ARTIFACT_PATH
+      - name: build and publish the artifacts
+        # using the regular -r switch on publish doesn't work. https://github.com/dotnet/sdk/issues/14281
+        run: dotnet build -p:DeployOnBuild=true -p:MyRuntimeIdentifier=win-x64 -o $ARTIFACT_PATH
         
       - name: clone settings file
         run: cp $ARTIFACT_PATH/appsettings.sample.json $ARTIFACT_PATH/appsettings.json
