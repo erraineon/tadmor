@@ -21,9 +21,10 @@ namespace Tadmor.Core.Commands.Services
         {
             var (_, userMessage, guildChannel, guildUser) = notification;
             var preferences = await _contextualPreferencesProvider.GetContextualPreferencesAsync(guildChannel, guildUser);
-            var isPrefixValid = userMessage.Content.StartsWith(preferences.CommandPrefix);
+            var prefix = preferences.CommandPrefix ?? ".";
+            var isPrefixValid = userMessage.Content.StartsWith(prefix);
             var input = isPrefixValid
-                ? userMessage.Content[preferences.CommandPrefix.Length..]
+                ? userMessage.Content[prefix.Length..]
                 : string.Empty;
             var result = new CommandPrefixValidationResult(isPrefixValid, input);
             return result;

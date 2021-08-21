@@ -88,7 +88,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
 
         public DateTimeOffset? PremiumSince => throw new NotImplementedException();
 
-        public IReadOnlyCollection<ulong> RoleIds => throw new NotImplementedException();
+        public IReadOnlyCollection<ulong> RoleIds => Array.Empty<ulong>();
         public bool? IsPending => throw new NotImplementedException();
 
         public bool IsDeafened => throw new NotImplementedException();

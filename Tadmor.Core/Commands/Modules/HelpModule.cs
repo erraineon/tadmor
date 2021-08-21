@@ -42,7 +42,7 @@ namespace Tadmor.Core.Commands.Modules
                 .WithTitle("source code")
                 .WithUrl("https://github.com/erraineon/tadmor");
 
-            var prefix = await GetPrefix();
+            var prefix = await GetPrefixAsync();
 
             bool ShouldShow(IReadOnlyCollection<Attribute> attributes) =>
                 !attributes.OfType<HideInHelpAttribute>().Any();
@@ -103,11 +103,11 @@ namespace Tadmor.Core.Commands.Modules
             return argumentsValues;
         }
 
-        private async Task<string> GetPrefix()
+        private async Task<string> GetPrefixAsync()
         {
             return (await _contextualPreferencesProvider
                     .GetContextualPreferencesAsync((IGuildChannel) Context.Channel, (IGuildUser) Context.User))
-                .CommandPrefix;
+                .CommandPrefix ?? ".";
         }
     }
 }
