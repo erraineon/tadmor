@@ -32,7 +32,8 @@ namespace Tadmor.Core.Commands.Extensions
                     .AddTransient<ICommandService, CommandServiceWrapper>()
                     .AddHostedService<CommandsModuleRegistrar>()
                     .AddTransient<ICommandExecutor, CommandExecutor>()
-                    .Decorate<ICommandExecutor, LoggingCommandExecutor>()
+                    .Decorate<ICommandExecutor, LoggingCommandExecutorDecorator>()
+                    .Decorate<ICommandExecutor, PermissionAwareCommandExecutorDecorator>()
 
                     // command context
                     .AddScoped<ICommandContextResolver, CommandContextResolver>()

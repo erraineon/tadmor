@@ -144,30 +144,6 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         public ConnectionState ConnectionState => throw new NotImplementedException();
         public ISelfUser? CurrentUser { get; private set; }
         public TokenType TokenType => TokenType.Bot;
-
-        //public async Task<Image?> GetAvatarAsync(ulong userId)
-        //{
-        //    var photo = await _cache.GetOrCreateAsyncLock($"telegram-profilephoto-{userId}", async entry =>
-        //    {
-        //        entry.SetSlidingExpiration(TimeSpan.FromHours(4));
-        //        var userPhotos = (await Api.GetUserProfilePhotosAsync((int)userId, 0, 1)).Photos;
-        //        return userPhotos.FirstOrDefault()?.FirstOrDefault();
-        //    });
-           
-        //    return photo != null ? new TelegramImage(this, photo.FileId) : default;
-        //}
-
-        //public async Task<byte[]> GetImageAsync(string fileId)
-        //{
-        //    var data = await _cache.GetOrCreateAsyncLock($"telegram-file-{fileId}", async entry =>
-        //    {
-        //        entry.SetSlidingExpiration(TimeSpan.FromDays(1));
-        //        var memoryStream = new MemoryStream();
-        //        await Api.GetInfoAndDownloadFileAsync(fileId, memoryStream);
-        //        return memoryStream.ToArray();
-        //    });
-        //    return data;
-        //}
         public string Name => "telegram";
         public async Task<byte[]> DownloadFileAsync(string fileId)
         {

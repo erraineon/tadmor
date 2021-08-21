@@ -40,9 +40,9 @@ namespace Tadmor.Core.Rules.Services
                         {
                             "user" => ruleTriggerContext.ExecuteAs.Mention,
                             var groupName
-                                when GetRgexGroupValueOrNull(ruleTriggerContext, groupName) is { } groupValue => groupValue,
+                                when GetRegexGroupValueOrNull(ruleTriggerContext, groupName) is { } groupValue => groupValue,
                             var subCommand
-                                when await ExecuteSubCommand(subCommand, ruleTriggerContext) is RuntimeResult
+                                when await ExecuteSubCommandAsync(subCommand, ruleTriggerContext) is RuntimeResult
                                     runtimeResult => runtimeResult.Reason,
                             _ => parsed
                         };
@@ -64,7 +64,7 @@ namespace Tadmor.Core.Rules.Services
             return await GetCommandRecursive();
         }
 
-        private async Task<IResult> ExecuteSubCommand(string subCommand, IRuleTriggerContext ruleTriggerContext)
+        private async Task<IResult> ExecuteSubCommandAsync(string subCommand, IRuleTriggerContext ruleTriggerContext)
         {
             var commandContext = _commandContextFactory.Create(
                 subCommand,
@@ -78,7 +78,7 @@ namespace Tadmor.Core.Rules.Services
             return result;
         }
 
-        private static string? GetRgexGroupValueOrNull(IRuleTriggerContext ruleTriggerContext, string groupName)
+        private static string? GetRegexGroupValueOrNull(IRuleTriggerContext ruleTriggerContext, string groupName)
         {
             var groupValue = ruleTriggerContext is RegexRuleTriggerContext regexRuleTriggerContext &&
                 regexRuleTriggerContext.GetMatch() is {Success: true} m &&

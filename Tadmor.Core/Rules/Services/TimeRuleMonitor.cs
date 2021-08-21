@@ -68,9 +68,11 @@ namespace Tadmor.Core.Rules.Services
             TimeRule timeRule,
             CancellationToken cancellationToken)
         {
+            // Needed to check for permissions
+            var currentGuildUser = await channel.GetUserAsync(chatClient.CurrentUser.Id);
             var timeRuleTriggerContext = new TimeRuleTriggerContext(
                 timeRule,
-                chatClient.CurrentUser,
+                currentGuildUser,
                 channel,
                 chatClient);
             await _ruleExecutor.ExecuteRuleAsync(timeRuleTriggerContext, cancellationToken);

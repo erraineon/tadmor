@@ -2,7 +2,9 @@
 using Flurl;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Tadmor.Core.Commands.Models;
 using Tadmor.Core.Extensions;
+using Tadmor.Core.Notifications.Interfaces;
 using Tadmor.TextGeneration.Interfaces;
 using Tadmor.TextGeneration.Models;
 using Tadmor.TextGeneration.Modules;
@@ -19,7 +21,8 @@ namespace Tadmor.TextGeneration.Extensions
                 {
                     var config = services.BindConfigurationSection<TadmorMindOptions>(hostingContext.Configuration);
                     AssertConfigurationValid(config);
-                    services.AddTransient<ITadmorMindClient, TadmorMindClient>();
+                    services.AddSingleton<ITadmorMindClient, TadmorMindClient>();
+                    services.AddTransient<INotificationHandler<MessageValidatedNotification>, GenerateWhenRepliedToBehaviour>();
                 })
                 .UseModule<TadmorMindModule>();
         }

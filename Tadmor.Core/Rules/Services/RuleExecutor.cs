@@ -1,5 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Discord.Commands;
 using Tadmor.Core.Commands.Interfaces;
 using Tadmor.Core.Commands.Models;
 using Tadmor.Core.Notifications.Interfaces;
@@ -43,9 +45,11 @@ namespace Tadmor.Core.Rules.Services
 
             var executeCommandRequest = new ExecuteCommandRequest(commandContext, command);
             var commandResult = await _commandExecutor.ExecuteAsync(executeCommandRequest, cancellationToken);
-
-            var publishCommandResultRequest = new PublishCommandResultRequest(commandContext, commandResult);
-            await _commandResultPublisher.PublishAsync(publishCommandResultRequest, cancellationToken);
+            if (commandResult.Error != CommandError.UnmetPrecondition)
+            {
+                var publishCommandResultRequest = new PublishCommandResultRequest(commandContext, commandResult);
+                await _commandResultPublisher.PublishAsync(publishCommandResultRequest, cancellationToken);
+            }
 
             var ruleExecutedNotification = new RuleExecutedNotification(
                 ruleTriggerContext.ChatClient,

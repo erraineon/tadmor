@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Flurl.Http;
 using MoreLinq;
-using Tadmor.Search.Models;
 using Tadmor.TextGeneration.Interfaces;
 using Tadmor.TextGeneration.Models;
 

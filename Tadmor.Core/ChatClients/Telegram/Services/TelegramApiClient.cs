@@ -52,7 +52,15 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
 
         public void StopReceiving()
         {
-            _telegramBotClient.StopReceiving();
+            try
+            {
+                _telegramBotClient.StopReceiving();
+            }
+            catch
+            {
+                // TODO: this stack is being deprecated, replace with whatever's the new thing.
+                // It throws when it's being closed.
+            }
             _telegramBotClient.OnMessage -= OnMessageReceived;
         }
 

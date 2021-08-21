@@ -7,12 +7,12 @@ using Tadmor.Core.Commands.Models;
 
 namespace Tadmor.Core.Commands.Services
 {
-    public class LoggingCommandExecutor : ICommandExecutor
+    public class LoggingCommandExecutorDecorator : ICommandExecutor
     {
         private readonly ICommandExecutor _commandExecutor;
-        private readonly ILogger<LoggingCommandExecutor> _logger;
+        private readonly ILogger<LoggingCommandExecutorDecorator> _logger;
 
-        public LoggingCommandExecutor(ICommandExecutor commandExecutor, ILogger<LoggingCommandExecutor> logger)
+        public LoggingCommandExecutorDecorator(ICommandExecutor commandExecutor, ILogger<LoggingCommandExecutorDecorator> logger)
         {
             _commandExecutor = commandExecutor;
             _logger = logger;
