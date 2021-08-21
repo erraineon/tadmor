@@ -1,0 +1,93 @@
+name: build and deploy
+
+on:
+  push:
+    branches: [ main, net5 ]
+  pull_request:
+    branches: [ main, net5 ]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env: 
+      ARTIFACT_PATH: build_artifact
+      TARGET_DEPLOY_PATH: tadmor
+      PROCESS_NAME: "Tadmor.exe"
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1
+        with:
+            dotnet-version: '5.x'
+            
+      - name: build the solution
+        run: dotnet build
+        
+      - name: publish the artifacts
+        run: dotnet publish -r win-x64 -o $ARTIFACT_PATH
+        
+      - name: clone settings file
+        run: cp $ARTIFACT_PATH/appsettings.sample.json $ARTIFACT_PATH/appsettings.json
+          
+      - name: populate settings
+        uses: microsoft/variable-substitution@v1 
+        with:
+          files: ${{ env.ARTIFACT_PATH }}/appsettings.json
+        env:
+          DiscordOptions.Token: ${{ secrets.DISCORD_TOKEN }}
+          DiscordOptions.Enabled: true,
+          TelegramOptions.Token: ${{ secrets.TELEGRAM_TOKEN }}
+          TelegramOptions.BotOwnerId: ${{ secrets.TELEGRAM_BOT_OWNER_ID }}
+          TelegramOptions.Enabled: true,
+          GoogleOptions.SearchEngineId: ${{ secrets.GOOGLE_SEARCH_ENGINE_ID }}
+          GoogleOptions.ApiKey: ${{ secrets.GOOGLE_API_KEY }}
+          TadmorMindOptions.ServiceAddress: ${{ secrets.TADMOR_MIND_ADDRESS }}
+          TwitterOptions.ConsumerKey: ${{ secrets.TWITTER_CONSUMER_KEY }}
+          TwitterOptions.ConsumerSecret: ${{ secrets.TWITTER_CONSUMER_SECRET }}
+          TwitterOptions.OAuthToken: ${{ secrets.TWITTER_OAUTH_TOKEN }}
+          TwitterOptions.OAuthTokenSecret: ${{ secrets.TWITTER_OAUTH_TOKEN_SECRET }}
+          ConnectionStrings.SqliteConnectionString: Data Source=database.sqlite;
+    
+      - name: terminate remote process
+        # don't stop in case the process isn't running and taskkill fails
+        continue-on-error: true
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          envs: PROCESS_NAME
+          script: taskkill -f -im $PROCESS_NAME
+      
+      - name: copy file via ssh password
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          source: ${{ env.ARTIFACT_PATH }}
+          target: ${{ env.TARGET_DEPLOY_PATH }}
+          strip_components: 1
+    
+      - name: restart remote process
+        # psexec returns an error status code even if the process starts correctly, use this to ignore it
+        continue-on-error: true
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          envs: TARGET_DEPLOY_PATH, PROCESS_NAME
+          # use -n with unzip to not ask to overwrite
+          # extract session_id and use psexec instead of simply starting to create the process in the right gui session
+          script: |
+            cd $TARGET_DEPLOY_PATH
+            curl -o pstools.zip https://download.sysinternals.com/files/PSTools.zip
+            unzip -n pstools.zip
+            session_id=$(query session | sed -nr 's/.+Administrator\s*([0-9]).+/\1/p')
+            ./psexec -i $session_id -d -s -accepteula $PWD/$PROCESS_NAME

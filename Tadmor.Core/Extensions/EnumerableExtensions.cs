@@ -1,0 +1,51 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Tadmor.Core.Extensions
+{
+    public static class EnumerableExtensions
+    {
+        private static readonly Random DefaultRandom = new();
+
+        public static IEnumerable<TValue> RandomSubset<TValue>(this IEnumerable<TValue> values,
+            int subsetSize,
+            Random? random = null,
+            Func<TValue, float>? weightFunction = null)
+        {
+            random ??= DefaultRandom;
+            weightFunction ??= _ => 1;
+
+            var weightAccumulator = 0f;
+            var itemsAndWeight = values
+                .Select(item => (item, weight: weightAccumulator += weightFunction(item)))
+                .ToList();
+            if (itemsAndWeight.Any())
+            {
+                var totalWeight = itemsAndWeight.Last().weight;
+                for (var i = 0; i < subsetSize; i++)
+                {
+                    var weightIndex = random.NextDouble() * totalWeight;
+                    yield return itemsAndWeight.First(t => t.weight >= weightIndex).item;
+                }
+            }
+        }
+
+        public static TValue? RandomOrDefault<TValue>(
+            this IEnumerable<TValue> values, 
+            Random? random = null,
+            Func<TValue, float>? weightFunction = null)
+        {
+            return RandomSubset(values, 1, random, weightFunction).FirstOrDefault();
+        }
+
+        public static TValue Random<TValue>(
+            this IEnumerable<TValue> values, 
+            Random? random = null,
+            Func<TValue, float>? weightFunction = null)
+        {
+            return RandomSubset(values, 1, random, weightFunction).First();
+        }
+    }
+}
