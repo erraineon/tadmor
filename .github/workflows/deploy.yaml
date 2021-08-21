@@ -16,6 +16,8 @@ jobs:
       TARGET_DEPLOY_PATH: tadmor
       PROCESS_NAME: "Tadmor.exe"
 
+    environment: Release
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1
