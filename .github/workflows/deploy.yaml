@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build and deploy:
+  ci-cd:
     runs-on: ubuntu-latest
     env: 
       ARTIFACT_PATH: build_artifact
