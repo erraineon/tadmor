@@ -54,5 +54,12 @@ namespace Tadmor.Raffles.Services
                 .Where(r => r.RaffleId == raffleId)
                 .ToListAsync();
         }
+
+        public async Task RemoveWinnersAsync(int[] extractionIds)
+        {
+            _tadmorDbContext.Set<RaffleExtraction>()
+                .RemoveRange(extractionIds.Select(i => new RaffleExtraction { Id = i }));
+            await _tadmorDbContext.SaveChangesAsync();
+        }
     }
 }

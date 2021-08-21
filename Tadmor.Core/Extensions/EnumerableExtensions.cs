@@ -20,6 +20,7 @@ namespace Tadmor.Core.Extensions
             var weightAccumulator = 0f;
             var itemsAndWeight = values
                 .Select(item => (item, weight: weightAccumulator += weightFunction(item)))
+                .Where(t => t.weight > 0)
                 .ToList();
             if (itemsAndWeight.Any())
             {

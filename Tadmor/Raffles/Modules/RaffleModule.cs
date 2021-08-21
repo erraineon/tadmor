@@ -29,13 +29,21 @@ namespace Tadmor.Raffles.Modules
             _raffleWinnersRepository = raffleWinnersRepository;
         }
 
-        [Command("raffle add")]
+        [Command("raffles add")]
         [Summary("adds winners to a raffle manually, to populate data that wasn't tracked through the bot")]
         public async Task<RuntimeResult> AddWinnersManually(DateTime extractionTime, params IUser[] users)
         {
             await _raffleWinnersRepository.AddWinnersAsync(users, GetRaffleId(), extractionTime);
             return CommandResult.FromSuccess(
                 $"added raffle victory at {extractionTime} for {users.Humanize(u => u.Username)}", true);
+        }
+
+        [Command("raffles rm")]
+        [Summary("removes raffle winners manually")]
+        public async Task<RuntimeResult> RemoveWinnersManually(params int[] extractionIds)
+        {
+            await _raffleWinnersRepository.RemoveWinnersAsync(extractionIds);
+            return CommandResult.FromSuccess($"removed {extractionIds} raffle winners", true);
         }
 
         [Command("raffles")]
@@ -72,6 +80,7 @@ namespace Tadmor.Raffles.Modules
             var raffleStrategy = raffleType == default ? null : GetRaffleStrategy(raffleType);
             var raffleId = GetRaffleId();
             var winners = await _raffleDrawingService.DrawAsync(participants, winnersCount, raffleId, raffleStrategy);
+            if (!winners.Any()) throw new ModuleException("no winners were picked");
             return CommandResult.FromSuccess(winners.Select(u => u.Mention).Humanize(), true);
         }
 
@@ -83,7 +92,7 @@ namespace Tadmor.Raffles.Modules
                     .FirstOrDefault(s => string.Equals(s.Name, raffleType, StringComparison.OrdinalIgnoreCase)) ??
                 throw new ModuleException(
                     $"no raffle with type {raffleType} was found. " +
-                    $"available raffle types: {_raffleBiasStrategies.Humanize()}");
+                    $"available raffle types: {_raffleBiasStrategies.Humanize(s => s.Name)}");
         }
 
         private async Task<ICollection<IUser>> GetUsersWhoReactedAsync(IMessage targetMessage)

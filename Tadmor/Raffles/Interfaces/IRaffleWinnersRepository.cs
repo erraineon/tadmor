@@ -11,5 +11,6 @@ namespace Tadmor.Raffles.Interfaces
         Task<ICollection<RaffleStatistics>> GetStatisticsAsync(string raffleId);
         Task AddWinnersAsync(ICollection<IUser> winners, string raffleId, DateTime extractionTime);
         Task<IList<RaffleExtraction>> GetAllExtractionsAsync(string raffleId);
+        Task RemoveWinnersAsync(int[] extractionIds);
     }
 }
