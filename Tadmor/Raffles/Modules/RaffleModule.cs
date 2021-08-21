@@ -13,6 +13,7 @@ using Tadmor.Raffles.Interfaces;
 namespace Tadmor.Raffles.Modules
 {
     [RequireUserPermission(GuildPermission.Administrator)]
+    [Summary("raffle utilities")]
     public class RaffleModule : ModuleBase<ICommandContext>
     {
         private readonly IRaffleDrawingService _raffleDrawingService;
@@ -28,7 +29,8 @@ namespace Tadmor.Raffles.Modules
             _raffleWinnersRepository = raffleWinnersRepository;
         }
 
-        [Command("raffle winners")]
+        [Command("raffle add")]
+        [Summary("adds winners to a raffle manually, to populate data that wasn't tracked through the bot")]
         public async Task<RuntimeResult> AddWinnersManually(DateTime extractionTime, params IUser[] users)
         {
             await _raffleWinnersRepository.AddWinnersAsync(users, GetRaffleId(), extractionTime);
@@ -36,7 +38,8 @@ namespace Tadmor.Raffles.Modules
                 $"added raffle victory at {extractionTime} for {users.Humanize(u => u.Username)}", true);
         }
 
-        [Command("raffle ls")]
+        [Command("raffles")]
+        [Summary("shows all the won raffles by user, sorted by the most recent victory")]
         public async Task<RuntimeResult> ListAllExtractionsAsync()
         {
             var extractions = await _raffleWinnersRepository.GetAllExtractionsAsync(GetRaffleId());
@@ -47,17 +50,19 @@ namespace Tadmor.Raffles.Modules
                         var user = await Context.Guild.GetUserAsync(g.Key);
                         var username = user?.Username ?? $"missing user {g.Key}";
                         var extractionTimes = g
-                            .Select(e => e.ExtractionTime)
-                            .OrderBy(d => d)
-                            .Humanize(d => d.ToShortDateString());
-                        return $"{username}: {extractionTimes}";
+                            .Select(e => (e.Id, e.ExtractionTime))
+                            .OrderBy(t => t.ExtractionTime)
+                            .Humanize(t => $"{t.ExtractionTime.ToShortDateString()} (#{t.Id})");
+                        return (value: $"{username}: {extractionTimes}", lastVictory: g.Max(e => e.ExtractionTime));
                     })))
-                .OrderBy(s => s)
+                .OrderBy(t => t.lastVictory)
+                .Select(t => t.value)
                 .ToList();
             return CommandResult.FromSuccess(extractionsByName);
         }
 
         [Command("raffle")]
+        [Summary("picks the specified number of users from the last message, or the one replied to, using the specified raffle type")]
         public async Task<RuntimeResult> Draw(int winnersCount, string? raffleType = default)
         {
             if (winnersCount < 1) throw new ModuleException("there must be one or more winners");

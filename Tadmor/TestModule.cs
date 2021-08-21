@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Tadmor.Core.Commands.Attributes;
 using Tadmor.Core.Commands.Models;
@@ -41,6 +42,7 @@ namespace Tadmor
         }
 
         [Command("echo")]
+        [RequireUserPermission(GuildPermission.Administrator)]
         public Task<RuntimeResult> Echo([Remainder] string value)
         {
             return Task.FromResult(CommandResult.FromSuccess(value));
@@ -54,6 +56,7 @@ namespace Tadmor
         }
 
         [Command("del")]
+        [RequireUserPermission(GuildPermission.Administrator)]
         public async Task<RuntimeResult?> Delete([Remainder] string message)
         {
             if (Context.Message.ReferencedMessage is { } messageToDelete)

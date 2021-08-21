@@ -25,6 +25,7 @@ namespace Tadmor.Furry.Modules
         }
 
         [Command("e621")]
+        [Summary("posts a random result with the specified tags from e621")]
         public async Task<RuntimeResult> SearchRandomAsync([Remainder] string tags)
         {
             var post = await _e621SearchEngine.SearchRandomAsync(tags);
@@ -33,16 +34,18 @@ namespace Tadmor.Furry.Modules
         }
 
         [Command("e621 latest")]
+        [Summary("posts the latest results with the specified tags from e621, without duplicate posts for the same channel")]
         [Priority(1)]
         public async Task SearchLatestAsync([Remainder] string tags)
         {
-            var lastSeenValue = await _bookmarkRepository.GetLastSeenValueAsync(tags);
+            var key = $"e621-{Context.Channel.Id}-{tags}";
+            var lastSeenValue = await _bookmarkRepository.GetLastSeenValueAsync(key);
             var previouslySearched = long.TryParse(lastSeenValue, out var lastSeenId);
             var posts = previouslySearched
                 ? await GetNewPostsAsync(tags, lastSeenId)
                 : await GetLatestPostsAsync(tags);
             if (posts.LastOrDefault() is { } latestPost)
-                await _bookmarkRepository.UpdateLastSeenAsync(tags, latestPost.Id.ToString());
+                await _bookmarkRepository.UpdateLastSeenAsync(key, latestPost.Id.ToString());
 
             foreach (var post in posts)
             {

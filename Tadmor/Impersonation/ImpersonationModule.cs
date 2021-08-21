@@ -6,6 +6,7 @@ using Tadmor.Impersonation.Interfaces;
 
 namespace Tadmor.Impersonation
 {
+    [HideInHelp]
     public class ImpersonationModule : ModuleBase<ICommandContext>
     {
         private readonly IImpersonator _impersonator;

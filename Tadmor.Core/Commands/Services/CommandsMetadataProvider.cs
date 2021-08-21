@@ -31,7 +31,8 @@ namespace Tadmor.Core.Commands.Services
                     var module = commandInfo.Module;
                     while (module.Parent != null) module = module.Parent;
                     return module;
-                });
+                })
+                .OrderBy(g => g.Key.Summary ?? g.Key.Name);
             return availableCommandsByModule;
         }
 

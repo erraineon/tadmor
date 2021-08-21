@@ -29,12 +29,14 @@ namespace Tadmor.Twitter.Modules
         }
 
         [Command("twitter")]
+        [Summary("posts a random tweet from the specified user")]
         public async Task<RuntimeResult> GetRandomTweetAsync(string displayName, [Remainder] string? filter = default)
         {
             return await GetRandomTweetAsync(displayName, filter, false);
         }
 
         [Command("twitter media")]
+        [Summary("posts a random media tweet from the specified user")]
         [Priority(1)]
         public async Task<RuntimeResult> GetRandomMediaTweetAsync(string displayName, [Remainder] string? filter = default)
         {
@@ -42,6 +44,7 @@ namespace Tadmor.Twitter.Modules
         }
 
         [Command("tweet")]
+        [Summary("tweets the specified number of messages, starting from the last message or the one being replied to")]
         [RequireWhitelist]
         public async Task<RuntimeResult> TweetAsync(int messagesToTweet = 1)
         {

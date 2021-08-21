@@ -29,6 +29,7 @@ namespace Tadmor.Core.Commands.Modules
         }
 
         [Command("prefix")]
+        [Summary("sets the prefix to execute bot commands")]
         public async Task<RuntimeResult> SetPrefix(
             string newPrefix,
             PreferencesScopeCommandModel? preferencesContext = null)
@@ -41,6 +42,7 @@ namespace Tadmor.Core.Commands.Modules
         }
 
         [Command("perms")]
+        [Summary("shows a list of permissions")]
         public async Task<RuntimeResult> ListPermissions()
         {
             var flattenedPreferences = await GetAllScopesAndPreferencesAsync(Context.Guild.Id);
@@ -60,6 +62,7 @@ namespace Tadmor.Core.Commands.Modules
         }
 
         [Command("perms")]
+        [Summary("adds the specified command to the blacklist or whitelist, optionally for a given context. using * as the command acts as a wildcard")]
         public async Task<RuntimeResult> SetPermissions(
             string command,
             CommandPermissionType permissionType,
@@ -75,6 +78,7 @@ namespace Tadmor.Core.Commands.Modules
         }
 
         [Command("perms rm")]
+        [Summary("removes the permission at the specified index")]
         public async Task<RuntimeResult> RemovePermissions(params int[] permissionIndexes)
         {
             var removedPermissions = await RemovePreferencesAsync(p => p.Rules, permissionIndexes);

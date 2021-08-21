@@ -1,13 +1,14 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Tadmor.Core.Commands.Attributes;
 using Tadmor.Core.Commands.Models;
 using Tadmor.Core.Extensions;
 using Tadmor.MessageRendering.Interfaces;
-using Tadmor.MessageRendering.Services;
 
 namespace Tadmor.MessageRendering.Modules
 {
+    [HideInHelp]
     public class MessageRendererModule : ModuleBase<ICommandContext>
     {
         private readonly IDrawableMessageFactory _drawableMessageFactory;
@@ -22,7 +23,7 @@ namespace Tadmor.MessageRendering.Modules
         }
 
         [Command("render")]
-        public async Task<RuntimeResult> Render(int messagesCount)
+        public async Task<RuntimeResult> Render(int messagesCount = 1)
         {
             var selectedMessages = await Context.GetSelectedMessagesAsync(messagesCount).ToListAsync();
             var drawableMessages = await Task.WhenAll(selectedMessages.Select(_drawableMessageFactory.CreateAsync));

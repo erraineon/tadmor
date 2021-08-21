@@ -7,6 +7,7 @@ using Tadmor.Core.Extensions;
 
 namespace Tadmor.Utilities.Modules
 {
+    [Summary("utilities")]
     public class UtilitiesModule : ModuleBase<ICommandContext>
     {
         private static readonly Random Random = new();
