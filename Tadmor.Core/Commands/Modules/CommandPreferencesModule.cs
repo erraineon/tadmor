@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Tadmor.Core.Commands.Extensions;
 using Tadmor.Core.Commands.Models;
@@ -11,9 +12,9 @@ using Tadmor.Core.Preference.Modules;
 namespace Tadmor.Core.Commands.Modules
 {
     [Summary("permissions and preferences")]
+    [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
     public class CommandPreferencesModule : PreferencesModuleBase
     {
-        private readonly IGuildPreferencesRepository _guildPreferencesRepository;
         private readonly IStringFormatter<PreferencesScope> _preferenceScopeFormatter;
         private readonly IStringFormatter<CommandPermission> _commandPermissionFormatter;
 
@@ -23,7 +24,6 @@ namespace Tadmor.Core.Commands.Modules
             IStringFormatter<CommandPermission> commandPermissionFormatter) : base(
             guildPreferencesRepository, preferenceScopeFormatter)
         {
-            _guildPreferencesRepository = guildPreferencesRepository;
             _preferenceScopeFormatter = preferenceScopeFormatter;
             _commandPermissionFormatter = commandPermissionFormatter;
         }

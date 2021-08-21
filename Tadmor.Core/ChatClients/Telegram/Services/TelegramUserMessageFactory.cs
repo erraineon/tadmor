@@ -9,6 +9,13 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
 {
     public class TelegramUserMessageFactory : ITelegramUserMessageFactory
     {
+        private readonly IUserMessageCache _userMessageCache;
+
+        public TelegramUserMessageFactory(IUserMessageCache userMessageCache)
+        {
+            _userMessageCache = userMessageCache;
+        }
+
         public ITelegramUserMessage Create(Message apiMessage, ITelegramGuild channel, ITelegramGuildUser author)
         {
             IEnumerable<IAttachment> GetAttachments()
@@ -19,12 +26,18 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
                     yield return CreateAttachment(sticker.FileId);
             }
 
+            var referencedMessage = apiMessage.ReplyToMessage is { MessageId: var messageId }
+                ? _userMessageCache.GetCachedUserMessages(channel.GuildId)
+                    .FirstOrDefault(um => um.Id == (ulong)messageId)
+                : null;
+
             var message = new TelegramUserMessage
             {
                 ApiMessage = apiMessage,
                 Attachments = GetAttachments().ToList(),
                 Channel = channel,
                 Author = author,
+                ReferencedMessage = referencedMessage
             };
             return message;
         }

@@ -112,7 +112,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
             return Content;
         }
 
-        public IUserMessage ReferencedMessage { get; }
+        public IUserMessage? ReferencedMessage { get; init; }
         public Message ApiMessage { get; init; }
     }
 }

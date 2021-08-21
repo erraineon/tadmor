@@ -16,7 +16,6 @@ using Tadmor.Core.Rules.Models;
 namespace Tadmor.Core.Rules.Modules
 {
     [Summary("time and text based events")]
-    [RequireUserPermission(GuildPermission.Administrator)]
     public class RulePreferencesModule : PreferencesModuleBase
     {
         private readonly ITimeRulePreferencesWriter _timeRulePreferencesWriter;
@@ -52,6 +51,7 @@ namespace Tadmor.Core.Rules.Modules
 
         [Command("in")]
         [Summary("executes a command in the specified amount of time")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public async Task<RuntimeResult> AddOneTimeRule(TimeSpan delay, [Remainder] string command)
         {
             if (delay <= TimeSpan.Zero) throw new ModuleException("can't set a reminder in the past");
@@ -62,6 +62,7 @@ namespace Tadmor.Core.Rules.Modules
 
         [Command("at")]
         [Summary("executes a command at the specified time (eastern time)")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public Task<RuntimeResult> AddOneTimeRule(DateTime dateTime, [Remainder] string command)
         {
             return AddOneTimeRule(dateTime - DateTime.Now, command);
@@ -69,6 +70,7 @@ namespace Tadmor.Core.Rules.Modules
 
         [Command("every")]
         [Summary("executes a command at the specified interval")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public async Task<RuntimeResult> AddRecurringRule(TimeSpan interval, [Remainder] string command)
         {
             var rule = await AddTimeRuleAsync(() => new RecurringRule(interval, command));
@@ -78,6 +80,7 @@ namespace Tadmor.Core.Rules.Modules
 
         [Command("cron")]
         [Summary("executes a command at the cron tab schedule")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public async Task<RuntimeResult> AddCronRule(CrontabSchedule cronSchedule, [Remainder] string command)
         {
             var rule = await AddTimeRuleAsync(() => new CronRule(cronSchedule.ToString(), command));
@@ -87,6 +90,7 @@ namespace Tadmor.Core.Rules.Modules
 
         [Command("on")]
         [HideInHelp]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public Task<RuntimeResult> AddRegexRule(string trigger, [Remainder] string command)
         {
             return AddRegexRule(trigger, command, new PreferencesScopeCommandModel());
@@ -95,6 +99,7 @@ namespace Tadmor.Core.Rules.Modules
         [Command("on")]
         [Summary("executes a command when a message contains the specified regex trigger, optionally for a given context")]
         [Priority(1)]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public async Task<RuntimeResult> AddRegexRule(
             string trigger,
             string command,
@@ -112,6 +117,7 @@ namespace Tadmor.Core.Rules.Modules
 
         [Command("rules")]
         [Summary("lists the rules for this guild")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public async Task<RuntimeResult> ListRules()
         {
             var ruleStrings = await FormatPreferencesAsync(p => p.Rules, _ruleFormatter);
@@ -122,6 +128,7 @@ namespace Tadmor.Core.Rules.Modules
 
         [Command("rules rm")]
         [Summary("removes the rules at the specified indexes")]
+        [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public async Task<RuntimeResult> RemoveRules(params int[] ruleIndexes)
         {
             var removedRules = await RemovePreferencesAsync(p => p.Rules, ruleIndexes);
