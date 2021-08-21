@@ -685,8 +685,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
                 Direction.Before => messages
                     .Reverse()
                     .SkipWhile(um => um.Id >= fromMessageId)
-                    .Take(limit)
-                    .Reverse(),
+                    .Take(limit),
                 Direction.Around => throw new NotImplementedException(),
                 _ => throw new ArgumentOutOfRangeException(nameof(dir), dir, null)
             };

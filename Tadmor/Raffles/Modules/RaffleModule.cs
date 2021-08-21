@@ -94,7 +94,7 @@ namespace Tadmor.Raffles.Modules
                     .SelectMany(g => g)
                     .FlattenAsync())
                 .DistinctBy(u => u.Id)
-                .Where(u => u.Id != Context.User.Id)
+                .Where(u => u.Id != targetMessage.Author.Id)
                 .ToList();
             if (!participants.Any()) throw new ModuleException("no users reacted to the message");
             return participants;

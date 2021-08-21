@@ -6,6 +6,6 @@ namespace Tadmor.MessageRendering.Interfaces
 {
     public interface IDrawableMessageFactory
     {
-        Task<DrawableMessage> CreateAsync(IMessage message);
+        ValueTask<DrawableMessage> CreateAsync(IMessage message);
     }
 }

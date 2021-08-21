@@ -15,7 +15,7 @@ namespace Tadmor.MessageRendering.Services
             _imageProvider = imageProvider;
         }
 
-        public async Task<DrawableMessage> CreateAsync(IMessage message)
+        public async ValueTask<DrawableMessage> CreateAsync(IMessage message)
         {
             var author = (message.Author as IGuildUser)?.Nickname ?? message.Author.Username;
             var avatar = await _imageProvider.GetAvatarAsync((IGuildUser)message.Author);

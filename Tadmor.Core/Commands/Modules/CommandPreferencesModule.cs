@@ -81,7 +81,7 @@ namespace Tadmor.Core.Commands.Modules
         [Summary("removes the permission at the specified index")]
         public async Task<RuntimeResult> RemovePermissions(params int[] permissionIndexes)
         {
-            var removedPermissions = await RemovePreferencesAsync(p => p.Rules, permissionIndexes);
+            var removedPermissions = await RemovePreferencesAsync(p => p.CommandPermissions, permissionIndexes);
             return CommandResult.FromSuccess($"removed {removedPermissions} permissions");
         }
     }

@@ -25,8 +25,9 @@ namespace Tadmor.MessageRendering.Modules
         [Command("render")]
         public async Task<RuntimeResult> Render(int messagesCount = 1)
         {
-            var selectedMessages = await Context.GetSelectedMessagesAsync(messagesCount).ToListAsync();
-            var drawableMessages = await Task.WhenAll(selectedMessages.Select(_drawableMessageFactory.CreateAsync));
+            var drawableMessages = await Context.GetSelectedMessagesAsync(messagesCount)
+                .SelectAwait(_drawableMessageFactory.CreateAsync)
+                .ToListAsync();
             var image = _messageRenderer.RenderConversation(drawableMessages);
             return CommandResult.FromSuccess(image);
         }

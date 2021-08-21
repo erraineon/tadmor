@@ -47,7 +47,7 @@ namespace Tadmor.Core.Rules.Modules
         [Summary("sets a reminder for a the specified time (eastern time)")]
         public Task<RuntimeResult> Remind(DateTime dateTime, [Remainder] string reminder)
         {
-            return Remind(DateTime.Now - dateTime, reminder);
+            return Remind(dateTime - DateTime.Now, reminder);
         }
 
         [Command("in")]
@@ -64,7 +64,7 @@ namespace Tadmor.Core.Rules.Modules
         [Summary("executes a command at the specified time (eastern time)")]
         public Task<RuntimeResult> AddOneTimeRule(DateTime dateTime, [Remainder] string command)
         {
-            return AddOneTimeRule(DateTime.Now - dateTime, command);
+            return AddOneTimeRule(dateTime - DateTime.Now, command);
         }
 
         [Command("every")]

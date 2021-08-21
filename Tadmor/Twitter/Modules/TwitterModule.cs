@@ -48,8 +48,9 @@ namespace Tadmor.Twitter.Modules
         [RequireWhitelist]
         public async Task<RuntimeResult> TweetAsync(int messagesToTweet = 1)
         {
-            var selectedMessages = await Context.GetSelectedMessagesAsync(messagesToTweet).ToListAsync();
-            var drawableMessages = await Task.WhenAll(selectedMessages.Select(_drawableMessageFactory.CreateAsync));
+            var drawableMessages = await Context.GetSelectedMessagesAsync(messagesToTweet)
+                .SelectAwait(_drawableMessageFactory.CreateAsync)
+                .ToListAsync();
             var image = _messageRenderer.RenderConversation(drawableMessages);
             var tweetUrl = await _imageTweetSender.TweetImageAsync(image);
             return CommandResult.FromSuccess(tweetUrl);
