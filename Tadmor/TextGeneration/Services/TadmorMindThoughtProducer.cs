@@ -25,19 +25,16 @@ namespace Tadmor.TextGeneration.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (_tadmorMindOptions.Enabled)
+            while (!stoppingToken.IsCancellationRequested)
             {
-                while (!stoppingToken.IsCancellationRequested)
+                if (_tadmorMindThoughtsRepository.Count < (_tadmorMindOptions.BufferSize ?? 128))
                 {
-                    if (_tadmorMindThoughtsRepository.Count < (_tadmorMindOptions.BufferSize ?? 128))
-                    {
-                        var entries = await _tadmorMindClient.GenerateEntriesAsync();
-                        foreach (var entry in entries) _tadmorMindThoughtsRepository.Add(entry);
-                    }
-                    else
-                    {
-                        await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
-                    }
+                    var entries = await _tadmorMindClient.GenerateEntriesAsync();
+                    foreach (var entry in entries) _tadmorMindThoughtsRepository.Add(entry);
+                }
+                else
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
                 }
             }
         }

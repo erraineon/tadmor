@@ -17,7 +17,7 @@ namespace Tadmor.Core.Extensions
             return hostBuilder.ConfigureServices(UseModule<TModule>);
         }
 
-        private static void UseModule<TModule>(this IServiceCollection services)
+        public static void UseModule<TModule>(this IServiceCollection services)
             where TModule : ModuleBase<ICommandContext>
         {
             var moduleType = typeof(TModule);

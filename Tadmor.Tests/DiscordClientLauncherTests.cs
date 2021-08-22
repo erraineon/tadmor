@@ -7,6 +7,7 @@ using NSubstitute;
 using Tadmor.Core.ChatClients.Discord.Interfaces;
 using Tadmor.Core.ChatClients.Discord.Models;
 using Tadmor.Core.ChatClients.Discord.Services;
+using Tadmor.Core.Notifications.Interfaces;
 
 namespace Tadmor.Tests
 {
@@ -15,14 +16,16 @@ namespace Tadmor.Tests
     {
         private IDiscordChatClient _discordChatClient;
         private DiscordOptions _discordOptions;
+        private INotificationPublisher _notificationPublisher;
         private DiscordClientLauncher _sut;
 
         [TestInitialize]
         public void Initialize()
         {
             _discordChatClient = Substitute.For<IDiscordChatClient>();
+            _notificationPublisher = Substitute.For<INotificationPublisher>();
             _discordOptions = new DiscordOptions("foo", true);
-            _sut = new DiscordClientLauncher(_discordChatClient, _discordOptions);
+            _sut = new DiscordClientLauncher(_discordChatClient, _discordOptions, _notificationPublisher);
         }
 
         [TestMethod]

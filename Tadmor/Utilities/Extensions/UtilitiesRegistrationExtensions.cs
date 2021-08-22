@@ -1,6 +1,10 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Tadmor.Core.ChatClients.Discord.Notifications;
 using Tadmor.Core.Extensions;
+using Tadmor.Core.Notifications.Interfaces;
 using Tadmor.Utilities.Modules;
+using Tadmor.Utilities.Services;
 
 namespace Tadmor.Utilities.Extensions
 {
@@ -11,6 +15,7 @@ namespace Tadmor.Utilities.Extensions
             return hostBuilder
                 .ConfigureServices(services =>
                 {
+                    services.AddTransient<INotificationHandler<ChatClientReadyNotification>, BotStartupNotifier>();
                 })
                 .UseModule<UtilitiesModule>();
         }

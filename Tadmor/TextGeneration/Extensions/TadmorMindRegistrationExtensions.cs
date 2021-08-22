@@ -20,13 +20,16 @@ namespace Tadmor.TextGeneration.Extensions
                 .ConfigureServices((hostingContext, services) =>
                 {
                     var config = services.BindConfigurationSection<TadmorMindOptions>(hostingContext.Configuration);
-                    AssertConfigurationValid(config);
-                    services.AddSingleton<ITadmorMindThoughtsRepository, TadmorMindThoughtsRepository>();
-                    services.AddHostedService<TadmorMindThoughtProducer>();
-                    services.AddTransient<ITadmorMindClient, TadmorMindClient>();
-                    services.AddTransient<INotificationHandler<MessageValidatedNotification>, GenerateWhenRepliedToBehaviour>();
-                })
-                .UseModule<TadmorMindModule>();
+                    if (config.Enabled)
+                    {
+                        AssertConfigurationValid(config);
+                        services.AddSingleton<ITadmorMindThoughtsRepository, TadmorMindThoughtsRepository>();
+                        services.AddHostedService<TadmorMindThoughtProducer>();
+                        services.AddTransient<ITadmorMindClient, TadmorMindClient>();
+                        services.AddTransient<INotificationHandler<MessageValidatedNotification>, GenerateWhenRepliedToBehaviour>();
+                        services.UseModule<TadmorMindModule>();
+                    }
+                });
         }
 
         private static void AssertConfigurationValid(TadmorMindOptions configuration)
