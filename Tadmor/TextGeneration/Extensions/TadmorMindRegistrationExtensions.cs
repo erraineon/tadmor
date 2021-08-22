@@ -21,7 +21,8 @@ namespace Tadmor.TextGeneration.Extensions
                 {
                     var config = services.BindConfigurationSection<TadmorMindOptions>(hostingContext.Configuration);
                     AssertConfigurationValid(config);
-                    services.AddSingleton<ITadmorMindClient, TadmorMindClient>();
+                    services.AddSingleton<ITadmorMindThoughtsRepository, TadmorMindThoughtsRepository>();
+                    services.AddHostedService<TadmorMindBackgroundService>();
                     services.AddTransient<INotificationHandler<MessageValidatedNotification>, GenerateWhenRepliedToBehaviour>();
                 })
                 .UseModule<TadmorMindModule>();

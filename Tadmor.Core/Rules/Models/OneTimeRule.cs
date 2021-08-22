@@ -2,5 +2,5 @@
 
 namespace Tadmor.Core.Rules.Models
 {
-    public record OneTimeRule(TimeSpan Delay, string Reaction) : TimeRule(Reaction);
+    public record OneTimeRule(TimeSpan Delay, ulong AuthorUserId, string Reaction) : TimeRule(AuthorUserId, Reaction);
 }

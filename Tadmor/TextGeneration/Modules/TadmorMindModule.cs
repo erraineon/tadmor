@@ -3,17 +3,18 @@ using Discord.Commands;
 using Tadmor.Core.Commands.Attributes;
 using Tadmor.Core.Commands.Models;
 using Tadmor.TextGeneration.Interfaces;
+using Tadmor.TextGeneration.Services;
 
 namespace Tadmor.TextGeneration.Modules
 {
     [Summary("let him talk")]
     public class TadmorMindModule : ModuleBase<ICommandContext>
     {
-        private readonly ITadmorMindClient _tadmorMindClient;
+        private readonly ITadmorMindThoughtsRepository _tadmorMindThoughtsRepository;
 
-        public TadmorMindModule(ITadmorMindClient tadmorMindClient)
+        public TadmorMindModule(ITadmorMindThoughtsRepository tadmorMindThoughtsRepository)
         {
-            _tadmorMindClient = tadmorMindClient;
+            _tadmorMindThoughtsRepository = tadmorMindThoughtsRepository;
         }
 
         [Summary("generate a thought")]
@@ -21,7 +22,7 @@ namespace Tadmor.TextGeneration.Modules
         [RequireWhitelist]
         public async Task<RuntimeResult> GenerateThoughtAsync()
         {
-            var generatedText = await _tadmorMindClient.GenerateAsync();
+            var generatedText = await _tadmorMindThoughtsRepository.ReceiveAsync();
             return CommandResult.FromSuccess(generatedText);
         }
     }

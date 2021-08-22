@@ -2,5 +2,5 @@
 
 namespace Tadmor.Core.Rules.Models
 {
-    public record RecurringRule(TimeSpan Interval, string Reaction) : TimeRule(Reaction);
+    public record RecurringRule(TimeSpan Interval, ulong AuthorUserId, string Reaction) : TimeRule(AuthorUserId, Reaction);
 }

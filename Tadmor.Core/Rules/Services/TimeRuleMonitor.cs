@@ -68,11 +68,16 @@ namespace Tadmor.Core.Rules.Services
             TimeRule timeRule,
             CancellationToken cancellationToken)
         {
-            // Needed to check for permissions
-            var currentGuildUser = await channel.GetUserAsync(chatClient.CurrentUser.Id);
+            // warning: by defaulting to the current user instead of the author of the rule,
+            // we may be escalating permissions. for the time being, have the permissions for
+            // deferred execution commands be the same as the current user's.
+            // TODO #19: store snapshot of user upon creation, then retrieve upon execution
+            var executeAs = 
+                await channel.Guild.GetUserAsync(timeRule.AuthorUserId) ??
+                await channel.Guild.GetUserAsync(chatClient.CurrentUser.Id);
             var timeRuleTriggerContext = new TimeRuleTriggerContext(
                 timeRule,
-                currentGuildUser,
+                executeAs,
                 channel,
                 chatClient);
             await _ruleExecutor.ExecuteRuleAsync(timeRuleTriggerContext, cancellationToken);

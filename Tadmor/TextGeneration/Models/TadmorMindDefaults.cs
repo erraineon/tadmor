@@ -2,6 +2,5 @@
 {
     internal class TadmorMindDefaults
     {
-        public const int BufferSize = 256;
     }
 }

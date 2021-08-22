@@ -38,7 +38,7 @@ namespace Tadmor.Core.Rules.Modules
             if (delay <= TimeSpan.Zero) throw new ModuleException("can't set a reminder in the past");
             var rule = await AddTimeRuleAsync(
                 () =>
-                    new Reminder(Context.User.Username, Context.User.Mention, delay, reminder));
+                    new Reminder(Context.User.Username, Context.User.Mention, delay, reminder, Context.User.Id));
             return CommandResult.FromSuccess($"will remind at {rule.NextRunDate}");
         }
 
@@ -55,7 +55,7 @@ namespace Tadmor.Core.Rules.Modules
         public async Task<RuntimeResult> AddOneTimeRule(TimeSpan delay, [Remainder] string command)
         {
             if (delay <= TimeSpan.Zero) throw new ModuleException("can't set a reminder in the past");
-            var rule = await AddTimeRuleAsync(() => new OneTimeRule(delay, command));
+            var rule = await AddTimeRuleAsync(() => new OneTimeRule(delay, Context.User.Id, command));
             var formattedRule = await _ruleFormatter.ToStringAsync(rule);
             return CommandResult.FromSuccess($"added rule: {formattedRule}");
         }
@@ -73,7 +73,7 @@ namespace Tadmor.Core.Rules.Modules
         [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public async Task<RuntimeResult> AddRecurringRule(TimeSpan interval, [Remainder] string command)
         {
-            var rule = await AddTimeRuleAsync(() => new RecurringRule(interval, command));
+            var rule = await AddTimeRuleAsync(() => new RecurringRule(interval, Context.User.Id, command));
             var formattedRule = await _ruleFormatter.ToStringAsync(rule);
             return CommandResult.FromSuccess($"added rule: {formattedRule}");
         }
@@ -83,7 +83,7 @@ namespace Tadmor.Core.Rules.Modules
         [RequireUserPermission(GuildPermission.Administrator, Group = "trusted"), RequireOwner(Group = "trusted")]
         public async Task<RuntimeResult> AddCronRule(CrontabSchedule cronSchedule, [Remainder] string command)
         {
-            var rule = await AddTimeRuleAsync(() => new CronRule(cronSchedule.ToString(), command));
+            var rule = await AddTimeRuleAsync(() => new CronRule(cronSchedule.ToString(), Context.User.Id, command));
             var formattedRule = await _ruleFormatter.ToStringAsync(rule);
             return CommandResult.FromSuccess($"added rule: {formattedRule}");
         }

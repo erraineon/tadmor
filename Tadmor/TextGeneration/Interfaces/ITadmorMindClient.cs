@@ -1,9 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Tadmor.TextGeneration.Interfaces
 {
     public interface ITadmorMindClient
     {
-        Task<string> GenerateAsync();
+        Task<List<string>> GenerateEntriesAsync();
     }
 }

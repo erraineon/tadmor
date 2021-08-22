@@ -42,7 +42,6 @@ namespace Tadmor.Core.Rules.Services
                 ruleTriggerContext.ExecuteAs,
                 ruleTriggerContext.ChatClient,
                 ruleTriggerContext.ReferencedMessage);
-
             var executeCommandRequest = new ExecuteCommandRequest(commandContext, command);
             var commandResult = await _commandExecutor.ExecuteAsync(executeCommandRequest, cancellationToken);
             if (commandResult.IsSuccess)
