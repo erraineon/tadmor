@@ -46,7 +46,7 @@ namespace Tadmor.Core.Commands.Services
             {
                 await commandContext.Channel.SendMessageAsync("no");
             }
-            else
+            else if (result.Error != CommandError.UnknownCommand)
             {
                 await _commandResultPublisher.PublishAsync(
                     new PublishCommandResultRequest(commandContext, result),

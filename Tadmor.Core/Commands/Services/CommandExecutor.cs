@@ -29,12 +29,5 @@ namespace Tadmor.Core.Commands.Services
             var result = await _commandService.ExecuteAsync(commandContext, input, serviceScope.ServiceProvider);
             return result;
         }
-
-        public async Task ExecuteAndPublishAsync(ExecuteCommandRequest request, CancellationToken cancellationToken)
-        {
-            var result = await ExecuteAsync(request, cancellationToken);
-            var publishCommandResultRequest = new PublishCommandResultRequest(request.CommandContext, result);
-            await _commandResultPublisher.PublishAsync(publishCommandResultRequest, cancellationToken);
-        }
     }
 }

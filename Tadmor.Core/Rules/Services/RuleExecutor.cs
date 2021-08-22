@@ -45,7 +45,7 @@ namespace Tadmor.Core.Rules.Services
 
             var executeCommandRequest = new ExecuteCommandRequest(commandContext, command);
             var commandResult = await _commandExecutor.ExecuteAsync(executeCommandRequest, cancellationToken);
-            if (commandResult.Error != CommandError.UnmetPrecondition)
+            if (commandResult.IsSuccess)
             {
                 var publishCommandResultRequest = new PublishCommandResultRequest(commandContext, commandResult);
                 await _commandResultPublisher.PublishAsync(publishCommandResultRequest, cancellationToken);
