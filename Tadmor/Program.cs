@@ -32,7 +32,8 @@ namespace Tadmor
             return new HostBuilder()
                 .ConfigureAppConfiguration(
                     config => config
-                        .AddJsonFile("appsettings.json"))
+                        .AddJsonFile("appsettings.json")
+                        .AddUserSecrets<Program>())
                 .UseTadmorDbContext()
                 .UseDiscord()
                 .UseTelegram()

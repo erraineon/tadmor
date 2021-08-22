@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Tadmor.TextGeneration.Interfaces;
@@ -6,13 +7,13 @@ using Tadmor.TextGeneration.Models;
 
 namespace Tadmor.TextGeneration.Services
 {
-    public class TadmorMindBackgroundService : BackgroundService
+    public class TadmorMindThoughtProducer : BackgroundService
     {
         private readonly TadmorMindOptions _tadmorMindOptions;
         private readonly ITadmorMindThoughtsRepository _tadmorMindThoughtsRepository;
         private readonly ITadmorMindClient _tadmorMindClient;
 
-        public TadmorMindBackgroundService(
+        public TadmorMindThoughtProducer(
             TadmorMindOptions tadmorMindOptions,
             ITadmorMindThoughtsRepository tadmorMindThoughtsRepository,
             ITadmorMindClient tadmorMindClient)
@@ -24,12 +25,19 @@ namespace Tadmor.TextGeneration.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            if (_tadmorMindOptions.Enabled)
             {
-                if (_tadmorMindThoughtsRepository.Count < (_tadmorMindOptions.BufferSize ?? 128))
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    var entries = await _tadmorMindClient.GenerateEntriesAsync();
-                    foreach (var entry in entries) _tadmorMindThoughtsRepository.Add(entry);
+                    if (_tadmorMindThoughtsRepository.Count < (_tadmorMindOptions.BufferSize ?? 128))
+                    {
+                        var entries = await _tadmorMindClient.GenerateEntriesAsync();
+                        foreach (var entry in entries) _tadmorMindThoughtsRepository.Add(entry);
+                    }
+                    else
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
+                    }
                 }
             }
         }

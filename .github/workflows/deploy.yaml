@@ -27,9 +27,6 @@ jobs:
       - name: build and publish the artifacts
         # using the regular -r switch on publish doesn't work. https://github.com/dotnet/sdk/issues/14281
         run: dotnet build -p:DeployOnBuild=true -p:MyRuntimeIdentifier=win-x64 -o $ARTIFACT_PATH
-        
-      - name: clone settings file
-        run: cp $ARTIFACT_PATH/appsettings.sample.json $ARTIFACT_PATH/appsettings.json
           
       - name: populate settings
         uses: microsoft/variable-substitution@v1 
@@ -37,18 +34,16 @@ jobs:
           files: ${{ env.ARTIFACT_PATH }}/appsettings.json
         env:
           DiscordOptions.Token: ${{ secrets.DISCORD_TOKEN }}
-          DiscordOptions.Enabled: true
           TelegramOptions.Token: ${{ secrets.TELEGRAM_TOKEN }}
           TelegramOptions.BotOwnerId: ${{ secrets.TELEGRAM_BOT_OWNER_ID }}
-          TelegramOptions.Enabled: true
           GoogleOptions.SearchEngineId: ${{ secrets.GOOGLE_SEARCH_ENGINE_ID }}
           GoogleOptions.ApiKey: ${{ secrets.GOOGLE_API_KEY }}
           TadmorMindOptions.ServiceAddress: ${{ secrets.TADMOR_MIND_ADDRESS }}
+          TadmorMindOptions.Enabled: true
           TwitterOptions.ConsumerKey: ${{ secrets.TWITTER_CONSUMER_KEY }}
           TwitterOptions.ConsumerSecret: ${{ secrets.TWITTER_CONSUMER_SECRET }}
           TwitterOptions.OAuthToken: ${{ secrets.TWITTER_OAUTH_TOKEN }}
           TwitterOptions.OAuthTokenSecret: ${{ secrets.TWITTER_OAUTH_TOKEN_SECRET }}
-          ConnectionStrings.SqliteConnectionString: Data Source=database.sqlite;
     
       - name: terminate remote process
         # don't stop in case the process isn't running and taskkill fails
