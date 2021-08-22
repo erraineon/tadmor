@@ -109,7 +109,6 @@ namespace Tadmor.MessageRendering.Services
                         Mode = ResizeMode.Min,
                         Size = new Size(textBoxWidth, 0)
                     });
-                    ApplyPc88PaletteQuantizer(i, KnownDitherings.Bayer4x4);
                 });
             }
 
