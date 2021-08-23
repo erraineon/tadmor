@@ -43,7 +43,8 @@ namespace Tadmor.Twitter.Services
                     tweet.ScreenName == displayName &&
                     tweet.Count == 200 &&
                     tweet.TweetMode == TweetMode.Compat &&
-                    tweet.IncludeRetweets == false);
+                    tweet.IncludeRetweets == false &&
+                    tweet.ExcludeReplies == true);
                 // ReSharper disable once AccessToModifiedClosure
                 if (maxId != default) query = query.Where(tweet => tweet.MaxID == maxId);
                 if (minId != default) query = query.Where(tweet => tweet.SinceID == minId);
