@@ -41,13 +41,6 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
         public IReadOnlyCollection<ISticker> Stickers { get; }
         public MessageFlags? Flags { get; }
 
-        public async Task<IMessage?> GetQuotedMessageAsync()
-        {
-            return ApiMessage.ReplyToMessage != null
-                ? await Channel.GetMessageAsync((ulong) ApiMessage.ReplyToMessage.MessageId)
-                : null;
-        }
-
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions? options = null)
         {
             throw new NotImplementedException();

@@ -25,7 +25,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         {
             var cacheKey = GetCacheKey(guildId);
             // todo: parametrize queue size
-            var cachedMessages = _cache.GetOrCreate(cacheKey, _ => new FixedSizedQueue<IUserMessage>(100));
+            var cachedMessages = _cache.GetOrCreate(cacheKey, _ => new FixedSizedQueue<IUserMessage>(1000));
             return cachedMessages;
         }
 

@@ -22,8 +22,6 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             {
                 if (apiMessage.Photo is { } photos)
                     yield return CreateAttachment(photos.Last().FileId);
-                if (apiMessage.Sticker is { } sticker)
-                    yield return CreateAttachment(sticker.FileId);
             }
 
             var referencedMessage = apiMessage.ReplyToMessage is { MessageId: var messageId }
@@ -37,10 +35,11 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
                 Attachments = GetAttachments().ToList(),
                 Channel = channel,
                 Author = author,
-                ReferencedMessage = referencedMessage
+                ReferencedMessage = referencedMessage,
             };
             return message;
         }
+
         private TelegramAttachment CreateAttachment(string fileId)
         {
             var attachment = new TelegramAttachment
