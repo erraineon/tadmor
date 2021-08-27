@@ -15,16 +15,19 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         private readonly TelegramOptions _telegramOptions;
         private readonly ITelegramGuildFactory _telegramGuildFactory;
         private readonly ITelegramApiClient _api;
+        private readonly ITelegramCachedChatRepository _telegramCachedChatRepository;
         private IApplication? _application;
 
         public TelegramChatClient(
             TelegramOptions telegramOptions,
             ITelegramGuildFactory telegramGuildFactory,
-            ITelegramApiClient api)
+            ITelegramApiClient api,
+            ITelegramCachedChatRepository telegramCachedChatRepository)
         {
             _telegramOptions = telegramOptions;
             _telegramGuildFactory = telegramGuildFactory;
             _api = api;
+            _telegramCachedChatRepository = telegramCachedChatRepository;
         }
 
         public void Dispose()
@@ -88,10 +91,12 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             return guild;
         }
 
-        public Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload,
+        public async Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload,
             RequestOptions? options = null)
         {
-            throw new NotImplementedException();
+            var guilds = Task.WhenAll(_telegramCachedChatRepository.GetAllChatIds()
+                .Select(_telegramGuildFactory.CreateAsync));
+            return await guilds;
         }
 
         public Task<IGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream? jpegIcon = null,

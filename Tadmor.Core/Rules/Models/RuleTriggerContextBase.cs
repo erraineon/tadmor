@@ -11,13 +11,15 @@ namespace Tadmor.Core.Rules.Models
             IGuildChannel executeIn,
             IChatClient chatClient,
             IUserMessage? referencedMessage,
-            RuleBase rule)
+            RuleBase rule, 
+            bool shouldEvaluateSubCommands)
         {
             ExecuteAs = executeAs;
             ExecuteIn = executeIn;
             ChatClient = chatClient;
             ReferencedMessage = referencedMessage;
             Rule = rule;
+            ShouldEvaluateSubCommands = shouldEvaluateSubCommands;
         }
 
         public IUser ExecuteAs { get; }
@@ -25,6 +27,7 @@ namespace Tadmor.Core.Rules.Models
         public IChatClient ChatClient { get; }
         public IUserMessage? ReferencedMessage { get; }
         public RuleBase Rule { get; }
+        public bool ShouldEvaluateSubCommands { get; }
         public abstract bool ShouldExecute { get; }
     }
 }

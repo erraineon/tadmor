@@ -28,15 +28,10 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
             _telegramUserMessageFactory = telegramUserMessageFactory;
         }
 
-        public ITelegramGuild Create(Chat apiChat)
-        {
-            return new TelegramGuild(apiChat, _telegramGuildUserFactory, _guildUserCache, _userMessageCache, _telegramUserMessageFactory, _api);
-        }
-
         public async Task<ITelegramGuild> CreateAsync(long guildId)
         {
             var chat = await _api.GetChatAsync(new ChatId(guildId), CancellationToken.None);
-            return Create(chat);
+            return new TelegramGuild(chat, _telegramGuildUserFactory, _guildUserCache, _userMessageCache, _telegramUserMessageFactory, _api); ;
         }
     }
 }

@@ -8,11 +8,10 @@ namespace Tadmor.Core.Rules.Models
     {
         private readonly TimeRule _timeRule;
 
-        public TimeRuleTriggerContext(
-            TimeRule timeRule,
+        public TimeRuleTriggerContext(TimeRule timeRule,
             IUser executeAs,
             IGuildChannel executeIn,
-            IChatClient chatClient) : base(executeAs, executeIn, chatClient, default, timeRule)
+            IChatClient chatClient) : base(executeAs, executeIn, chatClient, default, timeRule, timeRule is not Reminder)
         {
             _timeRule = timeRule;
         }

@@ -11,7 +11,8 @@ namespace Tadmor.Core.Rules.Models
             notification.GuildChannel,
             notification.ChatClient,
             notification.UserMessage,
-            new ArbitraryExecutionRule(command))
+            new ArbitraryExecutionRule(command),
+            true)
         {
         }
 

@@ -38,7 +38,7 @@ namespace Tadmor.Core.Rules.Modules
             if (delay <= TimeSpan.Zero) throw new ModuleException("can't set a reminder in the past");
             var rule = await AddTimeRuleAsync(
                 () =>
-                    new Reminder(Context.User.Username, Context.User.Mention, delay, reminder, Context.User.Id));
+                    new Reminder(Context.User.Username, Context.User.Mention, delay, reminder, Context.Client.CurrentUser.Id));
             return CommandResult.FromSuccess($"will remind at {rule.NextRunDate}");
         }
 

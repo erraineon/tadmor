@@ -25,8 +25,10 @@ namespace Tadmor.Core.Rules.Services
 
         public async Task<string> GetCommandAsync(IRuleTriggerContext ruleTriggerContext)
         {
-            var sr = new StringReader(ruleTriggerContext.Rule.Reaction);
+            var ruleReaction = ruleTriggerContext.Rule.Reaction;
+            if (!ruleTriggerContext.ShouldEvaluateSubCommands) return ruleReaction;
 
+            var sr = new StringReader(ruleReaction);
             async Task<string> GetCommandRecursive()
             {
                 var sb = new StringBuilder();

@@ -11,5 +11,6 @@ namespace Tadmor.Core.Rules.Interfaces
         IChatClient ChatClient { get; }
         IUserMessage? ReferencedMessage { get; }
         RuleBase Rule { get; }
+        bool ShouldEvaluateSubCommands { get; }
     }
 }

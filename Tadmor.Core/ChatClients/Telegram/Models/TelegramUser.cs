@@ -17,7 +17,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Models
         }
 
         public virtual ulong Id => (ulong) _user.Id;
-        public string Mention => $@"{Username}";
+        public string Mention => $"@{Username}";
         public IActivity Activity => throw new NotImplementedException();
         public UserStatus Status => UserStatus.Online;
         public IImmutableSet<ClientType> ActiveClients => throw new NotImplementedException();

@@ -37,7 +37,7 @@ namespace Tadmor.Core.ChatClients.Telegram.Services
         {
             if (apiMessage.Chat.Type != ChatType.Private)
             {
-                var telegramGuild = _telegramGuildFactory.Create(apiMessage.Chat);
+                var telegramGuild = await _telegramGuildFactory.CreateAsync(apiMessage.Chat.Id);
                 var telegramGuildUser = apiMessage.From.Id == (int)_telegramChatClient.CurrentUser.Id
                     ? _telegramGuildUserFactory.Create(telegramGuild, apiMessage.From, true)
                     // TODO: this is an extra http call per message, just to get up-to-date user permissions

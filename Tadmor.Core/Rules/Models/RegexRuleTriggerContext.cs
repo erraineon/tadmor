@@ -18,7 +18,8 @@ namespace Tadmor.Core.Rules.Models
             notification.GuildChannel,
             notification.ChatClient,
             notification.UserMessage,
-            regexRule)
+            regexRule,
+            true)
         {
             _trigger = notification.UserMessage;
             _regex = new Regex(regexRule.Trigger, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(100));
