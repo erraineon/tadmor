@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using Discord;
-using JetBrains.Annotations;
 using Tadmor.Core.Commands.Models;
 
 namespace Tadmor.Core.Rules.Models
