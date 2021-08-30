@@ -85,5 +85,5 @@ jobs:
             cd $TARGET_DEPLOY_PATH
             curl -o pstools.zip https://download.sysinternals.com/files/PSTools.zip
             unzip -n pstools.zip
-            session_id=$(query session | sed -nr 's/.+$PROCESS_USER_NAME\s*([0-9]).+/\1/p')
+            session_id=$(query session | sed -nr "s/.+$PROCESS_USER_NAME\s*([0-9]).+/\1/p")
             ./psexec -i $session_id -d -s -accepteula -w $PWD $PWD/$PROCESS_NAME
