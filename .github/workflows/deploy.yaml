@@ -15,6 +15,7 @@ jobs:
       ARTIFACT_PATH: build_artifact
       TARGET_DEPLOY_PATH: tadmor
       PROCESS_NAME: Tadmor.exe
+      PROCESS_USER_NAME: Administrator
 
     environment: Release
 
@@ -77,12 +78,12 @@ jobs:
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
-          envs: TARGET_DEPLOY_PATH, PROCESS_NAME
+          envs: TARGET_DEPLOY_PATH, PROCESS_NAME, PROCESS_USER_NAME
           # use -n with unzip to not ask to overwrite
           # extract session_id and use psexec instead of simply starting to create the process in the right gui session
           script: |
             cd $TARGET_DEPLOY_PATH
             curl -o pstools.zip https://download.sysinternals.com/files/PSTools.zip
             unzip -n pstools.zip
-            session_id=$(query session | sed -nr 's/.+Administrator\s*([0-9]).+/\1/p')
+            session_id=$(query session | sed -nr 's/.+$PROCESS_USER_NAME\s*([0-9]).+/\1/p')
             ./psexec -i $session_id -d -s -accepteula -w $PWD $PWD/$PROCESS_NAME
