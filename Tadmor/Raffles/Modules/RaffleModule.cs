@@ -43,7 +43,7 @@ namespace Tadmor.Raffles.Modules
         public async Task<RuntimeResult> RemoveWinnersManually(params int[] extractionIds)
         {
             await _raffleWinnersRepository.RemoveWinnersAsync(extractionIds);
-            return CommandResult.FromSuccess($"removed {extractionIds} raffle winners", true);
+            return CommandResult.FromSuccess($"removed {extractionIds.Length} raffle winners", true);
         }
 
         [Command("raffles")]
