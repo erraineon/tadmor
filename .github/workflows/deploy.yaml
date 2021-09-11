@@ -41,7 +41,7 @@ jobs:
           GoogleOptions.ApiKey: ${{ secrets.GOOGLE_API_KEY }}
           Gpt3TadmorMindOptions.ApiKey: ${{ secrets.OPENAI_APIKEY }},
           Gpt3TadmorMindOptions.ModelName: ${{ secrets.OPENAI_MODELNAME }},
-          TadmorMindOptions.Enabled: true
+          Gpt3TadmorMindOptions.Enabled: true
           TwitterOptions.ConsumerKey: ${{ secrets.TWITTER_CONSUMER_KEY }}
           TwitterOptions.ConsumerSecret: ${{ secrets.TWITTER_CONSUMER_SECRET }}
           TwitterOptions.OAuthToken: ${{ secrets.TWITTER_OAUTH_TOKEN }}
