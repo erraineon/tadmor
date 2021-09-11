@@ -30,7 +30,7 @@ namespace Tadmor.TextGeneration.Services
             var entriesStartIndex = Math.Max(0, entryLimiters.Min(e => text.IndexOf(e, StringComparison.Ordinal)));
             var entries = text[entriesStartIndex..]
                 .Split(entryLimiters, StringSplitOptions.RemoveEmptyEntries)[..^1]
-                .Select(e => e.Trim('\r', '\n', ' ').Replace("\n\n", "\n"))
+                .Select(RemoveWhiteSpace)
                 .Where(e => !string.IsNullOrWhiteSpace(e))
                 .Distinct()
                 .Shuffle()
@@ -57,7 +57,12 @@ namespace Tadmor.TextGeneration.Services
                 .PostJsonAsync(requestData); 
             var response = await result.GetJsonAsync();
             var text = response.choices[0].text.ToString() as string ?? throw new Exception("no data was generated");
-            return text;
+            return RemoveWhiteSpace(text);
+        }
+
+        private static string RemoveWhiteSpace(string text)
+        {
+            return text.Trim('\r', '\n', ' ').Replace("\n\n", "\n");
         }
     }
 }
