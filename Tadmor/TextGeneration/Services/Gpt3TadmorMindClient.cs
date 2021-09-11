@@ -1,0 +1,63 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Flurl.Http;
+using MoreLinq;
+using Tadmor.TextGeneration.Interfaces;
+using Tadmor.TextGeneration.Models;
+
+namespace Tadmor.TextGeneration.Services
+{
+    public class Gpt3TadmorMindClient : ITadmorMindClient
+    {
+        private readonly Gpt3TadmorMindOptions _gpt3TadmorMindOptions;
+
+        public Gpt3TadmorMindClient(Gpt3TadmorMindOptions gpt3TadmorMindOptions)
+        {
+            _gpt3TadmorMindOptions = gpt3TadmorMindOptions;
+        }
+
+        public async Task<List<string>> GenerateEntriesAsync()
+        {
+            var text = await CompleteAsync(new
+            {
+                prompt = string.Empty,
+                model = _gpt3TadmorMindOptions.ModelName,
+                max_tokens = 256,
+            });
+            var entryLimiters = new[] { "<|endoftext|>", " END" };
+            var entriesStartIndex = Math.Max(0, entryLimiters.Min(e => text.IndexOf(e, StringComparison.Ordinal)));
+            var entries = text[entriesStartIndex..]
+                .Split(entryLimiters, StringSplitOptions.RemoveEmptyEntries)[..^1]
+                .Select(e => e.Trim('\r', '\n', ' ').Replace("\n\n", "\n"))
+                .Where(e => !string.IsNullOrWhiteSpace(e))
+                .Distinct()
+                .Shuffle()
+                .ToList();
+            return entries;
+        }
+
+        public async Task<string> GenerateCompletionAsync(string prompt)
+        {
+            var completion = await CompleteAsync(new
+            {
+                prompt = prompt,
+                model = _gpt3TadmorMindOptions.ModelName,
+                max_tokens = 256,
+                stop = " END"
+            });
+            return $"{prompt}{(completion.StartsWith(' ') ? string.Empty : ' ')}{completion}";
+        }
+
+        private async Task<string> CompleteAsync(object requestData)
+        {
+            var result = await "https://api.openai.com/v1/completions"
+                .WithOAuthBearerToken(_gpt3TadmorMindOptions.ApiKey)
+                .PostJsonAsync(requestData); 
+            var response = await result.GetJsonAsync();
+            var text = response.choices[0].text.ToString() as string ?? throw new Exception("no data was generated");
+            return text;
+        }
+    }
+}

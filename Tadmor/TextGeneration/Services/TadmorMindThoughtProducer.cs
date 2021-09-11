@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Tadmor.TextGeneration.Interfaces;
 using Tadmor.TextGeneration.Models;
 
@@ -9,34 +10,50 @@ namespace Tadmor.TextGeneration.Services
 {
     public class TadmorMindThoughtProducer : BackgroundService
     {
-        private readonly TadmorMindOptions _tadmorMindOptions;
+        private readonly Gpt3TadmorMindOptions _tadmorMindOptions;
         private readonly ITadmorMindThoughtsRepository _tadmorMindThoughtsRepository;
         private readonly ITadmorMindClient _tadmorMindClient;
+        private readonly ILogger<TadmorMindThoughtProducer> _logger;
 
         public TadmorMindThoughtProducer(
-            TadmorMindOptions tadmorMindOptions,
+            Gpt3TadmorMindOptions tadmorMindOptions,
             ITadmorMindThoughtsRepository tadmorMindThoughtsRepository,
-            ITadmorMindClient tadmorMindClient)
+            ITadmorMindClient tadmorMindClient,
+            ILogger<TadmorMindThoughtProducer> logger)
         {
             _tadmorMindOptions = tadmorMindOptions;
             _tadmorMindThoughtsRepository = tadmorMindThoughtsRepository;
             _tadmorMindClient = tadmorMindClient;
+            _logger = logger;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (_tadmorMindThoughtsRepository.Count < (_tadmorMindOptions.BufferSize ?? 128))
+                if (_tadmorMindThoughtsRepository.Count < (_tadmorMindOptions.BufferSize ?? 16))
                 {
-                    var entries = await _tadmorMindClient.GenerateEntriesAsync();
-                    foreach (var entry in entries) _tadmorMindThoughtsRepository.Add(entry);
+                    try
+                    {
+                        var entries = await _tadmorMindClient.GenerateEntriesAsync();
+                        foreach (var entry in entries) _tadmorMindThoughtsRepository.Add(entry);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, "error while retrieving tadmor mind thoughts");
+                        await GetDelayTask(stoppingToken);
+                    }
                 }
                 else
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
+                    await GetDelayTask(stoppingToken);
                 }
             }
+        }
+
+        private static Task GetDelayTask(CancellationToken stoppingToken)
+        {
+            return Task.Delay(TimeSpan.FromSeconds(15), stoppingToken);
         }
     }
 }

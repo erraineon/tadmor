@@ -19,25 +19,25 @@ namespace Tadmor.TextGeneration.Extensions
             return hostBuilder
                 .ConfigureServices((hostingContext, services) =>
                 {
-                    var config = services.BindConfigurationSection<TadmorMindOptions>(hostingContext.Configuration);
+                    var config = services.BindConfigurationSection<Gpt3TadmorMindOptions>(hostingContext.Configuration);
                     if (config.Enabled)
                     {
                         AssertConfigurationValid(config);
                         services.AddSingleton<ITadmorMindThoughtsRepository, TadmorMindThoughtsRepository>();
                         services.AddHostedService<TadmorMindThoughtProducer>();
-                        services.AddTransient<ITadmorMindClient, TadmorMindClient>();
+                        services.AddTransient<ITadmorMindClient, Gpt3TadmorMindClient>();
                         services.AddTransient<INotificationHandler<MessageValidatedNotification>, GenerateWhenRepliedToBehaviour>();
                         services.UseModule<TadmorMindModule>();
                     }
                 });
         }
 
-        private static void AssertConfigurationValid(TadmorMindOptions configuration)
+        private static void AssertConfigurationValid(Gpt3TadmorMindOptions configuration)
         {
-            if (!Url.IsValid(configuration.ServiceAddress))
+            if (string.IsNullOrWhiteSpace(configuration.ApiKey) || string.IsNullOrWhiteSpace(configuration.ModelName))
             {
                 const string msg = "to use the tadmor mind module you must specify " +
-                                   "the service address in the options";
+                                   "the openai api key and model name in the options";
                 throw new Exception(msg);
             }
         }

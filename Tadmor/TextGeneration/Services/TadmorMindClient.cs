@@ -33,6 +33,11 @@ namespace Tadmor.TextGeneration.Services
             return entries;
         }
 
+        public Task<string> GenerateCompletionAsync(string prompt)
+        {
+            throw new NotSupportedException();
+        }
+
         private async Task<string> QueryGenerationAsync()
         {
             var requestBody = new { temperature = 1.0 };
