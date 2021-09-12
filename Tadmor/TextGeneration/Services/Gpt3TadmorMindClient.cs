@@ -11,6 +11,7 @@ namespace Tadmor.TextGeneration.Services
 {
     public class Gpt3TadmorMindClient : ITadmorMindClient
     {
+        private const int MaxTokensToGenerate = 256;
         private readonly Gpt3TadmorMindOptions _gpt3TadmorMindOptions;
 
         public Gpt3TadmorMindClient(Gpt3TadmorMindOptions gpt3TadmorMindOptions)
@@ -24,9 +25,9 @@ namespace Tadmor.TextGeneration.Services
             {
                 prompt = string.Empty,
                 model = _gpt3TadmorMindOptions.ModelName,
-                max_tokens = 256,
+                max_tokens = MaxTokensToGenerate,
             });
-            var entryLimiters = new[] { "<|endoftext|>", " END" };
+            var entryLimiters = new[] { "<|endoftext|>", "END" };
             var entriesStartIndex = Math.Max(0, entryLimiters.Min(e => text.IndexOf(e, StringComparison.Ordinal)));
             var entries = text[entriesStartIndex..]
                 .Split(entryLimiters, StringSplitOptions.RemoveEmptyEntries)[..^1]
@@ -44,10 +45,10 @@ namespace Tadmor.TextGeneration.Services
             {
                 prompt = prompt,
                 model = _gpt3TadmorMindOptions.ModelName,
-                max_tokens = 256,
+                max_tokens = MaxTokensToGenerate,
                 stop = " END"
             });
-            return $"{prompt}{(completion.StartsWith(' ') ? string.Empty : ' ')}{completion}";
+            return $"{prompt}{completion}";
         }
 
         private async Task<string> CompleteAsync(object requestData)
@@ -62,7 +63,7 @@ namespace Tadmor.TextGeneration.Services
 
         private static string RemoveWhiteSpace(string text)
         {
-            return text.Trim('\r', '\n', ' ').Replace("\n\n", "\n");
+            return text.Replace("\n\n", "\n").Trim('\r', '\n', ' ');
         }
     }
 }
