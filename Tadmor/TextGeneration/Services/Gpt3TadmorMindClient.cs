@@ -48,7 +48,10 @@ namespace Tadmor.TextGeneration.Services
                 max_tokens = MaxTokensToGenerate,
                 stop = " END"
             });
-            return $"{prompt}{completion}";
+            var separator = completion.FirstOrDefault() is var c && (char.IsLetterOrDigit(c) || c == '"')
+                ? " "
+                : string.Empty;
+            return $"{prompt}{separator}{completion}";
         }
 
         private async Task<string> CompleteAsync(object requestData)
