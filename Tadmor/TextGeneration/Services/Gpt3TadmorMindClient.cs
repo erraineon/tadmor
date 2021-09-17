@@ -46,6 +46,7 @@ namespace Tadmor.TextGeneration.Services
                 prompt = prompt,
                 model = _gpt3TadmorMindOptions.ModelName,
                 max_tokens = MaxTokensToGenerate,
+                temperature = 0.75f,
                 stop = " END"
             });
             var separator = completion.FirstOrDefault() is var c && (char.IsLetterOrDigit(c) || c == '"')

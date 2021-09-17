@@ -35,7 +35,7 @@ namespace Tadmor.TextGeneration.Modules
         [RequireWhitelist]
         public async Task<RuntimeResult> GenerateCompletionAsync([Remainder]string prompt)
         {
-            if (prompt.Length >= 128) throw new ModuleException("the prompt can be up to 128 characters long");
+            if (prompt.Length >= 256) throw new ModuleException("the prompt can be up to 256 characters long");
             var generatedText = await _tadmorMindClient.GenerateCompletionAsync(prompt);
             return CommandResult.FromSuccess(generatedText);
         }
