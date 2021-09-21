@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Tadmor.Core.Extensions
 {
@@ -17,18 +16,24 @@ namespace Tadmor.Core.Extensions
             random ??= DefaultRandom;
             weightFunction ??= _ => 1;
 
-            var weightAccumulator = 0f;
             var itemsAndWeight = values
-                .Select(item => (item, weight: weightAccumulator += weightFunction(item)))
+                .Select(item => (item, weight: weightFunction(item)))
                 .Where(t => t.weight > 0)
                 .ToList();
-            if (itemsAndWeight.Any())
+
+            for (var i = 0; i < subsetSize; i++)
             {
-                var totalWeight = itemsAndWeight.Last().weight;
-                for (var i = 0; i < subsetSize; i++)
+                if (itemsAndWeight.Any())
                 {
-                    var weightIndex = random.NextDouble() * totalWeight;
-                    yield return itemsAndWeight.First(t => t.weight >= weightIndex).item;
+                    var totalWeight = itemsAndWeight.Sum(t => t.weight);
+                    var minimumWeightToPick = random.NextDouble() * totalWeight;
+                    var weightAccumulator = 0f;
+                    var (selectedItem, _, selectedIndex) = itemsAndWeight
+                        .Select((t, index) => (t.item, t.weight, index))
+                        .SkipWhile(t => (weightAccumulator += t.weight) < minimumWeightToPick)
+                        .First();
+                    yield return selectedItem;
+                    itemsAndWeight.RemoveAt(selectedIndex);
                 }
             }
         }
