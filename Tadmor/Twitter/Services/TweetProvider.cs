@@ -24,7 +24,7 @@ namespace Tadmor.Twitter.Services
             {
                 Id = s.StatusID,
                 AuthorName = s.User?.ScreenNameResponse ?? displayName,
-                Status = s.Text ?? string.Empty,
+                Status = s.FullText ?? string.Empty,
                 HasMedia = s.Entities?.MediaEntities?.Any() == true
             }).ToList();
             return collection;
@@ -42,7 +42,7 @@ namespace Tadmor.Twitter.Services
                     tweet.Type == StatusType.User &&
                     tweet.ScreenName == displayName &&
                     tweet.Count == 200 &&
-                    tweet.TweetMode == TweetMode.Compat &&
+                    tweet.TweetMode == TweetMode.Extended &&
                     tweet.IncludeRetweets == false &&
                     tweet.ExcludeReplies == true);
                 // ReSharper disable once AccessToModifiedClosure

@@ -57,17 +57,25 @@ namespace Tadmor.TextGeneration.Services
 
         private async Task<string> CompleteAsync(object requestData)
         {
-            var result = await "https://api.openai.com/v1/completions"
-                .WithOAuthBearerToken(_gpt3TadmorMindOptions.ApiKey)
-                .PostJsonAsync(requestData); 
-            var response = await result.GetJsonAsync();
-            var text = response.choices[0].text.ToString() as string ?? throw new Exception("no data was generated");
-            return RemoveWhiteSpace(text);
+            // sometimes gpt-3 will return an empty completion. retry up to three times before giving up
+            var retries = 3;
+            string? text;
+            do
+            {
+                var result = await "https://api.openai.com/v1/completions"
+                    .WithOAuthBearerToken(_gpt3TadmorMindOptions.ApiKey)
+                    .PostJsonAsync(requestData);
+                var response = await result.GetJsonAsync();
+                text = response.choices[0].text.ToString() as string;
+                if (text != null) text = RemoveWhiteSpace(text);
+            } while (string.IsNullOrWhiteSpace(text) && retries-- > 0);
+            return text ??
+                throw new Exception("no data was generated");
         }
 
         private static string RemoveWhiteSpace(string text)
         {
-            return text.Replace("\n\n", "\n").Trim('\r', '\n', ' ');
+            return text.Replace("\n\n", "\n").Trim('\r', '\n', ' ', '"');
         }
     }
 }
